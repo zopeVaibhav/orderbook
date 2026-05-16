@@ -1,6 +1,7 @@
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import cors from 'cors';
+import appRoutes from './routes/index';
 import { ENV, parseEnv } from './config/env.config';
 
 parseEnv();
@@ -15,6 +16,8 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser());
+
+app.use('/api/v1', appRoutes);
 
 app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'ok' });

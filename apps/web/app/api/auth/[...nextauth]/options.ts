@@ -26,7 +26,7 @@ export const authOptions: AuthOptions = {
 
                     const response = await axios.post(SIGNIN_URL, { ...account, ...user });
                     const result = response.data;
-                    if (result?.success) {
+                    if (result?.status) {
                         const u = user as AppUser;
                         u.id = result.data.user.id;
                         u.token = result.data.token;
@@ -42,7 +42,7 @@ export const authOptions: AuthOptions = {
 
         async jwt({ user, token }) {
             if (user) {
-                token.user = user;
+                token.user = user as AppUser;
             }
             return token;
         },

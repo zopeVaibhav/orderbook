@@ -1,5 +1,5 @@
-import { Router } from "express";
-import { SignInController } from "../controllers/signInController";
+import { Router } from 'express';
+import { SignInController } from '../controllers/signInController';
 
 const router: Router = Router();
 

@@ -1,15 +1,15 @@
-import { Request, Response } from "express";
-import { ResponseWriter } from "../class/responseWriter";
+import { Request, Response } from 'express';
+import { ResponseWriter } from '../class/responseWriter';
 import { prisma } from '@/database';
 import jwt from 'jsonwebtoken';
 import z from 'zod';
-import { ENV } from "../config/env.config";
+import { ENV } from '../config/env.config';
 
 const signInSchema = z.object({
     email: z.email(),
     name: z.string().min(1),
-    image: z.string()
-})
+    image: z.string().optional(),
+});
 
 export const SignInController = async (req: Request, res: Response) => {
     try {
@@ -23,23 +23,28 @@ export const SignInController = async (req: Request, res: Response) => {
             create: {
                 email: data.email,
                 name: data.name,
-                image: data.image
+                image: data.image ?? '',
             },
             update: {
                 email: data.email,
                 name: data.name,
-                image: data.image
-            }
-        })
+                image: data.image ?? '',
+            },
+        });
 
         const accessToken = jwt.sign({ userId: user.id }, ENV.JWT_ACCESS_SECRET, {
-            expiresIn: ENV.ACCESS_TOKEN_TTL_SEC
-        })
+            expiresIn: ENV.ACCESS_TOKEN_TTL_SEC,
+        });
 
-        return ResponseWriter.success(res, {
-            accessToken
-        }, "Sign in Successfull")
+        return ResponseWriter.success(
+            res,
+            {
+                user,
+                token: accessToken,
+            },
+            'Sign in Successfull',
+        );
     } catch (error) {
-        ResponseWriter.error(res, error)
+        ResponseWriter.error(res, error);
     }
-}
+};

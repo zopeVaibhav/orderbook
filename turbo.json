@@ -1,17 +1,46 @@
 {
     "$schema": "https://turborepo.dev/schema.json",
+    "globalEnv": [
+        "NODE_ENV",
+        "DATABASE_URL",
+        "SERVER_PORT",
+        "WEB_ORIGIN",
+        "JWT_ACCESS_SECRET",
+        "ACCESS_TOKEN_TTL_SEC",
+        "NEXT_PUBLIC_API_URL",
+        "NEXTAUTH_URL",
+        "NEXTAUTH_SECRET",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+    ],
     "ui": "tui",
     "tasks": {
+        "generate": {
+            "cache": false
+        },
         "build": {
-            "dependsOn": ["^build"],
-            "inputs": ["$TURBO_DEFAULT$", ".env*"],
-            "outputs": [".next/**", "!.next/cache/**"]
+            "dependsOn": [
+                "^build",
+                "^generate"
+            ],
+            "inputs": [
+                "$TURBO_DEFAULT$",
+                ".env*"
+            ],
+            "outputs": [
+                ".next/**",
+                "!.next/cache/**"
+            ]
         },
         "lint": {
-            "dependsOn": ["^lint"]
+            "dependsOn": [
+                "^lint"
+            ]
         },
         "check-types": {
-            "dependsOn": ["^check-types"]
+            "dependsOn": [
+                "^check-types"
+            ]
         },
         "dev": {
             "cache": false,

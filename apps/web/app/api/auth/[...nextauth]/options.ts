@@ -62,7 +62,7 @@ export const authOptions: AuthOptions = {
                     prompt: 'consent',
                     access_type: 'offline',
                     response_type: 'code',
-                    scope: 'email openid profile'
+                    scope: 'email openid profile',
                 },
             },
         }),

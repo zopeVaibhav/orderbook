@@ -1,4 +1,4 @@
-use super::{book::Book, market::Market};
+use super::{aliases::MarketId, book::Book, market::Market};
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -23,7 +23,7 @@ impl MarketState {
 
 #[derive(Debug, Default)]
 pub struct Engine {
-    markets: HashMap<String, MarketState>,
+    markets: HashMap<MarketId, MarketState>,
 }
 
 impl Engine {
@@ -31,11 +31,11 @@ impl Engine {
         Self::default()
     }
 
-    pub fn markets(&self) -> &HashMap<String, MarketState> {
+    pub fn markets(&self) -> &HashMap<MarketId, MarketState> {
         &self.markets
     }
 
-    pub fn add_market(&mut self, market_id: String, market: Market) {
+    pub fn add_market(&mut self, market_id: MarketId, market: Market) {
         self.markets
             .insert(market_id, MarketState::new(market, Book::new()));
     }

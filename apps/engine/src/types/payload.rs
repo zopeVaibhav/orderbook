@@ -1,5 +1,7 @@
-use super::aliases::{ClientOrderId, MarketId, Price, Quantity, UserId};
-use super::order::{OrderKind, Side};
+use super::{
+    aliases::{ClientOrderId, MarketId, Price, Quantity, UserId},
+    order::{OrderKind, Side},
+};
 
 #[derive(Debug, Clone)]
 pub struct NewOrderPayload {

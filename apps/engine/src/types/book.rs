@@ -1,5 +1,7 @@
-use super::aliases::{ClientOrderId, Price, UserId};
-use super::order::{Order, Side};
+use super::{
+    aliases::{ClientOrderId, Price, UserId},
+    order::{Order, Side},
+};
 use std::collections::{BTreeMap, HashMap, VecDeque};
 
 #[derive(Debug, Default)]

@@ -1,11 +1,12 @@
-use crate::types::order::{Order, Side};
+use super::aliases::{ClientOrderId, Price, UserId};
+use super::order::{Order, Side};
 use std::collections::{BTreeMap, HashMap, VecDeque};
 
 #[derive(Debug, Default)]
 pub struct Book {
-    asks: BTreeMap<u64, VecDeque<Order>>,
-    bids: BTreeMap<u64, VecDeque<Order>>,
-    cancel_index: HashMap<(String, String), (Side, u64)>,
+    asks: BTreeMap<Price, VecDeque<Order>>,
+    bids: BTreeMap<Price, VecDeque<Order>>,
+    cancel_index: HashMap<(UserId, ClientOrderId), (Side, Price)>,
 }
 
 impl Book {
@@ -13,15 +14,15 @@ impl Book {
         Self::default()
     }
 
-    pub fn asks(&self) -> &BTreeMap<u64, VecDeque<Order>> {
+    pub fn asks(&self) -> &BTreeMap<Price, VecDeque<Order>> {
         &self.asks
     }
 
-    pub fn bids(&self) -> &BTreeMap<u64, VecDeque<Order>> {
+    pub fn bids(&self) -> &BTreeMap<Price, VecDeque<Order>> {
         &self.bids
     }
 
-    pub fn cancel_index(&self) -> &HashMap<(String, String), (Side, u64)> {
+    pub fn cancel_index(&self) -> &HashMap<(UserId, ClientOrderId), (Side, Price)> {
         &self.cancel_index
     }
 }

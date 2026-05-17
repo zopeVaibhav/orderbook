@@ -1,12 +1,14 @@
+use crate::types::aliases::{ClientOrderId, Quantity, UserId};
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Order {
-    client_order_id: String,
-    user_id: String,
-    quantity: u64,
+    client_order_id: ClientOrderId,
+    user_id: UserId,
+    quantity: Quantity,
 }
 
 impl Order {
-    pub fn new(client_order_id: String, user_id: String, quantity: u64) -> Self {
+    pub fn new(client_order_id: ClientOrderId, user_id: UserId, quantity: Quantity) -> Self {
         Self {
             client_order_id,
             user_id,
@@ -22,20 +24,13 @@ impl Order {
         &self.user_id
     }
 
-    pub fn quantity(&self) -> u64 {
+    pub fn quantity(&self) -> Quantity {
         self.quantity
     }
 
-    pub fn into_id_pair(self) -> (String, String) {
+    pub fn into_id_pair(self) -> (UserId, ClientOrderId) {
         (self.user_id, self.client_order_id)
     }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Tif {
-    Gtc,
-    Ioc,
-    Fok,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -45,7 +40,10 @@ pub enum Side {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum OrderType {
-    Limit,
+pub enum OrderKind {
+    LimitGtc,
     Market,
+    Ioc,
+    Fok,
+    PostOnly,
 }

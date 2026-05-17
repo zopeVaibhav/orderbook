@@ -1,8 +1,42 @@
+use super::{book::Book, market::Market};
 use std::collections::HashMap;
 
-use crate::types::{book::Book, market::Market};
+#[derive(Debug)]
+pub struct MarketState {
+    market: Market,
+    book: Book,
+}
 
+impl MarketState {
+    pub fn new(market: Market, book: Book) -> Self {
+        Self { market, book }
+    }
+
+    pub fn market(&self) -> &Market {
+        &self.market
+    }
+
+    pub fn book(&self) -> &Book {
+        &self.book
+    }
+}
+
+#[derive(Debug, Default)]
 pub struct Engine {
-    pub markets: HashMap<String, Market>,
-    pub books: HashMap<String, Book>,
+    markets: HashMap<String, MarketState>,
+}
+
+impl Engine {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn markets(&self) -> &HashMap<String, MarketState> {
+        &self.markets
+    }
+
+    pub fn add_market(&mut self, market_id: String, market: Market) {
+        self.markets
+            .insert(market_id, MarketState::new(market, Book::new()));
+    }
 }

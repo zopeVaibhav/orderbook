@@ -3,15 +3,11 @@ use crate::types::{aliases::Price, engine::MarketState, order::Side, payload::Ne
 impl MarketState {
     pub fn place_fok_order(&mut self, order: &NewOrderPayload) -> bool {
         let book = &mut self.book;
-        let market = &self.market;
 
         let Some(price) = order.price else {
             return false;
         };
 
-        if order.quantity < market.min_quantity {
-            return false;
-        };
         let available: u64 = match order.side {
             Side::Ask => {
                 let mut sum: u64 = 0;

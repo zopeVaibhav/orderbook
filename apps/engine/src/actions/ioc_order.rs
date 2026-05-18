@@ -3,13 +3,8 @@ use crate::types::{aliases::Price, engine::MarketState, order::Side, payload::Ne
 impl MarketState {
     pub fn place_ioc_order(&mut self, order: &NewOrderPayload) -> bool {
         let book = &mut self.book;
-        let market = &self.market;
 
         let Some(price) = order.price else {
-            return false;
-        };
-
-        if order.quantity < market.min_quantity {
             return false;
         };
 

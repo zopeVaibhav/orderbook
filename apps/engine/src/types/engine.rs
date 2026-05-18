@@ -34,6 +34,10 @@ impl Engine {
             return false;
         };
 
+        if order.quantity < market_state.market.min_quantity {
+            return false;
+        }
+
         match order.order_kind {
             OrderKind::LimitGtc => market_state.place_limit_order(&order),
             OrderKind::Market => market_state.place_market_order(&order),

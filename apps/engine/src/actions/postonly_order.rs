@@ -6,14 +6,9 @@ use crate::types::{
 
 impl MarketState {
     pub fn place_postonly_order(&mut self, order: &NewOrderPayload) -> bool {
-        let market = &self.market;
         let book = &mut self.book;
 
         let Some(price) = order.price else {
-            return false;
-        };
-
-        if order.quantity < market.min_quantity {
             return false;
         };
 

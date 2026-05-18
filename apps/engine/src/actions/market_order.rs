@@ -2,12 +2,7 @@ use crate::types::{aliases::Price, engine::MarketState, order::Side, payload::Ne
 
 impl MarketState {
     pub fn place_market_order(&mut self, order: &NewOrderPayload) -> bool {
-        let market = &self.market;
         let book = &mut self.book;
-
-        if order.quantity < market.min_quantity {
-            return false;
-        };
 
         match order.side {
             Side::Ask => {

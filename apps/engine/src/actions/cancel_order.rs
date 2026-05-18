@@ -1,7 +1,7 @@
 use crate::types::{engine::MarketState, order::Side, payload::CancelOrderPayload};
 
 impl MarketState {
-    pub fn cancel_order(&mut self, order: CancelOrderPayload) -> bool {
+    pub fn cancel_order(&mut self, order: &CancelOrderPayload) -> bool {
         let book = &mut self.book;
         let key = (order.user_id.clone(), order.client_order_id.clone());
 
@@ -20,7 +20,7 @@ impl MarketState {
 
         let Some(pos) = queue
             .iter()
-            .position(|o| o.client_order_id == order.client_order_id)
+            .position(|o| o.client_order_id == order.client_order_id && o.user_id == order.user_id)
         else {
             return false;
         };

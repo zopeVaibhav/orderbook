@@ -1,3 +1,4 @@
+pub mod cancel_order;
 pub mod fok_order;
 pub mod ioc_order;
 pub mod limit_order;

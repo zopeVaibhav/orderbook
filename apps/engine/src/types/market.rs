@@ -22,7 +22,7 @@ pub struct MarketState {
 }
 
 impl MarketState {
-    pub fn would_cross(&self, side: &Side, price: Price) -> bool {
+    pub fn would_cross(&self, side: Side, price: Price) -> bool {
         match side {
             Side::Ask => self
                 .book
@@ -71,7 +71,7 @@ impl MarketState {
 
     pub fn match_against(
         &mut self,
-        side: &Side,
+        side: Side,
         price: Option<Price>,
         user_id: &UserId,
         quantity: Quantity,

@@ -16,7 +16,7 @@ impl MarketState {
         };
 
         let remaining_quantity = self.match_against(
-            &order.side.opposite(),
+            order.side.opposite(),
             order.price,
             &order.user_id,
             order.quantity,

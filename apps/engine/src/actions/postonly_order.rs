@@ -13,7 +13,7 @@ impl MarketState {
             return Err(PlaceOrderErr::MissingPrice);
         };
 
-        if self.would_cross(&order.side, price) {
+        if self.would_cross(order.side, price) {
             return Err(PlaceOrderErr::PostOnlyWouldCross);
         }
 

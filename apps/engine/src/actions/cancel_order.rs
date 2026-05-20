@@ -1,4 +1,5 @@
 use crate::types::{market::MarketState, order::Side, payload::CancelOrderPayload};
+
 impl MarketState {
     pub fn cancel_order(&mut self, order: &CancelOrderPayload) -> bool {
         let book = &mut self.book;

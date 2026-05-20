@@ -3,11 +3,13 @@ use super::{
     book::Book,
     market::Market,
     order::OrderKind,
+    outcome::{PlaceOrderErr, PlaceOrderOutcome},
     payload::{CancelOrderPayload, NewOrderPayload},
 };
 use std::collections::HashMap;
 
 #[derive(Debug)]
+
 pub struct MarketState {
     pub(crate) market: Market,
     pub(crate) book: Book,
@@ -29,13 +31,16 @@ impl Engine {
         );
     }
 
-    pub fn submit_new_order(&mut self, order: NewOrderPayload) -> bool {
+    pub fn submit_new_order(
+        &mut self,
+        order: NewOrderPayload,
+    ) -> Result<PlaceOrderOutcome, PlaceOrderErr> {
         let Some(market_state) = self.markets.get_mut(&order.market_id) else {
-            return false;
+            return Err(PlaceOrderErr::UnknownMarket);
         };
 
         if order.quantity < market_state.market.min_quantity {
-            return false;
+            return Err(PlaceOrderErr::BelowMinQuantity);
         }
 
         match order.order_kind {
@@ -46,6 +51,7 @@ impl Engine {
             OrderKind::PostOnly => market_state.place_postonly_order(&order),
         }
     }
+
     pub fn submit_cancel(&mut self, order: CancelOrderPayload) -> bool {
         let Some(market_state) = self.markets.get_mut(&order.market_id) else {
             return false;

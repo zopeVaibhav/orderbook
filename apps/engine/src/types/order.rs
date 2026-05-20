@@ -19,6 +19,15 @@ pub enum Side {
     Bid,
 }
 
+impl Side {
+    pub fn opposite(self) -> Side {
+        match self {
+            Side::Ask => Side::Bid,
+            Side::Bid => Side::Ask,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum OrderKind {
     LimitGtc,

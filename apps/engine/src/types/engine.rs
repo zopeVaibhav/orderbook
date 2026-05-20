@@ -2,18 +2,12 @@ use super::{
     aliases::MarketId,
     book::Book,
     market::Market,
+    market::MarketState,
     order::OrderKind,
     outcome::{PlaceOrderErr, PlaceOrderOutcome},
     payload::{CancelOrderPayload, NewOrderPayload},
 };
 use std::collections::HashMap;
-
-#[derive(Debug)]
-
-pub struct MarketState {
-    pub(crate) market: Market,
-    pub(crate) book: Book,
-}
 
 #[derive(Debug, Default)]
 pub struct Engine {

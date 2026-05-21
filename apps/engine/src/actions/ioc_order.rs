@@ -9,12 +9,7 @@ impl MarketState {
         &mut self,
         order: &NewOrderPayload,
     ) -> Result<PlaceOrderOutcome, PlaceOrderErr> {
-        let mut outcome = PlaceOrderOutcome {
-            fills: Vec::new(),
-            leftover: Leftover::None,
-            stp_cancellations: Vec::new(),
-        };
-
+        let mut outcome = PlaceOrderOutcome::new();
         let Some(_) = order.price else {
             return Err(PlaceOrderErr::MissingPrice);
         };

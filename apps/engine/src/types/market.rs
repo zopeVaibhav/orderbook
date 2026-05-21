@@ -4,7 +4,7 @@ use crate::types::{
     aliases::{Price, Quantity, UserId},
     book::Book,
     order::{Order, Side},
-    outcome::{Fill, PlaceOrderOutcome, StpCancellation},
+    outcome::{Fill, LevelChange, PlaceOrderOutcome, StpCancellation},
     payload::NewOrderPayload,
 };
 
@@ -19,6 +19,7 @@ pub struct Market {
 pub struct MarketState {
     pub(crate) market: Market,
     pub(crate) book: Book,
+    pub(crate) last_applied_seq: i64,
 }
 
 impl MarketState {
@@ -41,32 +42,21 @@ impl MarketState {
         price: Price,
         order: &NewOrderPayload,
         quantity: Quantity,
-    ) {
+    ) -> Quantity {
         let new_order = Order {
             user_id: order.user_id.clone(),
             client_order_id: order.client_order_id.clone(),
             quantity,
         };
-        match side {
-            Side::Ask => {
-                self.book
-                    .asks
-                    .entry(price)
-                    .or_default()
-                    .push_back(new_order);
-            }
-            Side::Bid => {
-                self.book
-                    .bids
-                    .entry(price)
-                    .or_default()
-                    .push_back(new_order);
-            }
-        };
+        let queue = self.book.side_mut(side).entry(price).or_default();
+        queue.push_back(new_order);
+        let new_quantity = queue.iter().map(|o| o.quantity).sum();
+
         self.book.cancel_index.insert(
             (order.user_id.clone(), order.client_order_id.clone()),
             (side, price),
         );
+        new_quantity
     }
 
     pub fn match_against(
@@ -90,7 +80,10 @@ impl MarketState {
                     if remaining_quantity == 0 {
                         break;
                     }
+
+                    let mut level_changed = false;
                     while remaining_quantity > 0 && !queue.is_empty() {
+                        level_changed = true;
                         let bid = queue.front_mut().unwrap();
                         if bid.user_id == *user_id {
                             outcome.stp_cancellations.push(StpCancellation {
@@ -129,6 +122,16 @@ impl MarketState {
                                 .remove(&(popped.user_id, popped.client_order_id));
                         }
                     }
+
+                    if level_changed {
+                        let new_quantity = queue.iter().map(|o| o.quantity).sum();
+                        outcome.level_changes.push(LevelChange {
+                            side,
+                            price: *price,
+                            new_quantity,
+                        })
+                    }
+
                     if queue.is_empty() {
                         empty_queue.push(*price);
                     }
@@ -150,7 +153,9 @@ impl MarketState {
                     if remaining_quantity == 0 {
                         break;
                     }
+                    let mut level_changed = false;
                     while remaining_quantity > 0 && !queue.is_empty() {
+                        level_changed = true;
                         let ask = queue.front_mut().unwrap();
                         if ask.user_id == *user_id {
                             outcome.stp_cancellations.push(StpCancellation {
@@ -189,6 +194,16 @@ impl MarketState {
                                 .remove(&(popped.user_id, popped.client_order_id));
                         }
                     }
+
+                    if level_changed {
+                        let new_quantity = queue.iter().map(|o| o.quantity).sum();
+                        outcome.level_changes.push(LevelChange {
+                            side,
+                            price: *price,
+                            new_quantity,
+                        })
+                    };
+
                     if queue.is_empty() {
                         empty_queue.push(*price);
                     }

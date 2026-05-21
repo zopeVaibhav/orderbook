@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use crate::types::aliases::{ClientOrderId, Quantity, UserId};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -13,7 +15,7 @@ impl Order {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub enum Side {
     Ask,
     Bid,
@@ -28,7 +30,7 @@ impl Side {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 pub enum OrderKind {
     LimitGtc,
     Market,

@@ -1,6 +1,6 @@
 use crate::types::{
     market::MarketState,
-    outcome::{Leftover, PlaceOrderErr, PlaceOrderOutcome},
+    outcome::{Leftover, LevelChange, PlaceOrderErr, PlaceOrderOutcome},
     payload::NewOrderPayload,
 };
 
@@ -9,12 +9,7 @@ impl MarketState {
         &mut self,
         order: &NewOrderPayload,
     ) -> Result<PlaceOrderOutcome, PlaceOrderErr> {
-        let mut outcome = PlaceOrderOutcome {
-            fills: Vec::new(),
-            leftover: Leftover::None,
-            stp_cancellations: Vec::new(),
-        };
-
+        let mut outcome = PlaceOrderOutcome::new();
         let Some(price) = order.price else {
             return Err(PlaceOrderErr::MissingPrice);
         };
@@ -28,11 +23,16 @@ impl MarketState {
         );
 
         if remaining_quantity > 0 {
-            self.rest_on_book(order.side, price, order, remaining_quantity);
+            let new_quantity = self.rest_on_book(order.side, price, order, remaining_quantity);
             outcome.leftover = Leftover::Rested {
                 price,
                 quantity: remaining_quantity,
             };
+            outcome.level_changes.push(LevelChange {
+                price,
+                side: order.side,
+                new_quantity,
+            });
         }
         Ok(outcome)
     }

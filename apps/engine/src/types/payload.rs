@@ -1,9 +1,11 @@
+use serde::Deserialize;
+
 use super::{
     aliases::{ClientOrderId, MarketId, Price, Quantity, UserId},
     order::{OrderKind, Side},
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct NewOrderPayload {
     pub(crate) client_order_id: ClientOrderId,
     pub(crate) user_id: UserId,
@@ -14,7 +16,7 @@ pub struct NewOrderPayload {
     pub(crate) quantity: Quantity,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct CancelOrderPayload {
     pub(crate) client_order_id: ClientOrderId,
     pub(crate) user_id: UserId,

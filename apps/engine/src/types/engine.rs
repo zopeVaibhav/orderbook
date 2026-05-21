@@ -1,3 +1,5 @@
+use crate::types::outcome::{CancelOrderErr, CancelOrderOutcome};
+
 use super::{
     aliases::MarketId,
     book::Book,
@@ -21,6 +23,7 @@ impl Engine {
             MarketState {
                 market,
                 book: Book::default(),
+                last_applied_seq: 0,
             },
         );
     }
@@ -46,9 +49,12 @@ impl Engine {
         }
     }
 
-    pub fn submit_cancel(&mut self, order: CancelOrderPayload) -> bool {
+    pub fn submit_cancel(
+        &mut self,
+        order: CancelOrderPayload,
+    ) -> Result<CancelOrderOutcome, CancelOrderErr> {
         let Some(market_state) = self.markets.get_mut(&order.market_id) else {
-            return false;
+            return Err(CancelOrderErr::UnknownMarket);
         };
         market_state.cancel_order(&order)
     }

@@ -1,12 +1,21 @@
-use crate::types::{market::MarketState, order::Side, payload::CancelOrderPayload};
+use crate::types::{
+    market::MarketState,
+    order::Side,
+    outcome::{CancelOrderErr, CancelOrderOutcome},
+    payload::CancelOrderPayload,
+};
 
 impl MarketState {
-    pub fn cancel_order(&mut self, order: &CancelOrderPayload) -> bool {
+    pub fn cancel_order(
+        &mut self,
+        order: &CancelOrderPayload,
+    ) -> Result<CancelOrderOutcome, CancelOrderErr> {
         let book = &mut self.book;
+
         let key = (order.user_id.clone(), order.client_order_id.clone());
 
-        let Some((side, price)) = book.cancel_index.remove(&key) else {
-            return false;
+        let Some(&(side, price)) = book.cancel_index.get(&key) else {
+            return Err(CancelOrderErr::OrderNotFound);
         };
 
         let level = match side {
@@ -15,17 +24,24 @@ impl MarketState {
         };
 
         let Some(queue) = level else {
-            return false;
+            return Err(CancelOrderErr::OrderNotFound);
         };
 
         let Some(pos) = queue
             .iter()
             .position(|o| o.client_order_id == order.client_order_id && o.user_id == order.user_id)
         else {
-            return false;
+            return Err(CancelOrderErr::OrderNotFound);
+        };
+
+        let outcome = CancelOrderOutcome {
+            price,
+            side,
+            quantity: queue[pos].quantity,
         };
 
         queue.remove(pos);
+        book.cancel_index.remove(&key);
 
         if queue.is_empty() {
             match side {
@@ -33,7 +49,6 @@ impl MarketState {
                 Side::Bid => book.bids.remove(&price),
             };
         };
-
-        true
+        Ok(outcome)
     }
 }

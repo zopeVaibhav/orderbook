@@ -24,5 +24,10 @@ impl OrderConsumer {
     pub async fn recv(&self) -> anyhow::Result<BorrowedMessage<'_>> {
         Ok(self.inner.recv().await?)
     }
-}
 
+    pub fn commit(&self, msg: &BorrowedMessage) -> anyhow::Result<()> {
+        self.inner
+            .commit_message(msg, rdkafka::consumer::CommitMode::Async)?;
+        Ok(())
+    }
+}

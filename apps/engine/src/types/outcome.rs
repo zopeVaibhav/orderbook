@@ -58,14 +58,15 @@ pub enum PlaceOrderErr {
     FillOrKillUnfillable,
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct CancelOrderOutcome {
     pub(crate) side: Side,
     pub(crate) price: Price,
-    pub(crate) quantity: Quantity,
+    pub(crate) cancelled_quantity: Quantity,
+    pub(crate) new_level_quantity: Quantity,
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub enum CancelOrderErr {
     UnknownMarket,
     OrderNotFound,

@@ -4,6 +4,8 @@ use rdkafka::{
 };
 use std::time::Duration;
 
+use crate::io::outgoing::OutgoingEvent;
+
 pub struct OrderProducer {
     inner: FutureProducer,
 }
@@ -18,5 +20,19 @@ impl OrderProducer {
             .create()?;
 
         Ok(Self { inner })
+    }
+
+    pub async fn send_event(&self, event: &OutgoingEvent) -> anyhow::Result<()> {
+        let payload = serde_json::to_string(event)?;
+        self.inner
+            .send(
+                FutureRecord::to(event.topic())
+                    .key(event.key())
+                    .payload(&payload),
+                Duration::from_secs(0),
+            )
+            .await
+            .map_err(|(e, _)| anyhow::Error::from(e))?;
+        Ok(())
     }
 }

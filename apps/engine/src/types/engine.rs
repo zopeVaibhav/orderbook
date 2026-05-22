@@ -23,9 +23,15 @@ impl Engine {
             MarketState {
                 market,
                 book: Book::default(),
-                last_applied_seq: 0,
+                last_applied_seq: -1,
             },
         );
+    }
+
+    pub fn mark_applied(&mut self, market_id: &MarketId, seq: i64) {
+        if let Some(market) = self.markets.get_mut(market_id) {
+            market.last_applied_seq = seq;
+        }
     }
 
     pub fn submit_new_order(

@@ -1,5 +1,8 @@
 use crate::{
-    io::{consumer::OrderConsumer, incoming::IncomingOrder, producer::OrderProducer},
+    io::{
+        consumer::OrderConsumer, incoming::IncomingOrder, outgoing::OutgoingEvent,
+        producer::OrderProducer,
+    },
     types::{engine::Engine, market::Market},
 };
 use rdkafka::Message;
@@ -41,10 +44,38 @@ pub async fn run() -> anyhow::Result<()> {
         match order_type {
             IncomingOrder::NewOrder(new_order_payload) => {
                 let outcome = engine.submit_new_order(&new_order_payload);
+                let events =
+                    OutgoingEvent::new_order_events(outcome, &new_order_payload, now_ms(), seq);
+
+                for e in events {
+                    producer.send_event(&e).await?;
+                }
+                engine.mark_applied(&new_order_payload.market_id, seq);
+                consumer.commit(&msg)?
             }
             IncomingOrder::CancelOrder(cancel_order_payload) => {
                 let outcome = engine.submit_cancel(&cancel_order_payload);
+                let events = OutgoingEvent::cancel_order_events(
+                    outcome,
+                    &cancel_order_payload,
+                    now_ms(),
+                    seq,
+                );
+
+                for e in events {
+                    producer.send_event(&e).await?;
+                }
+                engine.mark_applied(&cancel_order_payload.market_id, seq);
+                consumer.commit(&msg)?
             }
         }
     }
+}
+
+fn now_ms() -> u64 {
+    use ::std::time::{SystemTime, UNIX_EPOCH};
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_millis() as u64)
+        .unwrap_or(0)
 }

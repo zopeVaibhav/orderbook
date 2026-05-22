@@ -1,7 +1,9 @@
 use crate::types::aliases::{ClientOrderId, MarketId, Price, Quantity, UserId};
 use crate::types::order::Side;
-use crate::types::outcome::{Leftover, PlaceOrderErr, PlaceOrderOutcome};
-use crate::types::payload::NewOrderPayload;
+use crate::types::outcome::{
+    CancelOrderErr, CancelOrderOutcome, Leftover, PlaceOrderErr, PlaceOrderOutcome,
+};
+use crate::types::payload::{CancelOrderPayload, NewOrderPayload};
 
 use serde::Serialize;
 
@@ -91,7 +93,7 @@ impl OutgoingEvent {
         }
     }
 
-    pub fn new_order_event(
+    pub fn new_order_events(
         outcome: Result<PlaceOrderOutcome, PlaceOrderErr>,
         payload: &NewOrderPayload,
         ts: u64,
@@ -104,6 +106,7 @@ impl OutgoingEvent {
                 let had_fills = !outcome.fills.is_empty();
                 let total_filled_quantity: Quantity =
                     outcome.fills.iter().map(|f| f.quantity).sum();
+
                 events.push(OutgoingEvent::Ack(OrderAck {
                     market_id: payload.market_id.clone(),
                     user_id: payload.user_id.clone(),
@@ -114,6 +117,19 @@ impl OutgoingEvent {
                     ts,
                     seq,
                 }));
+
+                for stp in &outcome.stp_cancellations {
+                    events.push(OutgoingEvent::Ack(OrderAck {
+                        market_id: payload.market_id.clone(),
+                        user_id: stp.maker_user_id.clone(),
+                        client_order_id: stp.maker_client_order_id.clone(),
+                        status: AckStatus::Cancelled,
+                        filled_qty: 0,
+                        reason: Some("self trade prevention".to_string()),
+                        ts,
+                        seq,
+                    }))
+                }
 
                 for fill in &outcome.fills {
                     events.push(OutgoingEvent::Trade(TradeOut {
@@ -148,6 +164,51 @@ impl OutgoingEvent {
                         seq,
                     }));
                 }
+            }
+            Err(e) => events.push(OutgoingEvent::Ack(OrderAck {
+                market_id: payload.market_id.clone(),
+                user_id: payload.user_id.clone(),
+                client_order_id: payload.client_order_id.clone(),
+                status: AckStatus::Rejected,
+                filled_qty: 0,
+                reason: Some(format!("{:?}", e)),
+                ts,
+                seq,
+            })),
+        }
+        events
+    }
+
+    pub fn cancel_order_events(
+        outcome: Result<CancelOrderOutcome, CancelOrderErr>,
+        payload: &CancelOrderPayload,
+        ts: u64,
+        seq: i64,
+    ) -> Vec<OutgoingEvent> {
+        let mut events: Vec<OutgoingEvent> = Vec::new();
+        match outcome {
+            Ok(outcome) => {
+                events.push(OutgoingEvent::Ack(OrderAck {
+                    market_id: payload.market_id.clone(),
+                    user_id: payload.user_id.clone(),
+                    client_order_id: payload.client_order_id.clone(),
+                    status: AckStatus::Cancelled,
+                    filled_qty: 0,
+                    reason: None,
+                    ts,
+                    seq,
+                }));
+
+                events.push(OutgoingEvent::BookDelta(BookDelta {
+                    market_id: payload.market_id.clone(),
+                    changes: vec![BookDeltaEntry {
+                        side: outcome.side,
+                        price: outcome.price,
+                        new_quantity: outcome.new_level_quantity,
+                    }],
+                    ts,
+                    seq,
+                }));
             }
             Err(e) => events.push(OutgoingEvent::Ack(OrderAck {
                 market_id: payload.market_id.clone(),

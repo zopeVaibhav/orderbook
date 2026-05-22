@@ -1,4 +1,5 @@
 use crate::types::{
+    aliases::Quantity,
     market::MarketState,
     order::Side,
     outcome::{CancelOrderErr, CancelOrderOutcome},
@@ -34,10 +35,13 @@ impl MarketState {
             return Err(CancelOrderErr::OrderNotFound);
         };
 
+        let total_level_quantity: Quantity = queue.iter().map(|v| v.quantity).sum();
+        let cancelled_quantity = queue[pos].quantity;
         let outcome = CancelOrderOutcome {
             price,
             side,
-            quantity: queue[pos].quantity,
+            cancelled_quantity,
+            new_level_quantity: total_level_quantity - cancelled_quantity,
         };
 
         queue.remove(pos);

@@ -5,33 +5,12 @@ use crate::types::{
     order::Side,
 };
 
-#[derive(Serialize)]
+#[derive(Serialize, Default)]
 pub struct PlaceOrderOutcome {
-    pub(crate) ts: u64,
     pub(crate) fills: Vec<Fill>,
     pub(crate) leftover: Leftover,
     pub(crate) stp_cancellations: Vec<StpCancellation>,
     pub(crate) level_changes: Vec<LevelChange>,
-}
-
-impl PlaceOrderOutcome {
-    pub fn new() -> Self {
-        Self {
-            ts: Self::now_ms(),
-            fills: Vec::new(),
-            leftover: Leftover::None,
-            stp_cancellations: Vec::new(),
-            level_changes: Vec::new(),
-        }
-    }
-
-    pub fn now_ms() -> u64 {
-        use std::time::{SystemTime, UNIX_EPOCH};
-        SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map(|d| d.as_millis() as u64)
-            .unwrap_or(0)
-    }
 }
 
 #[derive(Serialize)]
@@ -42,11 +21,17 @@ pub struct Fill {
     pub(crate) maker_client_order_id: ClientOrderId,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Default)]
 pub enum Leftover {
+    #[default]
     None,
-    Rested { price: Price, quantity: Quantity },
-    Cancelled { quantity: Quantity },
+    Rested {
+        price: Price,
+        quantity: Quantity,
+    },
+    Cancelled {
+        quantity: Quantity,
+    },
 }
 
 #[derive(Serialize)]
@@ -64,7 +49,7 @@ pub struct LevelChange {
     pub(crate) new_quantity: Quantity,
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub enum PlaceOrderErr {
     UnknownMarket,
     BelowMinQuantity,

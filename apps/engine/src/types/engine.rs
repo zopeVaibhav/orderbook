@@ -30,7 +30,7 @@ impl Engine {
 
     pub fn submit_new_order(
         &mut self,
-        order: NewOrderPayload,
+        order: &NewOrderPayload,
     ) -> Result<PlaceOrderOutcome, PlaceOrderErr> {
         let Some(market_state) = self.markets.get_mut(&order.market_id) else {
             return Err(PlaceOrderErr::UnknownMarket);
@@ -41,21 +41,21 @@ impl Engine {
         }
 
         match order.order_kind {
-            OrderKind::LimitGtc => market_state.place_limit_order(&order),
-            OrderKind::Market => market_state.place_market_order(&order),
-            OrderKind::Ioc => market_state.place_ioc_order(&order),
-            OrderKind::Fok => market_state.place_fok_order(&order),
-            OrderKind::PostOnly => market_state.place_postonly_order(&order),
+            OrderKind::LimitGtc => market_state.place_limit_order(order),
+            OrderKind::Market => market_state.place_market_order(order),
+            OrderKind::Ioc => market_state.place_ioc_order(order),
+            OrderKind::Fok => market_state.place_fok_order(order),
+            OrderKind::PostOnly => market_state.place_postonly_order(order),
         }
     }
 
     pub fn submit_cancel(
         &mut self,
-        order: CancelOrderPayload,
+        order: &CancelOrderPayload,
     ) -> Result<CancelOrderOutcome, CancelOrderErr> {
         let Some(market_state) = self.markets.get_mut(&order.market_id) else {
             return Err(CancelOrderErr::UnknownMarket);
         };
-        market_state.cancel_order(&order)
+        market_state.cancel_order(order)
     }
 }

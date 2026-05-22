@@ -9,10 +9,11 @@ impl MarketState {
         &mut self,
         order: &NewOrderPayload,
     ) -> Result<PlaceOrderOutcome, PlaceOrderErr> {
-        let mut outcome = PlaceOrderOutcome::new();
         let Some(price) = order.price else {
             return Err(PlaceOrderErr::MissingPrice);
         };
+
+        let mut outcome = PlaceOrderOutcome::default();
 
         let remaining_quantity = self.match_against(
             order.side.opposite(),

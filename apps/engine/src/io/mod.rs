@@ -1,12 +1,13 @@
 use crate::{
-    io::{consumer::OrderConsumer, producer::OrderProducer, wire::IncomingOrder},
+    io::{consumer::OrderConsumer, incoming::IncomingOrder, producer::OrderProducer},
     types::{engine::Engine, market::Market},
 };
 use rdkafka::Message;
 
 pub mod consumer;
+pub mod incoming;
+pub mod outgoing;
 pub mod producer;
-pub mod wire;
 
 pub async fn run() -> anyhow::Result<()> {
     let consumer = OrderConsumer::new("localhost:9092", "engine", &["orders.in"])?;
@@ -39,11 +40,10 @@ pub async fn run() -> anyhow::Result<()> {
 
         match order_type {
             IncomingOrder::NewOrder(new_order_payload) => {
-                let market_id = new_order_payload.market_id.clone();
-                let outcome = engine.submit_new_order(new_order_payload);
+                let outcome = engine.submit_new_order(&new_order_payload);
             }
             IncomingOrder::CancelOrder(cancel_order_payload) => {
-                let outcome = engine.submit_cancel(cancel_order_payload);
+                let outcome = engine.submit_cancel(&cancel_order_payload);
             }
         }
     }

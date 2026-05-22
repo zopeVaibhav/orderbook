@@ -17,7 +17,7 @@ impl MarketState {
             return Err(PlaceOrderErr::PostOnlyWouldCross);
         }
 
-        let mut outcome = PlaceOrderOutcome::new();
+        let mut outcome = PlaceOrderOutcome::default();
         let new_quantity = self.rest_on_book(order.side, price, order, order.quantity);
 
         outcome.leftover = Leftover::Rested {

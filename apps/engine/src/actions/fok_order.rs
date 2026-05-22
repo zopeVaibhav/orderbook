@@ -12,7 +12,6 @@ impl MarketState {
     ) -> Result<PlaceOrderOutcome, PlaceOrderErr> {
         let book = &self.book;
 
-        let mut outcome = PlaceOrderOutcome::new();
         let Some(price) = order.price else {
             return Err(PlaceOrderErr::MissingPrice);
         };
@@ -53,6 +52,7 @@ impl MarketState {
             return Err(PlaceOrderErr::FillOrKillUnfillable);
         }
 
+        let mut outcome = PlaceOrderOutcome::default();
         let remaining_quantity = self.match_against(
             order.side.opposite(),
             order.price,

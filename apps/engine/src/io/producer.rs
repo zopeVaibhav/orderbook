@@ -23,16 +23,28 @@ impl OrderProducer {
     }
 
     pub async fn send_event(&self, event: &OutgoingEvent) -> anyhow::Result<()> {
+        let key = event.key();
+        let topic = event.topic();
         let payload = serde_json::to_string(event)?;
-        self.inner
-            .send(
-                FutureRecord::to(event.topic())
-                    .key(event.key())
-                    .payload(&payload),
-                Duration::from_secs(0),
-            )
-            .await
-            .map_err(|(e, _)| anyhow::Error::from(e))?;
-        Ok(())
+
+        let mut delay_ms = 100;
+        loop {
+            let result = self
+                .inner
+                .send(
+                    FutureRecord::to(topic).key(key).payload(&payload),
+                    Duration::from_secs(0),
+                )
+                .await;
+
+            match result {
+                Ok(_) => return Ok(()),
+                Err((e, _)) => {
+                    eprintln!("send event failed: {}, retrying in {}ms", e, delay_ms);
+                    tokio::time::sleep(Duration::from_millis(delay_ms)).await;
+                    delay_ms = (delay_ms * 2).min(5000);
+                }
+            }
+        }
     }
 }

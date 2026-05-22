@@ -20,7 +20,10 @@ impl AckStatus {
     fn from_outcome(leftover: &Leftover, had_fills: bool) -> Self {
         match (leftover, had_fills) {
             (Leftover::None, true) => AckStatus::Filled,
-            (Leftover::None, false) => unreachable!(),
+            (Leftover::None, false) => {
+                debug_assert!(false, "Leftover::None without fills - engine bug");
+                AckStatus::Cancelled
+            }
             (Leftover::Rested { .. }, true) => AckStatus::Partial,
             (Leftover::Rested { .. }, false) => AckStatus::Rested,
             (Leftover::Cancelled { .. }, true) => AckStatus::Partial,
@@ -70,6 +73,7 @@ pub struct BookDeltaEntry {
 }
 
 #[derive(Serialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum OutgoingEvent {
     Ack(OrderAck),
     Trade(TradeOut),

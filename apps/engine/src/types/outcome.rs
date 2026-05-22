@@ -56,6 +56,7 @@ pub enum PlaceOrderErr {
     MissingPrice,
     PostOnlyWouldCross,
     FillOrKillUnfillable,
+    MarketOrderWithPrice,
 }
 
 #[derive(Debug, Serialize)]

@@ -1,8 +1,4 @@
-use crate::types::{
-    market::MarketState,
-    outcome::{Leftover, PlaceOrderErr, PlaceOrderOutcome},
-    payload::NewOrderPayload,
-};
+use crate::types::{Leftover, MarketState, NewOrderPayload, PlaceOrderErr, PlaceOrderOutcome};
 
 impl MarketState {
     pub fn place_ioc_order(

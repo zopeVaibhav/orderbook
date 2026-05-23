@@ -1,10 +1,7 @@
-use crate::types::aliases::{ClientOrderId, MarketId, Price, Quantity, UserId};
-use crate::types::order::Side;
-use crate::types::outcome::{
-    CancelOrderErr, CancelOrderOutcome, Leftover, PlaceOrderErr, PlaceOrderOutcome,
+use crate::types::{
+    CancelOrderErr, CancelOrderOutcome, CancelOrderPayload, ClientOrderId, Leftover, MarketId,
+    NewOrderPayload, PlaceOrderErr, PlaceOrderOutcome, Price, Quantity, Side, UserId,
 };
-use crate::types::payload::{CancelOrderPayload, NewOrderPayload};
-
 use serde::Serialize;
 
 #[derive(Serialize)]

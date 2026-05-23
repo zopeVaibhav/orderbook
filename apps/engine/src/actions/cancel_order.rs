@@ -1,9 +1,5 @@
 use crate::types::{
-    aliases::Quantity,
-    market::MarketState,
-    order::Side,
-    outcome::{CancelOrderErr, CancelOrderOutcome},
-    payload::CancelOrderPayload,
+    CancelOrderErr, CancelOrderOutcome, CancelOrderPayload, MarketState, Quantity, Side,
 };
 
 impl MarketState {

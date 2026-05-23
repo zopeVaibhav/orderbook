@@ -1,9 +1,4 @@
-use crate::types::{
-    market::MarketState,
-    order::Side,
-    outcome::{PlaceOrderErr, PlaceOrderOutcome},
-    payload::NewOrderPayload,
-};
+use crate::types::{MarketState, NewOrderPayload, PlaceOrderErr, PlaceOrderOutcome, Side};
 
 impl MarketState {
     pub fn place_fok_order(

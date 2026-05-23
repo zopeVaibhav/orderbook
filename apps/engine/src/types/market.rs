@@ -32,9 +32,14 @@ impl MarketState {
                 .bids
                 .keys()
                 .next_back()
-                .is_some_and(|&b| b >= price),
+                .is_some_and(|&best_ask| best_ask >= price),
 
-            Side::Bid => self.book.asks.keys().next().is_some_and(|&b| b <= price),
+            Side::Bid => self
+                .book
+                .asks
+                .keys()
+                .next()
+                .is_some_and(|&best_bid| best_bid <= price),
         }
     }
 

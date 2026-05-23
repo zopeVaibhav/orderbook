@@ -1,4 +1,4 @@
-use crate::types::payload::{CancelOrderPayload, NewOrderPayload};
+use crate::types::{CancelOrderPayload, NewOrderPayload};
 use serde::Deserialize;
 
 #[derive(Deserialize)]

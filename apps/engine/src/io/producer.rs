@@ -1,10 +1,9 @@
+use crate::io::outgoing::OutgoingEvent;
 use rdkafka::{
     ClientConfig,
     producer::{FutureProducer, FutureRecord},
 };
 use std::time::Duration;
-
-use crate::io::outgoing::OutgoingEvent;
 
 pub struct OrderProducer {
     inner: FutureProducer,

@@ -1,4 +1,4 @@
-use crate::types::{aliases::MarketId, market::MarketState};
+use crate::types::{MarketId, MarketState};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fs::File, io::Write};
 use tokio::task::JoinHandle;
@@ -59,7 +59,7 @@ impl SnapshotWriter {
             })();
 
             if let Err(e) = result {
-                eprintln!("snapshot failed for marked_id: {market_id_owned} with error: {e}")
+                eprintln!("snapshot failed for market_id: {market_id_owned} with error: {e}")
             }
         });
 

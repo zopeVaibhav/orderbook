@@ -1,7 +1,5 @@
 use crate::types::{
-    market::MarketState,
-    outcome::{Leftover, LevelChange, PlaceOrderErr, PlaceOrderOutcome},
-    payload::NewOrderPayload,
+    Leftover, LevelChange, MarketState, NewOrderPayload, PlaceOrderErr, PlaceOrderOutcome,
 };
 
 impl MarketState {

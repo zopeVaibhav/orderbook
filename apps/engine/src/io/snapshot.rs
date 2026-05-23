@@ -85,7 +85,7 @@ impl SnapshotWriter {
                 continue;
             }
 
-            let marked_id: MarketId = path
+            let market_id: MarketId = path
                 .file_stem()
                 .and_then(|s| s.to_str())
                 .ok_or_else(|| anyhow::anyhow!("bad filename: {:?}", path))?
@@ -94,7 +94,7 @@ impl SnapshotWriter {
             let bytes = std::fs::read(&path)?;
             let snapshot = bincode::deserialize(&bytes)?;
 
-            out.push((marked_id, snapshot));
+            out.push((market_id, snapshot));
         }
         Ok(out)
     }

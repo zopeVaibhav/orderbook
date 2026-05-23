@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::aliases::{ClientOrderId, Quantity, UserId};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Order {
     pub(crate) client_order_id: ClientOrderId,
     pub(crate) user_id: UserId,

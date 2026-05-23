@@ -1,10 +1,12 @@
+use serde::{Deserialize, Serialize};
+
 use super::{
     aliases::{ClientOrderId, Price, UserId},
     order::{Order, Side},
 };
 use std::collections::{BTreeMap, HashMap, VecDeque};
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Book {
     pub(crate) asks: BTreeMap<Price, VecDeque<Order>>,
     pub(crate) bids: BTreeMap<Price, VecDeque<Order>>,

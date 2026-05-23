@@ -1,5 +1,7 @@
 use std::ops::Bound;
 
+use serde::{Deserialize, Serialize};
+
 use crate::types::{
     aliases::{Price, Quantity, UserId},
     book::Book,
@@ -8,14 +10,14 @@ use crate::types::{
     payload::NewOrderPayload,
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Market {
     pub(crate) tick_exp: u8,
     pub(crate) lot_exp: u8,
     pub(crate) min_quantity: u64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MarketState {
     pub(crate) market: Market,
     pub(crate) book: Book,

@@ -30,4 +30,14 @@ impl OrderConsumer {
             .commit_message(msg, rdkafka::consumer::CommitMode::Async)?;
         Ok(())
     }
+
+    pub fn seek(&self, topic: &str, partition: i32, offset: i64) -> anyhow::Result<()> {
+        self.inner.seek(
+            topic,
+            partition,
+            rdkafka::Offset::Offset(offset),
+            std::time::Duration::from_secs(5),
+        )?;
+        Ok(())
+    }
 }

@@ -60,31 +60,12 @@ pub async fn run() -> anyhow::Result<()> {
             }
         };
 
-        match order_type {
+        let (market_id, events) = match order_type {
             IncomingOrder::NewOrder(new_order_payload) => {
                 let outcome = engine.submit_new_order(&new_order_payload);
                 let events =
                     OutgoingEvent::new_order_events(outcome, &new_order_payload, now_ms(), seq);
-
-                for e in events {
-                    producer.send_event(&e).await?;
-                }
-                engine.mark_applied(&new_order_payload.market_id, seq);
-
-                if seq > 0 && seq % 10000 == 0 {
-                    let state = engine
-                        .markets
-                        .get(&new_order_payload.market_id)
-                        .ok_or_else(|| anyhow::anyhow!("Unknown market"))?;
-
-                    snapshot_writer.take_snapshot(
-                        &new_order_payload.market_id,
-                        state,
-                        msg.partition(),
-                    )?;
-                }
-
-                consumer.commit(&msg)?
+                (new_order_payload.market_id, events)
             }
             IncomingOrder::CancelOrder(cancel_order_payload) => {
                 let outcome = engine.submit_cancel(&cancel_order_payload);
@@ -94,28 +75,26 @@ pub async fn run() -> anyhow::Result<()> {
                     now_ms(),
                     seq,
                 );
-
-                for e in events {
-                    producer.send_event(&e).await?;
-                }
-                engine.mark_applied(&cancel_order_payload.market_id, seq);
-
-                if seq > 0 && seq % 10000 == 0 {
-                    let state = engine
-                        .markets
-                        .get(&cancel_order_payload.market_id)
-                        .ok_or_else(|| anyhow::anyhow!("Unknown market"))?;
-
-                    snapshot_writer.take_snapshot(
-                        &cancel_order_payload.market_id,
-                        state,
-                        msg.partition(),
-                    )?;
-                }
-
-                consumer.commit(&msg)?
+                (cancel_order_payload.market_id, events)
             }
+        };
+
+        for e in events {
+            producer.send_event(&e).await?;
         }
+
+        engine.mark_applied(&market_id, seq);
+
+        if seq > 0 && seq % 10000 == 0 {
+            let state = engine
+                .markets
+                .get(&market_id)
+                .ok_or_else(|| anyhow::anyhow!("Unknown market"))?;
+
+            snapshot_writer.take_snapshot(&market_id, state, msg.partition())?;
+        }
+
+        consumer.commit(&msg)?
     }
 }
 

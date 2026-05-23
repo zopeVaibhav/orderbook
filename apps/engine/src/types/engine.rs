@@ -1,12 +1,10 @@
-use crate::types::outcome::{CancelOrderErr, CancelOrderOutcome};
-
 use super::{
     aliases::MarketId,
     book::Book,
     market::Market,
     market::MarketState,
     order::OrderKind,
-    outcome::{PlaceOrderErr, PlaceOrderOutcome},
+    outcome::{CancelOrderErr, CancelOrderOutcome, PlaceOrderErr, PlaceOrderOutcome},
     payload::{CancelOrderPayload, NewOrderPayload},
 };
 use std::collections::HashMap;

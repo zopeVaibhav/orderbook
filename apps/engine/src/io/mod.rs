@@ -15,6 +15,8 @@ pub mod outgoing;
 pub mod producer;
 pub mod snapshot;
 
+const SNAPSHOT_INTERVAL: i64 = 10_000;
+
 pub async fn run() -> anyhow::Result<()> {
     dotenv().ok();
 
@@ -85,7 +87,7 @@ pub async fn run() -> anyhow::Result<()> {
 
         engine.mark_applied(&market_id, seq);
 
-        if seq > 0 && seq % 10000 == 0 {
+        if seq > 0 && seq % SNAPSHOT_INTERVAL == 0 {
             let state = engine
                 .markets
                 .get(&market_id)

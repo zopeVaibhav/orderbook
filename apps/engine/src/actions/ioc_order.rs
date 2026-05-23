@@ -23,7 +23,7 @@ impl MarketState {
             outcome.leftover = Leftover::Cancelled {
                 quantity: remaining_quantity,
             }
-        };
+        }
         Ok(outcome)
     }
 }

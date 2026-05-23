@@ -78,22 +78,6 @@ pub enum OutgoingEvent {
 }
 
 impl OutgoingEvent {
-    pub fn topic(&self) -> &'static str {
-        match self {
-            OutgoingEvent::Ack(_) => "orders.ack",
-            OutgoingEvent::Trade(_) => "trades.out",
-            OutgoingEvent::BookDelta(_) => "book.delta",
-        }
-    }
-
-    pub fn key(&self) -> &str {
-        match self {
-            OutgoingEvent::Ack(a) => &a.market_id,
-            OutgoingEvent::Trade(t) => &t.market_id,
-            OutgoingEvent::BookDelta(b) => &b.market_id,
-        }
-    }
-
     pub fn new_order_events(
         outcome: Result<PlaceOrderOutcome, PlaceOrderErr>,
         payload: &NewOrderPayload,
@@ -172,7 +156,7 @@ impl OutgoingEvent {
                 client_order_id: payload.client_order_id.clone(),
                 status: AckStatus::Rejected,
                 filled_qty: 0,
-                reason: Some(format!("{:?}", e)),
+                reason: Some(format!("{e:?}")),
                 ts,
                 seq,
             })),
@@ -223,5 +207,23 @@ impl OutgoingEvent {
             })),
         }
         events
+    }
+}
+
+impl OutgoingEvent {
+    pub fn topic(&self) -> &'static str {
+        match self {
+            OutgoingEvent::Ack(_) => "orders.ack",
+            OutgoingEvent::Trade(_) => "trades.out",
+            OutgoingEvent::BookDelta(_) => "book.delta",
+        }
+    }
+
+    pub fn key(&self) -> &str {
+        match self {
+            OutgoingEvent::Ack(a) => &a.market_id,
+            OutgoingEvent::Trade(t) => &t.market_id,
+            OutgoingEvent::BookDelta(b) => &b.market_id,
+        }
     }
 }

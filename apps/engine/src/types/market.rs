@@ -82,7 +82,7 @@ impl MarketState {
                 };
 
                 let mut remaining_quantity = quantity;
-                let mut empty_queue: Vec<Price> = Vec::new();
+                let mut empty_queue = Vec::new();
                 for (price, queue) in self.book.bids.range_mut((start, Bound::Unbounded)).rev() {
                     if remaining_quantity == 0 {
                         break;
@@ -155,7 +155,7 @@ impl MarketState {
                     None => Bound::Unbounded,
                 };
                 let mut remaining_quantity = quantity;
-                let mut empty_queue: Vec<Price> = Vec::new();
+                let mut empty_queue = Vec::new();
                 for (price, queue) in self.book.asks.range_mut((Bound::Unbounded, end)) {
                     if remaining_quantity == 0 {
                         break;

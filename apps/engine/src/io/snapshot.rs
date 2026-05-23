@@ -30,7 +30,7 @@ impl SnapshotWriter {
         if let Some(task) = self.markets.get(market_id)
             && !task.is_finished()
         {
-            println!(
+            eprintln!(
                 "snapshot task for market_id: {} is still running",
                 market_id
             );
@@ -45,7 +45,7 @@ impl SnapshotWriter {
         let market_id = market_id.clone();
         let market_id_owned = market_id.clone();
 
-        let handle = tokio::task::spawn_blocking(move || -> () {
+        let handle = tokio::task::spawn_blocking(move || {
             let result: anyhow::Result<()> = (|| {
                 let bytes = bincode::serialize(&snapshot)?;
                 let final_path = format!("snapshots/{market_id_owned}.bin");

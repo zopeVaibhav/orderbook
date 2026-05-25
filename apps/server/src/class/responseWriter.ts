@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { ApiResponse } from '@/types';
+import { ApiResponse } from '@repo/types';
 
 export class ResponseWriter {
     static success<T>(res: Response, data: T, message = 'ok') {

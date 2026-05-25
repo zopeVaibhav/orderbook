@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { ResponseWriter } from '../class/responseWriter';
-import { prisma } from '@/database';
+import { prisma } from '@repo/database';
 import jwt from 'jsonwebtoken';
 import z from 'zod';
 import { ENV } from '../config/env.config';

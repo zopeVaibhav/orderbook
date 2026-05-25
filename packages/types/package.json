@@ -1,9 +1,13 @@
 {
-    "name": "@/types",
+    "name": "@repo/types",
     "module": "index.ts",
     "type": "module",
     "private": true,
     "exports": "./src/index.ts",
+    "scripts": {
+        "lint": "eslint .",
+        "check-types": "tsc --noEmit"
+    },
     "devDependencies": {
         "@repo/typescript-config": "workspace:*",
         "@repo/eslint-config": "workspace:*",

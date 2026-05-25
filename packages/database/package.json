@@ -1,5 +1,5 @@
 {
-    "name": "@/database",
+    "name": "@repo/database",
     "module": "index.ts",
     "type": "module",
     "private": true,
@@ -18,6 +18,8 @@
         "check-types": "tsc --noEmit"
     },
     "devDependencies": {
+        "@repo/eslint-config": "workspace:*",
+        "@repo/typescript-config": "workspace:*",
         "@types/bun": "latest",
         "@types/node": "^25.8.0",
         "@types/pg": "^8.20.0",

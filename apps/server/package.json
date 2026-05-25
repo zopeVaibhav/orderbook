@@ -10,8 +10,6 @@
         "check-types": "tsc --noEmit"
     },
     "devDependencies": {
-        "@/database": "workspace:*",
-        "@/types": "workspace:*",
         "@repo/eslint-config": "workspace:*",
         "@repo/typescript-config": "workspace:*",
         "@types/bun": "latest",
@@ -25,11 +23,12 @@
         "typescript": "^6"
     },
     "dependencies": {
+        "@repo/database": "workspace:*",
+        "@repo/types": "workspace:*",
         "chalk": "^5.6.2",
         "cookie-parser": "^1.4.7",
         "cors": "^2.8.6",
         "dotenv": "^17.4.2",
-        "eslint": "^10.4.0",
         "express": "^5.2.1",
         "jsonwebtoken": "^9.0.3",
         "zod": "^4.4.3"

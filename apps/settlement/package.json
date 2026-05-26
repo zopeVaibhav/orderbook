@@ -10,7 +10,8 @@
         "lint": "eslint ."
     },
     "dependencies": {
-        "@repo/database": "workspace:*"
+        "@repo/database": "workspace:*",
+        "kafkajs": "^2.2.4"
     },
     "devDependencies": {
         "@repo/eslint-config": "workspace:*",

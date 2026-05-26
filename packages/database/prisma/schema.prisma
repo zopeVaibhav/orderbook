@@ -17,6 +17,4 @@ model User {
     name  String
     email String @unique
     image String
-
-    @@index([email])
 }

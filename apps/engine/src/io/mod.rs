@@ -65,15 +65,31 @@ pub async fn run() -> anyhow::Result<()> {
         let (market_id, events) = match order_type {
             IncomingOrder::NewOrder(new_order_payload) => {
                 let outcome = engine.submit_new_order(&new_order_payload);
-                let events =
-                    OutgoingEvent::new_order_events(outcome, &new_order_payload, now_ms(), seq);
+                let market_state = engine
+                    .markets
+                    .get(&new_order_payload.market_id)
+                    .ok_or_else(|| anyhow::anyhow!("Unknown Market"))?;
+
+                let events = OutgoingEvent::new_order_events(
+                    outcome,
+                    &new_order_payload,
+                    &market_state.market,
+                    now_ms(),
+                    seq,
+                );
                 (new_order_payload.market_id, events)
             }
             IncomingOrder::CancelOrder(cancel_order_payload) => {
                 let outcome = engine.submit_cancel(&cancel_order_payload);
+                let market_state = engine
+                    .markets
+                    .get(&cancel_order_payload.market_id)
+                    .ok_or_else(|| anyhow::anyhow!("Unknown Market"))?;
+
                 let events = OutgoingEvent::cancel_order_events(
                     outcome,
                     &cancel_order_payload,
+                    &market_state.market,
                     now_ms(),
                     seq,
                 );

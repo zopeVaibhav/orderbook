@@ -18,3 +18,17 @@ model User {
     email String @unique
     image String
 }
+
+model LedgerEntry {
+    id       String @id @default(cuid())
+    userId   String
+    amount   Int
+    marketId String
+}
+
+model Markets {
+    id       String @id @default(cuid())
+    marketId String
+    lotExp   Int
+    tickExp  Int
+}

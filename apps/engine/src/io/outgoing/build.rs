@@ -1,16 +1,23 @@
-use crate::types::{
-    CancelOrderErr, CancelOrderOutcome, CancelOrderPayload, ClientOrderId, Leftover, MarketId,
-    NewOrderPayload, PlaceOrderErr, PlaceOrderOutcome, Price, Quantity, Side, UserId,
+use crate::{
+    io::outgoing::{AckStatus, BookDelta, BookDeltaEntry, OrderAck, OutgoingEvent, TradeOut},
+    types::{
+        CancelOrderErr, CancelOrderOutcome, CancelOrderPayload, Leftover, Market, NewOrderPayload,
+        PlaceOrderErr, PlaceOrderOutcome, Quantity,
+    },
 };
-use serde::Serialize;
 
-#[derive(Serialize)]
-pub enum AckStatus {
-    Filled,
-    Partial,
-    Rested,
-    Cancelled,
-    Rejected,
+fn to_decimal_string(value: u64, exp: u8) -> String {
+    let exp = exp as usize;
+    if exp == 0 {
+        return value.to_string();
+    }
+    let digits = value.to_string();
+    if digits.len() > exp {
+        let point = digits.len() - exp;
+        format!("{}.{}", &digits[..point], &digits[point..])
+    } else {
+        format!("0.{digits:0>exp$}")
+    }
 }
 
 impl AckStatus {
@@ -28,59 +35,12 @@ impl AckStatus {
         }
     }
 }
-#[derive(Serialize)]
-pub struct OrderAck {
-    pub market_id: MarketId,
-    pub user_id: UserId,
-    pub client_order_id: ClientOrderId,
-    pub status: AckStatus,
-    pub filled_qty: Quantity,
-    pub reason: Option<String>,
-    pub ts: u64,
-    pub seq: i64,
-}
-
-#[derive(Serialize)]
-pub struct TradeOut {
-    pub market_id: MarketId,
-    pub price: Price,
-    pub quantity: Quantity,
-    pub maker_user_id: UserId,
-    pub maker_client_order_id: ClientOrderId,
-    pub taker_user_id: UserId,
-    pub taker_client_order_id: ClientOrderId,
-    pub taker_side: Side,
-    pub ts: u64,
-    pub seq: i64,
-}
-
-#[derive(Serialize)]
-pub struct BookDelta {
-    pub market_id: MarketId,
-    pub changes: Vec<BookDeltaEntry>,
-    pub ts: u64,
-    pub seq: i64,
-}
-
-#[derive(Serialize)]
-pub struct BookDeltaEntry {
-    pub side: Side,
-    pub price: Price,
-    pub new_quantity: Quantity,
-}
-
-#[derive(Serialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum OutgoingEvent {
-    Ack(OrderAck),
-    Trade(TradeOut),
-    BookDelta(BookDelta),
-}
 
 impl OutgoingEvent {
     pub fn new_order_events(
         outcome: Result<PlaceOrderOutcome, PlaceOrderErr>,
         payload: &NewOrderPayload,
+        market: &Market,
         ts: u64,
         seq: i64,
     ) -> Vec<OutgoingEvent> {
@@ -97,7 +57,7 @@ impl OutgoingEvent {
                     user_id: payload.user_id.clone(),
                     client_order_id: payload.client_order_id.clone(),
                     status: AckStatus::from_outcome(&outcome.leftover, had_fills),
-                    filled_qty: total_filled_quantity,
+                    filled_qty: to_decimal_string(total_filled_quantity, market.lot_exp),
                     reason: None,
                     ts,
                     seq,
@@ -109,7 +69,7 @@ impl OutgoingEvent {
                         user_id: stp.maker_user_id.clone(),
                         client_order_id: stp.maker_client_order_id.clone(),
                         status: AckStatus::Cancelled,
-                        filled_qty: 0,
+                        filled_qty: to_decimal_string(0, market.lot_exp),
                         reason: Some("self trade prevention".to_string()),
                         ts,
                         seq,
@@ -119,8 +79,8 @@ impl OutgoingEvent {
                 for fill in &outcome.fills {
                     events.push(OutgoingEvent::Trade(TradeOut {
                         market_id: payload.market_id.clone(),
-                        price: fill.price,
-                        quantity: fill.quantity,
+                        price: to_decimal_string(fill.price, market.tick_exp),
+                        quantity: to_decimal_string(fill.quantity, market.lot_exp),
                         maker_user_id: fill.maker_user_id.clone(),
                         maker_client_order_id: fill.maker_client_order_id.clone(),
                         taker_user_id: payload.user_id.clone(),
@@ -137,8 +97,8 @@ impl OutgoingEvent {
                         .iter()
                         .map(|e| BookDeltaEntry {
                             side: e.side,
-                            price: e.price,
-                            new_quantity: e.new_quantity,
+                            price: to_decimal_string(e.price, market.tick_exp),
+                            new_quantity: to_decimal_string(e.new_quantity, market.lot_exp),
                         })
                         .collect();
 
@@ -155,7 +115,7 @@ impl OutgoingEvent {
                 user_id: payload.user_id.clone(),
                 client_order_id: payload.client_order_id.clone(),
                 status: AckStatus::Rejected,
-                filled_qty: 0,
+                filled_qty: to_decimal_string(0, market.lot_exp),
                 reason: Some(format!("{e:?}")),
                 ts,
                 seq,
@@ -167,6 +127,7 @@ impl OutgoingEvent {
     pub fn cancel_order_events(
         outcome: Result<CancelOrderOutcome, CancelOrderErr>,
         payload: &CancelOrderPayload,
+        market: &Market,
         ts: u64,
         seq: i64,
     ) -> Vec<OutgoingEvent> {
@@ -178,7 +139,7 @@ impl OutgoingEvent {
                     user_id: payload.user_id.clone(),
                     client_order_id: payload.client_order_id.clone(),
                     status: AckStatus::Cancelled,
-                    filled_qty: 0,
+                    filled_qty: to_decimal_string(0, market.lot_exp),
                     reason: None,
                     ts,
                     seq,
@@ -188,8 +149,8 @@ impl OutgoingEvent {
                     market_id: payload.market_id.clone(),
                     changes: vec![BookDeltaEntry {
                         side: outcome.side,
-                        price: outcome.price,
-                        new_quantity: outcome.new_level_quantity,
+                        price: to_decimal_string(outcome.price, market.tick_exp),
+                        new_quantity: to_decimal_string(outcome.new_level_quantity, market.lot_exp),
                     }],
                     ts,
                     seq,
@@ -200,30 +161,12 @@ impl OutgoingEvent {
                 user_id: payload.user_id.clone(),
                 client_order_id: payload.client_order_id.clone(),
                 status: AckStatus::Rejected,
-                filled_qty: 0,
+                filled_qty: to_decimal_string(0, market.lot_exp),
                 reason: Some(format!("{:?}", e)),
                 ts,
                 seq,
             })),
         }
         events
-    }
-}
-
-impl OutgoingEvent {
-    pub fn topic(&self) -> &'static str {
-        match self {
-            OutgoingEvent::Ack(_) => "orders.ack",
-            OutgoingEvent::Trade(_) => "trades.out",
-            OutgoingEvent::BookDelta(_) => "book.delta",
-        }
-    }
-
-    pub fn key(&self) -> &str {
-        match self {
-            OutgoingEvent::Ack(a) => &a.market_id,
-            OutgoingEvent::Trade(t) => &t.market_id,
-            OutgoingEvent::BookDelta(b) => &b.market_id,
-        }
     }
 }

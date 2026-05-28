@@ -1,8 +1,9 @@
 import { Kafka } from 'kafkajs';
+import { ENV } from './config/env.config';
 
 const kafka = new Kafka({
     clientId: 'settlement-service',
-    brokers: ['localhost:9092'],
+    brokers: [`${ENV.KAFKA_BROKER}`],
 });
 
 const consumer = kafka.consumer({

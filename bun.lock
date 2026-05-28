@@ -44,7 +44,10 @@
       "name": "settlement",
       "dependencies": {
         "@repo/database": "workspace:*",
+        "chalk": "^5.6.2",
+        "dotenv": "^17.4.2",
         "kafkajs": "^2.2.4",
+        "zod": "^4.4.3",
       },
       "devDependencies": {
         "@repo/eslint-config": "workspace:*",

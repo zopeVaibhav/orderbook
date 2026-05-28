@@ -22,6 +22,7 @@ pub struct MarketState {
     pub(crate) market: Market,
     pub(crate) book: Book,
     pub(crate) last_applied_seq: i64,
+    pub(crate) next_trade_id: u64,
 }
 
 impl MarketState {
@@ -83,7 +84,9 @@ impl MarketState {
 
                 let mut remaining_quantity = quantity;
                 let mut empty_queue = Vec::new();
-                for (price, queue) in self.book.bids.range_mut((start, Bound::Unbounded)).rev() {
+                let next_trade_id = &mut self.next_trade_id;
+                let book = &mut self.book;
+                for (price, queue) in book.bids.range_mut((start, Bound::Unbounded)).rev() {
                     if remaining_quantity == 0 {
                         break;
                     }
@@ -100,32 +103,35 @@ impl MarketState {
                                 maker_client_order_id: bid.client_order_id.clone(),
                             });
                             let popped = queue.pop_front().unwrap();
-                            self.book
-                                .cancel_index
+                            book.cancel_index
                                 .remove(&(popped.user_id, popped.client_order_id));
                             continue;
                         };
                         if bid.quantity > remaining_quantity {
                             bid.quantity -= remaining_quantity;
+                            let trade_id = *next_trade_id;
+                            *next_trade_id += 1;
                             outcome.fills.push(Fill {
                                 price: *price,
                                 quantity: remaining_quantity,
+                                trade_id,
                                 maker_user_id: bid.user_id.clone(),
                                 maker_client_order_id: bid.client_order_id.clone(),
                             });
                             remaining_quantity = 0;
                         } else {
                             remaining_quantity -= bid.quantity;
+                            let trade_id = *next_trade_id;
                             outcome.fills.push(Fill {
                                 price: *price,
                                 quantity: bid.quantity,
+                                trade_id,
                                 maker_user_id: bid.user_id.clone(),
                                 maker_client_order_id: bid.client_order_id.clone(),
                             });
 
                             let popped = queue.pop_front().unwrap();
-                            self.book
-                                .cancel_index
+                            book.cancel_index
                                 .remove(&(popped.user_id, popped.client_order_id));
                         }
                     }
@@ -145,7 +151,7 @@ impl MarketState {
                 }
 
                 for key in empty_queue {
-                    self.book.bids.remove(&key);
+                    book.bids.remove(&key);
                 }
                 remaining_quantity
             }
@@ -156,7 +162,9 @@ impl MarketState {
                 };
                 let mut remaining_quantity = quantity;
                 let mut empty_queue = Vec::new();
-                for (price, queue) in self.book.asks.range_mut((Bound::Unbounded, end)) {
+                let book = &mut self.book;
+                let next_trade_id = &mut self.next_trade_id;
+                for (price, queue) in book.asks.range_mut((Bound::Unbounded, end)) {
                     if remaining_quantity == 0 {
                         break;
                     }
@@ -172,32 +180,36 @@ impl MarketState {
                                 maker_client_order_id: ask.client_order_id.clone(),
                             });
                             let popped = queue.pop_front().unwrap();
-                            self.book
-                                .cancel_index
+                            book.cancel_index
                                 .remove(&(popped.user_id, popped.client_order_id));
                             continue;
                         };
                         if ask.quantity > remaining_quantity {
                             ask.quantity -= remaining_quantity;
+                            let trade_id = *next_trade_id;
+                            *next_trade_id += 1;
                             outcome.fills.push(Fill {
                                 price: *price,
                                 quantity: remaining_quantity,
+                                trade_id,
                                 maker_user_id: ask.user_id.clone(),
                                 maker_client_order_id: ask.client_order_id.clone(),
                             });
                             remaining_quantity = 0;
                         } else {
                             remaining_quantity -= ask.quantity;
+                            let trade_id = *next_trade_id;
+                            *next_trade_id += 1;
                             outcome.fills.push(Fill {
                                 price: *price,
                                 quantity: ask.quantity,
+                                trade_id,
                                 maker_user_id: ask.user_id.clone(),
                                 maker_client_order_id: ask.client_order_id.clone(),
                             });
 
                             let popped = queue.pop_front().unwrap();
-                            self.book
-                                .cancel_index
+                            book.cancel_index
                                 .remove(&(popped.user_id, popped.client_order_id));
                         }
                     }
@@ -217,7 +229,7 @@ impl MarketState {
                 }
 
                 for key in empty_queue {
-                    self.book.asks.remove(&key);
+                    book.asks.remove(&key);
                 }
                 remaining_quantity
             }

@@ -79,6 +79,7 @@ impl OutgoingEvent {
                 for fill in &outcome.fills {
                     events.push(OutgoingEvent::Trade(TradeOut {
                         market_id: payload.market_id.clone(),
+                        trade_id: fill.trade_id,
                         price: to_decimal_string(fill.price, market.tick_exp),
                         quantity: to_decimal_string(fill.quantity, market.lot_exp),
                         maker_user_id: fill.maker_user_id.clone(),

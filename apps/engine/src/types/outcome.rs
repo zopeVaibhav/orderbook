@@ -1,7 +1,7 @@
 use serde::Serialize;
 
 use crate::types::{
-    aliases::{ClientOrderId, Price, Quantity, UserId},
+    aliases::{ClientOrderId, Price, Quantity, TradeId, UserId},
     order::Side,
 };
 
@@ -17,6 +17,7 @@ pub struct PlaceOrderOutcome {
 pub struct Fill {
     pub(crate) price: Price,
     pub(crate) quantity: Quantity,
+    pub(crate) trade_id: TradeId,
     pub(crate) maker_user_id: UserId,
     pub(crate) maker_client_order_id: ClientOrderId,
 }

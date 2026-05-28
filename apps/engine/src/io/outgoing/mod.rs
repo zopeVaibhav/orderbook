@@ -1,6 +1,6 @@
 pub mod build;
 
-use crate::types::{ClientOrderId, MarketId, Side, UserId};
+use crate::types::{ClientOrderId, MarketId, Side, UserId, aliases::TradeId};
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -27,6 +27,7 @@ pub struct OrderAck {
 #[derive(Serialize)]
 pub struct TradeOut {
     pub market_id: MarketId,
+    pub trade_id: TradeId,
     pub price: String,
     pub quantity: String,
     pub maker_user_id: UserId,

@@ -22,6 +22,7 @@ impl Engine {
                 market,
                 book: Book::default(),
                 last_applied_seq: -1,
+                next_trade_id: 0,
             },
         );
     }

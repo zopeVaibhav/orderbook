@@ -7,7 +7,7 @@ config({ path: path.resolve(__dirname, '../../../../.env') });
 
 const envSchema = z.object({
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-    KAFKA_BROKER: z.url().default('localhost:9092'),
+    KAFKA_BROKER: z.string().default('localhost:9092'),
 });
 
 export let ENV: z.infer<typeof envSchema>;

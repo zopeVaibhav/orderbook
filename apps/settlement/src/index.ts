@@ -1,9 +1,14 @@
 import { Kafka } from 'kafkajs';
-import { ENV } from './config/env.config';
+import chalk from 'chalk';
+import { ENV, parseEnv } from './config/env.config';
+import { tradeOutSchema } from './trade.schema';
+import { settleTrade } from './settle';
+
+parseEnv();
 
 const kafka = new Kafka({
     clientId: 'settlement-service',
-    brokers: [`${ENV.KAFKA_BROKER}`],
+    brokers: [ENV.KAFKA_BROKER],
 });
 
 const consumer = kafka.consumer({
@@ -19,12 +24,19 @@ async function main() {
     });
 
     await consumer.run({
-        eachMessage: async ({ topic, partition, message }) => {
-            console.log('topic: ', topic);
-            console.log('partition', partition);
-            console.log('message: ', message?.value?.toString());
+        eachMessage: async ({ message }) => {
+            const raw = message.value?.toString();
+            if (!raw) return;
+
+            const trade = tradeOutSchema.parse(JSON.parse(raw));
+            await settleTrade(trade);
         },
     });
+
+    console.log(chalk.green('settlement service listening on trades.out'));
 }
 
-main().catch(console.error);
+main().catch((error) => {
+    console.error(chalk.red('settlement service crashed:'), error);
+    process.exit(1);
+});

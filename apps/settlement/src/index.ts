@@ -1,8 +1,8 @@
 import { Kafka } from 'kafkajs';
 import chalk from 'chalk';
 import { ENV, parseEnv } from './config/env.config';
-import { tradeOutSchema } from './trade.schema';
 import { settleTrade } from './settle';
+import { tradeOutSchema } from './schema/trade.schema';
 
 parseEnv();
 

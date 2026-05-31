@@ -1,5 +1,5 @@
 import { prisma, Prisma, RefType, LedgerReason } from '@repo/database';
-import type { TradeOut } from './trade.schema';
+import { TradeOut } from './schema/trade.schema';
 
 type MarketAssets = { base: string; quote: string };
 

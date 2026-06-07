@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::types::aliases::{ClientOrderId, Quantity, UserId};
+use crate::engine::{ClientOrderId, Quantity, UserId};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Order {

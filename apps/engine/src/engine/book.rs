@@ -1,9 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{
-    aliases::{ClientOrderId, Price, UserId},
-    order::{Order, Side},
-};
+use crate::engine::{ClientOrderId, Order, Price, Side, UserId};
 use std::collections::{BTreeMap, HashMap, VecDeque};
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]

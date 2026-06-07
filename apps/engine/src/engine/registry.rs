@@ -1,11 +1,6 @@
-use super::{
-    aliases::MarketId,
-    book::Book,
-    market::Market,
-    market::MarketState,
-    order::OrderKind,
-    outcome::{CancelOrderErr, CancelOrderOutcome, PlaceOrderErr, PlaceOrderOutcome},
-    payload::{CancelOrderPayload, NewOrderPayload},
+use crate::engine::{
+    Book, CancelOrderErr, CancelOrderOutcome, CancelOrderPayload, Market, MarketId, MarketState,
+    NewOrderPayload, OrderKind, PlaceOrderErr, PlaceOrderOutcome,
 };
 use std::collections::HashMap;
 

@@ -2,12 +2,9 @@ use std::ops::Bound;
 
 use serde::{Deserialize, Serialize};
 
-use crate::types::{
-    aliases::{Price, Quantity, UserId},
-    book::Book,
-    order::{Order, Side},
-    outcome::{Fill, LevelChange, PlaceOrderOutcome, StpCancellation},
-    payload::NewOrderPayload,
+use crate::engine::{
+    Book, Fill, LevelChange, NewOrderPayload, Order, PlaceOrderOutcome, Price, Quantity, Side,
+    StpCancellation, UserId,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

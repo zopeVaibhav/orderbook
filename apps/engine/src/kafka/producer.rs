@@ -1,4 +1,4 @@
-use crate::io::outgoing::OutgoingEvent;
+use crate::protocol::OutgoingEvent;
 use rdkafka::{
     ClientConfig,
     producer::{FutureProducer, FutureRecord},

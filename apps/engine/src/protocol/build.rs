@@ -1,9 +1,9 @@
 use crate::{
-    io::outgoing::{AckStatus, BookDelta, BookDeltaEntry, OrderAck, OutgoingEvent, TradeOut},
-    types::{
+    engine::{
         CancelOrderErr, CancelOrderOutcome, CancelOrderPayload, Leftover, Market, NewOrderPayload,
         PlaceOrderErr, PlaceOrderOutcome, Quantity,
     },
+    protocol::{AckStatus, BookDelta, BookDeltaEntry, OrderAck, OutgoingEvent, TradeOut},
 };
 
 fn to_decimal_string(value: u64, exp: u8) -> String {

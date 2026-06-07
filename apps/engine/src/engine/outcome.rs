@@ -1,9 +1,6 @@
 use serde::Serialize;
 
-use crate::types::{
-    aliases::{ClientOrderId, Price, Quantity, TradeId, UserId},
-    order::Side,
-};
+use crate::engine::{ClientOrderId, Price, Quantity, Side, TradeId, UserId};
 
 #[derive(Serialize, Default)]
 pub struct PlaceOrderOutcome {

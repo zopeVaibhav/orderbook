@@ -1,19 +1,12 @@
 use crate::{
-    io::{
-        consumer::OrderConsumer, incoming::IncomingOrder, outgoing::OutgoingEvent,
-        producer::OrderProducer, snapshot::SnapshotWriter,
-    },
-    types::{engine::Engine, market::Market},
+    engine::{Engine, Market},
+    kafka::{OrderConsumer, OrderProducer},
+    persistence::SnapshotWriter,
+    protocol::{IncomingOrder, OutgoingEvent},
 };
 use dotenvy::dotenv;
 use rdkafka::Message;
 use std::env;
-
-pub mod consumer;
-pub mod incoming;
-pub mod outgoing;
-pub mod producer;
-pub mod snapshot;
 
 const SNAPSHOT_INTERVAL: i64 = 10_000;
 

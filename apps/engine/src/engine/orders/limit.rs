@@ -1,11 +1,13 @@
-use crate::types::{Leftover, MarketState, NewOrderPayload, PlaceOrderErr, PlaceOrderOutcome};
+use crate::engine::{
+    Leftover, LevelChange, MarketState, NewOrderPayload, PlaceOrderErr, PlaceOrderOutcome,
+};
 
 impl MarketState {
-    pub fn place_ioc_order(
+    pub fn place_limit_order(
         &mut self,
         order: &NewOrderPayload,
     ) -> Result<PlaceOrderOutcome, PlaceOrderErr> {
-        if order.price.is_none() {
+        let Some(price) = order.price else {
             return Err(PlaceOrderErr::MissingPrice);
         };
 
@@ -20,9 +22,16 @@ impl MarketState {
         );
 
         if remaining_quantity > 0 {
-            outcome.leftover = Leftover::Cancelled {
+            let new_quantity = self.rest_on_book(order.side, price, order, remaining_quantity);
+            outcome.leftover = Leftover::Rested {
+                price,
                 quantity: remaining_quantity,
-            }
+            };
+            outcome.level_changes.push(LevelChange {
+                price,
+                side: order.side,
+                new_quantity,
+            });
         }
         Ok(outcome)
     }

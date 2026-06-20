@@ -1,8 +1,8 @@
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import cors from 'cors';
-import appRoutes from './routes/index';
-import { ENV, parseEnv } from './config/env.config';
+import appRoutes from './routers/v1/router.v1';
+import { ENV, parseEnv } from './configs/env';
 
 parseEnv();
 

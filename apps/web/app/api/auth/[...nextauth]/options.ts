@@ -21,17 +21,15 @@ export const authOptions: AuthOptions = {
         async signIn({ user, account }) {
             try {
                 if (!account) return false;
-                if (account.provider === 'google') {
-                    if (!user.email) return false;
+                const response = await axios.post(SIGNIN_URL, { ...account, ...user });
 
-                    const response = await axios.post(SIGNIN_URL, { ...account, ...user });
-                    const result = response.data;
-                    if (result?.status) {
-                        const u = user as AppUser;
-                        u.id = result.data.user.id;
-                        u.token = result.data.token;
-                        return true;
-                    }
+                const result = response.data;
+
+                if (result?.status) {
+                    const u = user as AppUser;
+                    u.id = result.data.user.id;
+                    u.token = result.data.token;
+                    return true;
                 }
                 return false;
             } catch (error) {

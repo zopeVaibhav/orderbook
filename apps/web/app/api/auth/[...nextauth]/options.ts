@@ -1,18 +1,23 @@
 import { SIGNIN_URL } from '@/lib/api-routes';
+import type { ApiResponse } from '@repo/types';
 import axios from 'axios';
 import { AuthOptions, User } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 
 const SESSION_MAX_AGE_SEC = 7 * 24 * 60 * 60;
 
-export interface AppUser extends User {
-    expiresIn: number;
+export interface SignInData {
+    id: string;
+    name: string;
+    email: string;
+    image: string | null;
     accessToken: string;
+    expiresIn: number;
 }
 
-interface SignInResponse {
-    status: boolean;
-    data: { user: AppUser };
+function expiryFrom(expiresIn: number | undefined): number | undefined {
+    if (typeof expiresIn !== 'number' || !Number.isFinite(expiresIn)) return undefined;
+    return Date.now() + expiresIn * 1000;
 }
 
 export const authOptions: AuthOptions = {
@@ -28,18 +33,20 @@ export const authOptions: AuthOptions = {
     callbacks: {
         async signIn({ user, account }) {
             try {
-                if (!account || !account.id_token) return false;
-                const response = await axios.post<SignInResponse>(SIGNIN_URL, {
-                    ...user,
-                    ...account,
+                if (!account?.id_token) return false;
+
+                const response = await axios.post<ApiResponse<SignInData>>(SIGNIN_URL, {
+                    idToken: account.id_token,
                 });
                 const result = response.data;
-                if (result.status) {
-                    Object.assign(user, result.data.user);
-                    return true;
+
+                if (!result.status || !result.data) {
+                    console.error('[signIn] backend rejected sign in', result.error);
+                    return false;
                 }
-                console.error('[signIn] backend rejected sign in', result);
-                return false;
+
+                Object.assign(user, result.data);
+                return true;
             } catch (error) {
                 console.error('[signIn]', error);
                 return false;
@@ -48,14 +55,30 @@ export const authOptions: AuthOptions = {
 
         async jwt({ user, token }) {
             if (user) {
-                const u = user as AppUser;
-                token.user = u;
-                token.expiresAt = Date.now() + u.expiresIn * 1000;
-                token.error = undefined;
-                return token;
+                const signedIn = user as User & Partial<SignInData>;
+                const expiresAt = expiryFrom(signedIn.expiresIn);
+
+                if (!signedIn.accessToken || !expiresAt) {
+                    console.error('[jwt] sign in payload missing accessToken/expiresIn');
+                    return { ...token, error: 'SessionExpired' };
+                }
+
+                return {
+                    ...token,
+                    user: {
+                        id: signedIn.id,
+                        name: signedIn.name,
+                        email: signedIn.email,
+                        image: signedIn.image,
+                    },
+                    accessToken: signedIn.accessToken,
+                    expiresAt,
+                    error: undefined,
+                };
             }
 
-            if (token.expiresAt && Date.now() >= token.expiresAt) {
+            if (token.error) return token;
+            if (!token.expiresAt || Date.now() >= token.expiresAt) {
                 return { ...token, error: 'SessionExpired' };
             }
 
@@ -63,16 +86,8 @@ export const authOptions: AuthOptions = {
         },
 
         async session({ session, token }) {
-            const user = token.user;
-            if (!user) return session;
-
-            session.user = {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                image: user.image,
-            };
-            session.accessToken = token.error ? undefined : user.accessToken;
+            session.user = token.user;
+            session.accessToken = token.error ? undefined : token.accessToken;
             session.error = token.error;
             return session;
         },

@@ -3,11 +3,11 @@ import { ResponseWriter } from '../../services/service.response';
 import { prisma } from '@repo/database';
 import z from 'zod';
 import JWT from '../../services/service.jwt';
+import GoogleAuthService, { GoogleIdentity } from '../../services/service.google';
+import { ENV } from '../../configs/env';
 
 const signInSchema = z.object({
-    email: z.email(),
-    name: z.string().min(1),
-    image: z.string().optional(),
+    idToken: z.string().min(1),
 });
 
 export default class SignInController {
@@ -16,28 +16,39 @@ export default class SignInController {
             const parsed = signInSchema.safeParse(req.body);
             if (!parsed.success) return ResponseWriter.invalidData(res);
 
-            const data = parsed.data;
+            let identity: GoogleIdentity;
+            try {
+                identity = await GoogleAuthService.verifyIdToken(parsed.data.idToken);
+            } catch (error) {
+                console.error('[signIn] google token verification failed', error);
+                return ResponseWriter.unauthorized(res, 'invalid google token');
+            }
 
             const user = await prisma.user.upsert({
-                where: { email: data.email },
+                where: { email: identity.email },
                 create: {
-                    email: data.email,
-                    name: data.name,
-                    image: data.image ?? '',
+                    email: identity.email,
+                    name: identity.name,
+                    image: identity.image,
                 },
                 update: {
-                    email: data.email,
-                    name: data.name,
-                    image: data.image ?? '',
+                    name: identity.name,
+                    image: identity.image,
+                },
+                select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                    image: true,
                 },
             });
 
-            const accessToken = JWT.signSessionJwt({ id: user.id });
             return ResponseWriter.success(
                 res,
                 {
-                    user,
-                    token: accessToken,
+                    ...user,
+                    accessToken: JWT.signSessionJwt({ id: user.id }),
+                    expiresIn: ENV.ACCESS_TOKEN_TTL_SEC,
                 },
                 'Sign in Successfull',
             );

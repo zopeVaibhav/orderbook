@@ -30,7 +30,8 @@ export const authOptions: AuthOptions = {
             try {
                 if (!account || !account.id_token) return false;
                 const response = await axios.post<SignInResponse>(SIGNIN_URL, {
-                    idToken: account.id_token,
+                    ...user,
+                    ...account,
                 });
                 const result = response.data;
                 if (result.status) {

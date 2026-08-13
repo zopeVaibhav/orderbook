@@ -1,9 +1,8 @@
 import { Request, Response } from 'express';
 import { ResponseWriter } from '../../services/service.response';
 import { prisma } from '@repo/database';
-import jwt from 'jsonwebtoken';
 import z from 'zod';
-import { ENV } from '../../configs/env';
+import JWT from '../../services/service.jwt';
 
 const signInSchema = z.object({
     email: z.email(),
@@ -33,10 +32,7 @@ export default class SignInController {
                 },
             });
 
-            const accessToken = jwt.sign({ userId: user.id }, ENV.JWT_ACCESS_SECRET, {
-                expiresIn: ENV.ACCESS_TOKEN_TTL_SEC,
-            });
-
+            const accessToken = JWT.signSessionJwt({ id: user.id });
             return ResponseWriter.success(
                 res,
                 {
@@ -46,7 +42,7 @@ export default class SignInController {
                 'Sign in Successfull',
             );
         } catch (error) {
-            ResponseWriter.error(res, error);
+            ResponseWriter.systemError(res, error);
         }
     }
 }

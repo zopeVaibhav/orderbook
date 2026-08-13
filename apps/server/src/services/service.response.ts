@@ -50,7 +50,7 @@ export class ResponseWriter {
         } satisfies ApiResponse<null>);
     }
 
-    static error(res: Response, error: unknown, message = 'internal server error') {
+    static systemError(res: Response, error: unknown, message = 'internal server error') {
         const errorMessage = error instanceof Error ? error.message : String(error);
         return res.status(500).json({
             status: false,

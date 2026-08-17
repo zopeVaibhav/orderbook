@@ -15,10 +15,3 @@ export const TOP_MOVERS: TopMover[] = [
     { symbol: 'SOL-PERP', price: 178.42, change24h: 4.12 },
     { symbol: 'ARB-PERP', price: 0.812, change24h: 5.71 },
 ];
-
-export function formatMoverPrice(price: number): string {
-    if (price >= 100) return `$${price.toFixed(2)}`;
-    if (price >= 1) return `$${price.toFixed(4)}`;
-    if (price >= 0.01) return `$${price.toFixed(4)}`;
-    return `$${price.toFixed(6)}`;
-}

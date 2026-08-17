@@ -1,7 +1,8 @@
 'use client';
 
 import { motion } from 'motion/react';
-import { TOP_MOVERS, formatMoverPrice } from '@/data/top-movers';
+import { TOP_MOVERS } from '@/data/top-movers';
+import { formatPrice } from '@/lib/format';
 
 function TickerItem({
     symbol,
@@ -16,9 +17,7 @@ function TickerItem({
     return (
         <div className="flex shrink-0 items-center gap-1.5 whitespace-nowrap">
             <span className="text-foreground">{symbol}</span>
-            <span className={positive ? 'text-profit' : 'text-loss'}>
-                {formatMoverPrice(price)}
-            </span>
+            <span className={positive ? 'text-profit' : 'text-loss'}>${formatPrice(price)}</span>
             <span className={positive ? 'text-profit/70' : 'text-loss/70'}>
                 ({change24h.toFixed(2)}%)
             </span>

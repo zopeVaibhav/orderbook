@@ -47,7 +47,7 @@ export default function TradePanel() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setOrderType(t)}
-                                className={`cursor-pointer capitalize ${
+                                className={`capitalize ${
                                     orderType === t
                                         ? 'bg-muted/30 font-semibold text-foreground shadow-sm'
                                         : 'text-muted-foreground'
@@ -102,7 +102,7 @@ export default function TradePanel() {
                                         size="xs"
                                         disabled={postOnly}
                                         onClick={() => setTif(t.key)}
-                                        className={`cursor-pointer ${
+                                        className={`${
                                             tif === t.key && !postOnly
                                                 ? 'bg-muted font-medium text-foreground'
                                                 : 'text-muted-foreground'
@@ -127,7 +127,7 @@ export default function TradePanel() {
                     {/* Submit */}
                     <Button
                         size="lg"
-                        className={`mt-auto cursor-pointer font-semibold text-foreground ${
+                        className={`mt-auto font-semibold text-foreground ${
                             side === 'bid' ? 'bg-profit hover:bg-profit' : 'bg-loss hover:bg-loss'
                         }`}
                     >

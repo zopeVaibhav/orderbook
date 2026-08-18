@@ -17,7 +17,7 @@ export default function ChartFooter() {
                     variant="ghost"
                     size="xs"
                     onClick={() => changeTimeframe(tf)}
-                    className={`cursor-pointer ${
+                    className={`${
                         tf.key === timeframe.key
                             ? 'bg-muted font-semibold text-foreground'
                             : 'text-muted-foreground'

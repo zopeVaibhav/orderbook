@@ -5,7 +5,7 @@ import TradeShell from '@/components/trade/TradeShell';
 export default function Page() {
     return (
         <div className="flex h-screen w-full flex-col bg-background text-foreground">
-            <Navbar />
+            <Navbar location="trade" />
             <TradeShell />
             <StatusBar />
         </div>

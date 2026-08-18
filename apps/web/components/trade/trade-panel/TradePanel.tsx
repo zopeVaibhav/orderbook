@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -41,17 +42,19 @@ export default function TradePanel() {
                     {/* Order type: Limit / Market */}
                     <div className="flex items-center gap-1">
                         {(['limit', 'market'] as OrderTypeTab[]).map((t) => (
-                            <button
+                            <Button
                                 key={t}
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => setOrderType(t)}
-                                className={`cursor-pointer rounded-sm p-2 px-4 text-sm capitalize transition-colors ${
+                                className={`capitalize ${
                                     orderType === t
                                         ? 'bg-muted/30 font-semibold text-foreground shadow-sm'
-                                        : 'text-muted-foreground hover:text-foreground'
+                                        : 'text-muted-foreground'
                                 }`}
                             >
                                 {t}
-                            </button>
+                            </Button>
                         ))}
                     </div>
 
@@ -93,18 +96,20 @@ export default function TradePanel() {
                         <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-1">
                                 {TIF_OPTIONS.map((t) => (
-                                    <button
+                                    <Button
                                         key={t.key}
+                                        variant="ghost"
+                                        size="xs"
                                         disabled={postOnly}
                                         onClick={() => setTif(t.key)}
-                                        className={`cursor-pointer rounded px-1.5 py-0.5 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                                        className={`${
                                             tif === t.key && !postOnly
                                                 ? 'bg-muted font-medium text-foreground'
-                                                : 'text-muted-foreground hover:text-foreground'
+                                                : 'text-muted-foreground'
                                         }`}
                                     >
                                         {t.label}
-                                    </button>
+                                    </Button>
                                 ))}
                             </div>
                             <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
@@ -120,13 +125,14 @@ export default function TradePanel() {
                     <div className="text-sm text-muted-foreground">Order Value</div>
 
                     {/* Submit */}
-                    <button
-                        className={`mt-auto cursor-pointer rounded-md py-2 text-sm font-semibold text-background ${
-                            side === 'bid' ? 'bg-profit' : 'bg-loss'
+                    <Button
+                        size="lg"
+                        className={`mt-auto font-semibold text-foreground ${
+                            side === 'bid' ? 'bg-profit hover:bg-profit' : 'bg-loss hover:bg-loss'
                         }`}
                     >
                         {side === 'bid' ? 'Buy' : 'Sell'} BTC
-                    </button>
+                    </Button>
                 </div>
             </div>
             <BalanceCard />

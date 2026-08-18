@@ -1,8 +1,5 @@
 import { ACCOUNT_BALANCE } from '@/data/user-fills';
-
-function formatUsd(n: number): string {
-    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
+import { formatUsd } from '@/lib/format';
 
 export default function BalanceAccount() {
     return (

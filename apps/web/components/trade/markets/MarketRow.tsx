@@ -1,10 +1,6 @@
 import Image from 'next/image';
+import { formatCompactPrice } from '@/lib/format';
 import type { Market } from '@/types/market';
-
-function formatPrice(price: number): string {
-    if (price >= 1000) return `$${(price / 1000).toFixed(price >= 10000 ? 1 : 2)}K`;
-    return `$${price.toFixed(2)}`;
-}
 
 export default function MarketRow({ market }: { market: Market }) {
     const positive = market.change24h >= 0;
@@ -25,7 +21,7 @@ export default function MarketRow({ market }: { market: Market }) {
                     </span>
                 )}
             </div>
-            <div className="text-right text-sm">{formatPrice(market.price)}</div>
+            <div className="text-right text-sm">{formatCompactPrice(market.price)}</div>
             <div className={`w-14 text-right text-xs ${positive ? 'text-profit' : 'text-loss'}`}>
                 {positive ? '+' : ''}
                 {market.change24h.toFixed(2)}%

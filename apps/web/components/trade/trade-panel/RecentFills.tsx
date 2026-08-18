@@ -1,17 +1,5 @@
-import { USER_FILLS, formatFillTime } from '@/data/user-fills';
-
-function formatSize(n: number): string {
-    if (n >= 1000) return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
-    if (n >= 1) return n.toFixed(3);
-    return n.toFixed(4);
-}
-
-function formatPrice(n: number): string {
-    if (n >= 100)
-        return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    if (n >= 1) return n.toFixed(4);
-    return n.toFixed(6);
-}
+import { USER_FILLS } from '@/data/user-fills';
+import { formatPrice, formatSize, formatTime } from '@/lib/format';
 
 export default function RecentFills() {
     return (
@@ -26,7 +14,7 @@ export default function RecentFills() {
             <div className="scrollbar-none flex min-h-0 flex-1 flex-col overflow-y-auto [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 {USER_FILLS.map((f) => (
                     <div key={f.id} className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-2 py-1 text-xs">
-                        <span className="text-muted-foreground">{formatFillTime(f.timestamp)}</span>
+                        <span className="text-muted-foreground">{formatTime(f.timestamp)}</span>
                         <span className={f.side === 'bid' ? 'text-profit' : 'text-loss'}>
                             {f.symbol}
                         </span>

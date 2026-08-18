@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { Button } from '@/components/ui/button';
 
 function Stat({
     label,
@@ -24,10 +25,12 @@ function Stat({
 export default function MarketHeader({ onToggleMarkets }: { onToggleMarkets: () => void }) {
     return (
         <div className="relative flex h-16 shrink-0 items-center gap-8 overflow-hidden overflow-x-scroll border-b border-border px-3">
-            <button
+            <Button
+                variant="ghost"
                 onClick={onToggleMarkets}
-                className="absolute left-0 h-10 w-2 rounded-tr-md rounded-br-md bg-muted"
-            ></button>
+                className="absolute left-0 h-10 w-2 min-w-0 rounded-tr-md rounded-br-md rounded-tl-none rounded-bl-none bg-muted p-0 hover:bg-muted/70"
+            />
+
             <div className="ml-2 flex items-center gap-2">
                 <Image src="/coins/bitcoin.svg" alt="bitcoin logo" height={20} width={20} />
                 <div className="text-xl font-medium">BTC</div>

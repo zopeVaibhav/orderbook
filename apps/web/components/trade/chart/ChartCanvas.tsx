@@ -1,3 +1,11 @@
+'use client';
+
+import { useCandlesStore } from '@/store/market/useCandlesStore';
+import CandleChart from './CandleChart';
+
 export default function ChartCanvas() {
-    return <div className="flex min-h-0 flex-1 items-center justify-center">ChartCanvas</div>;
+    const candles = useCandlesStore((s) => s.candles);
+    const timeframe = useCandlesStore((s) => s.timeframe);
+    const epoch = useCandlesStore((s) => s.epoch);
+    return <CandleChart candles={candles} timeframe={timeframe} epoch={epoch} />;
 }

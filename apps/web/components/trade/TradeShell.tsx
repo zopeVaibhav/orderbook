@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useMarketFeed } from '@/hooks/market/useMarketFeed';
 import ChartPanel from './chart/ChartPanel';
 import MarketsSidebar from './markets/MarketsSidebar';
 import OrderBookPanel from './orderbook/OrderBookPanel';
@@ -9,6 +10,8 @@ import TradePanel from './trade-panel/TradePanel';
 
 export default function TradeShell() {
     const [marketsOpen, setMarketsOpen] = useState(false);
+    useMarketFeed();
+
     return (
         <div className="flex min-h-0 flex-1 gap-2 p-2 pt-0">
             <MarketsSidebar open={marketsOpen} />

@@ -27,6 +27,7 @@
         "express": "^5.2.1",
         "google-auth-library": "^11.0.2",
         "jsonwebtoken": "^9.0.3",
+        "kafkajs": "^2.2.4",
         "zod": "^4.4.3",
       },
       "devDependencies": {

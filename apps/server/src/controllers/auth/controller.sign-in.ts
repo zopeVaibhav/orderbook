@@ -5,7 +5,7 @@ import z from 'zod';
 import { randomUUID } from 'node:crypto';
 import JWT from '../../services/service.jwt';
 import GoogleAuthService, { GoogleIdentity } from '../../services/service.google';
-import { ENV } from '../../configs/env';
+import { ENV } from '../../configs/env.config';
 
 const signInSchema = z.object({
     idToken: z.string().min(1),

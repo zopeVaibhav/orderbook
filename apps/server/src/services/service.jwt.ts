@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import type { AuthUser } from '../types/express';
-import { ENV } from '../configs/env';
+import { ENV } from '../configs/env.config';
 
 export default class JWT {
     static signSessionJwt(claims: AuthUser): string {

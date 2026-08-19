@@ -2,7 +2,8 @@ import cookieParser from 'cookie-parser';
 import express from 'express';
 import cors from 'cors';
 import appRoutes from './routers/v1/router.v1';
-import { ENV, parseEnv } from './configs/env';
+import { ENV, parseEnv } from './configs/env.config';
+import OrderProducer from './kafka/kafka.order-producer';
 
 parseEnv();
 
@@ -23,19 +24,27 @@ app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'ok' });
 });
 
+await OrderProducer.connect();
+
 const server = app.listen(ENV.SERVER_PORT, () => {
     console.log(`Server is running on port: ${ENV.SERVER_PORT}`);
 });
 
 const shutdown = (signal: string) => {
     console.log(`\nReceived ${signal}, shutting down gracefully...`);
-    server.close((err) => {
-        if (err) {
-            console.error('Error during shutdown:', err);
-            process.exit(1);
+    // Stop accepting requests first, then flush the producer so orders already
+    // accepted still reach kafka.
+    server.close(async (err) => {
+        if (err) console.error('Error during shutdown:', err);
+        else console.log('Server closed.');
+
+        try {
+            await OrderProducer.disconnect();
+        } catch (error) {
+            console.error('Producer disconnect failed:', error);
         }
-        console.log('Server closed.');
-        process.exit(0);
+
+        process.exit(err ? 1 : 0);
     });
 
     setTimeout(() => {

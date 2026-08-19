@@ -5,10 +5,11 @@ use crate::{
     protocol::{IncomingOrder, OutgoingEvent},
 };
 use dotenvy::dotenv;
-use rdkafka::Message;
+use rdkafka::{Message, Offset, TopicPartitionList};
 use std::env;
 
 const SNAPSHOT_INTERVAL: i64 = 10_000;
+const ORDERS_TOPIC: &str = "orders.in";
 
 pub async fn run() -> anyhow::Result<()> {
     dotenv().ok();
@@ -16,20 +17,16 @@ pub async fn run() -> anyhow::Result<()> {
     let brokers = env::var("KAFKA_BROKERS").unwrap_or("localhost:9092".into());
     let group_id = env::var("KAFKA_GROUP_ID").unwrap_or("engine".into());
 
-    let consumer = OrderConsumer::new(&brokers, &group_id, &["orders.in"])?;
+    let consumer = OrderConsumer::new(&brokers, &group_id)?;
     let producer = OrderProducer::new(&brokers)?;
 
     let mut engine = Engine::default();
     let mut snapshot_writer = SnapshotWriter::new()?;
 
     let markets = SnapshotWriter::load_all()?;
-    for (market_id, snapshot) in markets {
-        let next_offset = snapshot.market_state.last_applied_seq + 1;
-        engine.markets.insert(market_id, snapshot.market_state);
-        consumer.seek("orders.in", snapshot.partition, next_offset)?;
-    }
+    let mut tpl = TopicPartitionList::new();
 
-    if engine.markets.is_empty() {
+    if markets.is_empty() {
         engine.add_market(
             "SOL/USDC".into(),
             Market {
@@ -38,7 +35,17 @@ pub async fn run() -> anyhow::Result<()> {
                 min_quantity: 1000,
             },
         );
+        tpl.add_partition_offset(ORDERS_TOPIC, 0, Offset::Beginning)?;
+    } else {
+        for (market_id, snapshot) in markets {
+            let next_offset = snapshot.market_state.last_applied_seq + 1;
+            let partition = snapshot.partition;
+            engine.markets.insert(market_id, snapshot.market_state);
+            tpl.add_partition_offset(ORDERS_TOPIC, partition, Offset::Offset(next_offset))?;
+        }
     }
+
+    consumer.assign(&tpl)?;
 
     loop {
         let msg = consumer.recv().await?;

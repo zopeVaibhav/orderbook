@@ -38,6 +38,17 @@ pub struct TradeOut {
 }
 
 #[derive(Serialize)]
+pub struct PublicTrade {
+    pub market_id: MarketId,
+    pub trade_id: TradeId,
+    pub price: String,
+    pub quantity: String,
+    pub taker_side: Side,
+    pub ts: u64,
+    pub seq: i64,
+}
+
+#[derive(Serialize)]
 pub struct BookDelta {
     pub market_id: MarketId,
     pub changes: Vec<BookDeltaEntry>,
@@ -57,6 +68,7 @@ pub struct BookDeltaEntry {
 pub enum OutgoingEvent {
     Ack(OrderAck),
     Trade(TradeOut),
+    PublicTrade(PublicTrade),
     BookDelta(BookDelta),
 }
 
@@ -65,6 +77,7 @@ impl OutgoingEvent {
         match self {
             OutgoingEvent::Ack(_) => "orders.ack",
             OutgoingEvent::Trade(_) => "trades.out",
+            OutgoingEvent::PublicTrade(_) => "trades.public",
             OutgoingEvent::BookDelta(_) => "book.delta",
         }
     }
@@ -73,6 +86,7 @@ impl OutgoingEvent {
         match self {
             OutgoingEvent::Ack(a) => &a.market_id,
             OutgoingEvent::Trade(t) => &t.market_id,
+            OutgoingEvent::PublicTrade(p) => &p.market_id,
             OutgoingEvent::BookDelta(b) => &b.market_id,
         }
     }

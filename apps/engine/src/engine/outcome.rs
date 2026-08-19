@@ -17,6 +17,7 @@ pub struct Fill {
     pub(crate) trade_id: TradeId,
     pub(crate) maker_user_id: UserId,
     pub(crate) maker_client_order_id: ClientOrderId,
+    pub(crate) maker_remaining_after: Quantity,
 }
 
 #[derive(Serialize, Default)]
@@ -55,6 +56,21 @@ pub enum PlaceOrderErr {
     PostOnlyWouldCross,
     FillOrKillUnfillable,
     MarketOrderWithPrice,
+    DuplicateClientOrderId,
+}
+
+impl PlaceOrderErr {
+    pub fn code(&self) -> &'static str {
+        match self {
+            Self::UnknownMarket => "UNKNOWN_MARKET",
+            Self::BelowMinQuantity => "BELOW_MIN_QUANTITY",
+            Self::MissingPrice => "MISSING_PRICE",
+            Self::PostOnlyWouldCross => "POST_ONLY_WOULD_CROSS",
+            Self::FillOrKillUnfillable => "FILL_OR_KILL_UNFILLABLE",
+            Self::MarketOrderWithPrice => "MARKET_ORDER_WITH_PRICE",
+            Self::DuplicateClientOrderId => "DUPLICATE_CLIENT_ORDER_ID",
+        }
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -69,4 +85,13 @@ pub struct CancelOrderOutcome {
 pub enum CancelOrderErr {
     UnknownMarket,
     OrderNotFound,
+}
+
+impl CancelOrderErr {
+    pub fn code(&self) -> &'static str {
+        match self {
+            Self::UnknownMarket => "UNKNOWN_MARKET",
+            Self::OrderNotFound => "ORDER_NOT_FOUND",
+        }
+    }
 }

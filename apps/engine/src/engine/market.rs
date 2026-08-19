@@ -30,14 +30,14 @@ impl MarketState {
                 .bids
                 .keys()
                 .next_back()
-                .is_some_and(|&best_ask| best_ask >= price),
+                .is_some_and(|&best_bid| best_bid >= price),
 
             Side::Bid => self
                 .book
                 .asks
                 .keys()
                 .next()
-                .is_some_and(|&best_bid| best_bid <= price),
+                .is_some_and(|&best_ask| best_ask <= price),
         }
     }
 
@@ -114,17 +114,21 @@ impl MarketState {
                                 trade_id,
                                 maker_user_id: bid.user_id.clone(),
                                 maker_client_order_id: bid.client_order_id.clone(),
+                                maker_remaining_after: bid.quantity,
                             });
                             remaining_quantity = 0;
                         } else {
-                            remaining_quantity -= bid.quantity;
+                            let maker_quantity = bid.quantity;
+                            remaining_quantity -= maker_quantity;
                             let trade_id = *next_trade_id;
+                            *next_trade_id += 1;
                             outcome.fills.push(Fill {
                                 price: *price,
-                                quantity: bid.quantity,
+                                quantity: maker_quantity,
                                 trade_id,
                                 maker_user_id: bid.user_id.clone(),
                                 maker_client_order_id: bid.client_order_id.clone(),
+                                maker_remaining_after: 0,
                             });
 
                             let popped = queue.pop_front().unwrap();
@@ -191,18 +195,21 @@ impl MarketState {
                                 trade_id,
                                 maker_user_id: ask.user_id.clone(),
                                 maker_client_order_id: ask.client_order_id.clone(),
+                                maker_remaining_after: ask.quantity,
                             });
                             remaining_quantity = 0;
                         } else {
-                            remaining_quantity -= ask.quantity;
+                            let maker_quantity = ask.quantity;
+                            remaining_quantity -= maker_quantity;
                             let trade_id = *next_trade_id;
                             *next_trade_id += 1;
                             outcome.fills.push(Fill {
                                 price: *price,
-                                quantity: ask.quantity,
+                                quantity: maker_quantity,
                                 trade_id,
                                 maker_user_id: ask.user_id.clone(),
                                 maker_client_order_id: ask.client_order_id.clone(),
+                                maker_remaining_after: 0,
                             });
 
                             let popped = queue.pop_front().unwrap();

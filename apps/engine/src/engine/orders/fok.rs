@@ -56,7 +56,10 @@ impl MarketState {
             &mut outcome,
         );
 
-        debug_assert!(remaining_quantity == 0);
+        assert_eq!(
+            remaining_quantity, 0,
+            "FoK engine invariant: availability was verified but match_against left residual"
+        );
 
         Ok(outcome)
     }

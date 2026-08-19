@@ -25,8 +25,7 @@ impl AckStatus {
         match (leftover, had_fills) {
             (Leftover::None, true) => AckStatus::Filled,
             (Leftover::None, false) => {
-                debug_assert!(false, "Leftover::None without fills - engine bug");
-                AckStatus::Cancelled
+                panic!("engine invariant violated: Leftover::None with no fills")
             }
             (Leftover::Rested { .. }, true) => AckStatus::Partial,
             (Leftover::Rested { .. }, false) => AckStatus::Rested,
@@ -117,7 +116,7 @@ impl OutgoingEvent {
                 client_order_id: payload.client_order_id.clone(),
                 status: AckStatus::Rejected,
                 filled_qty: to_decimal_string(0, market.lot_exp),
-                reason: Some(format!("{e:?}")),
+                reason: Some(e.code().to_string()),
                 ts,
                 seq,
             })),
@@ -163,7 +162,7 @@ impl OutgoingEvent {
                 client_order_id: payload.client_order_id.clone(),
                 status: AckStatus::Rejected,
                 filled_qty: to_decimal_string(0, market.lot_exp),
-                reason: Some(format!("{:?}", e)),
+                reason: Some(e.code().to_string()),
                 ts,
                 seq,
             })),

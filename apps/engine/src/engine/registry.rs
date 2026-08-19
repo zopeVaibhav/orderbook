@@ -40,6 +40,11 @@ impl Engine {
             return Err(PlaceOrderErr::BelowMinQuantity);
         }
 
+        let dedupe_key = (order.user_id.clone(), order.client_order_id.clone());
+        if market_state.book.cancel_index.contains_key(&dedupe_key) {
+            return Err(PlaceOrderErr::DuplicateClientOrderId);
+        }
+
         match order.order_kind {
             OrderKind::LimitGtc => market_state.place_limit_order(order),
             OrderKind::Market => market_state.place_market_order(order),

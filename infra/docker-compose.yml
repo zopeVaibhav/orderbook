@@ -40,9 +40,9 @@ services:
             - -c
             - |
                 set -e
-                rpk cluster health --watch --exit-when-healthy --brokers redpanda:29092
-                rpk topic create orders.in orders.ack trades.out book.delta -p 1 --brokers redpanda:29092 || true
-                rpk topic create markets.control -p 1 -c cleanup.policy=compact --brokers redpanda:29092 || true
+                rpk cluster health -X admin.hosts=redpanda:9644
+                rpk topic create orders.in orders.ack trades.out book.delta -p 1 -X brokers=redpanda:29092 || true
+                rpk topic create markets.control -p 1 -c cleanup.policy=compact -X brokers=redpanda:29092 || true
         restart: on-failure
 
     console:

@@ -35,42 +35,49 @@ pub async fn run() -> anyhow::Result<()> {
     let mut snapshot_writer = SnapshotWriter::new()?;
 
     /*
-        PHASE 1 — rehydrate markets from snapshots. Each snapshot carries the
-        partition it was taken from plus the last offset already applied.
-     */
+       PHASE 1 — rehydrate markets from snapshots. Each snapshot carries the
+       partition it was taken from plus the last offset already applied.
+    */
 
     let mut order_tpl = TopicPartitionList::new();
     for (market_id, snapshot) in SnapshotWriter::load_all()? {
         let next_offset = snapshot.market_state.last_applied_seq + 1;
         let partition = snapshot.partition;
+        println!(
+            "Restored market {} from snapshot, resuming {} partition {} at offset {}",
+            market_id, ORDERS_TOPIC, partition, next_offset
+        );
         engine.markets.insert(market_id, snapshot.market_state);
         order_tpl.add_partition_offset(ORDERS_TOPIC, partition, Offset::Offset(next_offset))?;
     }
 
     /*
-        PHASE 2 — drain markets.control to its high watermark so every market the
-        server has registered is known before the first order is matched.
-     */
+       PHASE 2 — drain markets.control to its high watermark so every market the
+       server has registered is known before the first order is matched.
+    */
 
     let mut ctrl_tpl = TopicPartitionList::new();
     ctrl_tpl.add_partition_offset(MARKET_CONTROL_TOPIC, 0, Offset::Beginning)?;
     ctrl_consumer.assign(&ctrl_tpl)?;
+    println!("Draining {}", MARKET_CONTROL_TOPIC);
     drain_market_control(&ctrl_consumer, &mut engine).await?;
+    println!("Registry holds {} markets", engine.markets.len());
 
     /*
-        PHASE 3 — assign orders.in now the registry is populated. A fresh boot has
-        no snapshots, so fall back to partition 0 from the beginning.
-     */
+       PHASE 3 — assign orders.in now the registry is populated. A fresh boot has
+       no snapshots, so fall back to partition 0 from the beginning.
+    */
 
     if order_tpl.count() == 0 {
         order_tpl.add_partition_offset(ORDERS_TOPIC, 0, Offset::Beginning)?;
     }
     order_consumer.assign(&order_tpl)?;
+    println!("Listening on {} and {}", ORDERS_TOPIC, MARKET_CONTROL_TOPIC);
 
     /*
-        PHASE 4 — steady state. Both topics stay live: control keeps the registry
-        current while orders are matched.
-     */
+       PHASE 4 — steady state. Both topics stay live: control keeps the registry
+       current while orders are matched.
+    */
 
     loop {
         let msg = tokio::select! {
@@ -162,6 +169,7 @@ async fn drain_market_control(consumer: &KafkaConsumer, engine: &mut Engine) -> 
     };
 
     if low >= high {
+        println!("{} is empty, no markets to register", MARKET_CONTROL_TOPIC);
         return Ok(());
     }
 
@@ -209,6 +217,11 @@ fn apply_market_control(engine: &mut Engine, payload: Option<&[u8]>) {
                     return;
                 }
             };
+
+            println!(
+                "Registered market {} tick_exp={} lot_exp={} min_quantity={}",
+                market_id, payload.tick_exp, payload.lot_exp, min_quantity
+            );
 
             engine.add_market(
                 market_id,

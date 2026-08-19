@@ -1,6 +1,9 @@
 import { prisma } from '@repo/database';
 import MarketProducer from '../kafka/kafka.market-producer';
+import { parseEnv } from '../configs/env.config';
 import chalk from 'chalk';
+
+parseEnv();
 
 class SyncMarkets {
     static async process() {

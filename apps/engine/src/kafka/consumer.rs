@@ -3,12 +3,13 @@ use rdkafka::{
     consumer::{Consumer, StreamConsumer},
     message::BorrowedMessage,
 };
+use std::time::Duration;
 
-pub struct OrderConsumer {
+pub struct KafkaConsumer {
     inner: StreamConsumer,
 }
 
-impl OrderConsumer {
+impl KafkaConsumer {
     pub fn new(brokers: &str, group_id: &str) -> anyhow::Result<Self> {
         let inner: StreamConsumer = ClientConfig::new()
             .set("bootstrap.servers", brokers)
@@ -26,6 +27,15 @@ impl OrderConsumer {
 
     pub async fn recv(&self) -> anyhow::Result<BorrowedMessage<'_>> {
         Ok(self.inner.recv().await?)
+    }
+
+    pub fn fetch_watermarks(
+        &self,
+        topic: &str,
+        partition: i32,
+        timeout: Duration,
+    ) -> anyhow::Result<(i64, i64)> {
+        Ok(self.inner.fetch_watermarks(topic, partition, timeout)?)
     }
 
     pub fn commit(&self, msg: &BorrowedMessage) -> anyhow::Result<()> {

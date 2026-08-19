@@ -1,5 +1,5 @@
 import { OAuth2Client } from 'google-auth-library';
-import { ENV } from '../configs/env';
+import { ENV } from '../configs/env.config';
 
 export interface GoogleIdentity {
     email: string;

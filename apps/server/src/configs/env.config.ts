@@ -14,6 +14,8 @@ const envSchema = z.object({
     ACCESS_TOKEN_TTL_SEC: z.coerce.number().default(900),
     REFRESH_TOKEN_TTL_SEC: z.coerce.number().default(604800),
     GOOGLE_CLIENT_ID: z.string(),
+    KAFKA_BROKER: z.string(),
+    KAFKA_GROUP_ID: z.string(),
 });
 
 export let ENV: z.infer<typeof envSchema>;

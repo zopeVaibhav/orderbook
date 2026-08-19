@@ -19,6 +19,7 @@ export default class MarketController {
                     baseRef: { select: { name: true, decimals: true } },
                     quoteRef: { select: { name: true, decimals: true } },
                 },
+                orderBy: { id: 'asc' },
             });
 
             const response = markets.map((m) => ({

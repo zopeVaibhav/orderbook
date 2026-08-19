@@ -9,11 +9,11 @@ const MAX_SEND_ATTEMPTS: u32 = 10;
 const INITIAL_BACKOFF_MS: u64 = 100;
 const MAX_BACKOFF_MS: u64 = 5_000;
 
-pub struct OrderProducer {
+pub struct KafkaProducer {
     inner: FutureProducer,
 }
 
-impl OrderProducer {
+impl KafkaProducer {
     pub fn new(brokers: &str) -> anyhow::Result<Self> {
         let inner: FutureProducer = ClientConfig::new()
             .set("bootstrap.servers", brokers)

@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String        @id @default(cuid())
+  name          String
+  email         String        @unique
+  image         String?
+  ledgerEntries LedgerEntry[]
+  orders        Order[]
+}
+
+model LedgerEntry {
+  id           String       @id @default(cuid())
+  userId       String
+  userRef      User         @relation(fields: [userId], references: [id])
+  refId        String
+  refType      RefType
+  ledgerReason LedgerReason
+  asset        String
+  assetRef     Asset        @relation(fields: [asset], references: [symbol])
+  amount       Decimal      @db.Decimal(38, 18)
+  timestamp    DateTime     @default(now())
+
+  @@unique([refId, refType, ledgerReason, asset, userId])
+  @@index([userId, asset, ledgerReason])
+  @@index([userId, asset])
+  @@index([userId, timestamp])
+  @@index([refType, refId])
+}
+
+model Markets {
+  id          String       @id
+  base        String
+  baseRef     Asset        @relation("MarketBase", fields: [base], references: [symbol])
+  quote       String
+  quoteRef    Asset        @relation("MarketQuote", fields: [quote], references: [symbol])
+  lotExp      Int
+  tickExp     Int
+  minQuantity BigInt
+  status      MarketStatus @default(ACTIVE)
+  makerFeeBps Int
+  takerFeeBps Int
+  orders      Order[]
+  trades      Trade[]
+}
+
+model Asset {
+  symbol        String        @id
+  name          String
+  decimals      Int
+  ledgerEntries LedgerEntry[]
+  marketAsBase  Markets[]     @relation("MarketBase")
+  marketAsQuote Markets[]     @relation("MarketQuote")
+}
+
+model Order {
+  id             String       @id @default(cuid())
+  userId         String
+  userRef        User         @relation(fields: [userId], references: [id])
+  marketId       String
+  marketRef      Markets      @relation(fields: [marketId], references: [id])
+  clientOrderId  String
+  side           Side
+  kind           OrderKind
+  timeInForce    TimeInForce?
+  price          Decimal?     @db.Decimal(38, 18)
+  quantity       Decimal      @db.Decimal(38, 18)
+  filledQuantity Decimal      @default(0) @db.Decimal(38, 18)
+  status         OrderStatus  @default(PENDING)
+  rejectReason   String?
+  engineSeq      BigInt?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  makerTrades    Trade[]      @relation("MakerOrder")
+  takerTrades    Trade[]      @relation("TakerOrder")
+
+  @@unique([userId, clientOrderId])
+  @@index([userId, status])
+  @@index([marketId, status])
+}
+
+model Trade {
+  tradeId            BigInt
+  marketId           String
+  marketRef          Markets @relation(fields: [marketId], references: [id])
+  price              Decimal @db.Decimal(38, 18)
+  quantity           Decimal @db.Decimal(38, 18)
+  makerUserId        String
+  makerClientOrderId String
+  makerOrder         Order   @relation("MakerOrder", fields: [makerUserId, makerClientOrderId], references: [userId, clientOrderId])
+  takerUserId        String
+  takerClientOrderId String
+  takerOrder         Order   @relation("TakerOrder", fields: [takerUserId, takerClientOrderId], references: [userId, clientOrderId])
+  takerSide          Side
+  ts                 BigInt
+  seq                BigInt
+
+  @@id([marketId, tradeId])
+  @@index([marketId, ts])
+  @@index([makerUserId, ts])
+  @@index([takerUserId, ts])
+}

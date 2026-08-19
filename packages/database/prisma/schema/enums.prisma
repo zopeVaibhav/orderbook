@@ -1,0 +1,47 @@
+enum RefType {
+  TRADE
+  ORDER
+  DEPOSIT
+  WITHDRAWAL
+}
+
+enum LedgerReason {
+  FILL
+  FEE
+  RESERVE
+  RELEASE
+  DEPOSIT
+  WITHDRAWAL
+}
+
+enum Side {
+  BID
+  ASK
+}
+
+enum OrderKind {
+  LIMIT
+  MARKET
+}
+
+enum TimeInForce {
+  GTC
+  IOC
+  FOK
+  POST_ONLY
+}
+
+enum OrderStatus {
+  PENDING
+  RESTED
+  PARTIAL
+  FILLED
+  CANCELLED
+  REJECTED
+}
+
+enum MarketStatus {
+  ACTIVE
+  PAUSED
+  DELISTED
+}

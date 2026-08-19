@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { ResponseWriter } from '../../services/service.response';
-import { prisma } from '@repo/database';
+import { prisma, LedgerReason, RefType } from '@repo/database';
 import z from 'zod';
+import { randomUUID } from 'node:crypto';
 import JWT from '../../services/service.jwt';
 import GoogleAuthService, { GoogleIdentity } from '../../services/service.google';
 import { ENV } from '../../configs/env';
@@ -9,6 +10,9 @@ import { ENV } from '../../configs/env';
 const signInSchema = z.object({
     idToken: z.string().min(1),
 });
+
+const SIGNUP_BONUS_AMOUNT = '5000';
+const SIGNUP_BONUS_ASSET = 'USDC';
 
 export default class SignInController {
     static async process(req: Request, res: Response) {
@@ -30,6 +34,15 @@ export default class SignInController {
                     email: identity.email,
                     name: identity.name,
                     image: identity.image,
+                    ledgerEntries: {
+                        create: {
+                            refId: randomUUID(),
+                            refType: RefType.DEPOSIT,
+                            ledgerReason: LedgerReason.DEPOSIT,
+                            amount: SIGNUP_BONUS_AMOUNT,
+                            assetRef: { connect: { symbol: SIGNUP_BONUS_ASSET } },
+                        },
+                    },
                 },
                 update: {
                     name: identity.name,

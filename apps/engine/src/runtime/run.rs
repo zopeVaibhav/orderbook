@@ -144,10 +144,11 @@ pub async fn run() -> anyhow::Result<()> {
 
         engine.mark_applied(&market_id, seq);
 
-        if seq > 0 && seq % SNAPSHOT_INTERVAL == 0 {
-            if let Some(state) = engine.markets.get(&market_id) {
-                snapshot_writer.take_snapshot(&market_id, state, msg.partition())?;
-            }
+        if seq > 0
+            && seq % SNAPSHOT_INTERVAL == 0
+            && let Some(state) = engine.markets.get(&market_id)
+        {
+            snapshot_writer.take_snapshot(&market_id, state, msg.partition())?;
         }
 
         order_consumer.commit(&msg)?

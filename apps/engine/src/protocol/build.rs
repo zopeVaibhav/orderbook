@@ -3,9 +3,7 @@ use crate::{
         CancelOrderErr, CancelOrderOutcome, CancelOrderPayload, Leftover, Market, NewOrderPayload,
         PlaceOrderErr, PlaceOrderOutcome, Quantity,
     },
-    protocol::{
-        AckStatus, BookDelta, BookDeltaEntry, OrderAck, OutgoingEvent, PublicTrade, TradeOut,
-    },
+    protocol::{AckStatus, BookDelta, BookDeltaEntry, OrderAck, OutgoingEvent, TradeOut},
 };
 
 fn to_decimal_string(value: u64, exp: u8) -> String {
@@ -78,45 +76,16 @@ impl OutgoingEvent {
                 }
 
                 for fill in &outcome.fills {
-                    let price_str = to_decimal_string(fill.price, market.tick_exp);
-                    let quantity_str = to_decimal_string(fill.quantity, market.lot_exp);
-
                     events.push(OutgoingEvent::Trade(TradeOut {
                         market_id: payload.market_id.clone(),
                         trade_id: fill.trade_id,
-                        price: price_str.clone(),
-                        quantity: quantity_str.clone(),
+                        price: to_decimal_string(fill.price, market.tick_exp),
+                        quantity: to_decimal_string(fill.quantity, market.lot_exp),
                         maker_user_id: fill.maker_user_id.clone(),
                         maker_client_order_id: fill.maker_client_order_id.clone(),
                         taker_user_id: payload.user_id.clone(),
                         taker_client_order_id: payload.client_order_id.clone(),
                         taker_side: payload.side,
-                        ts,
-                        seq,
-                    }));
-
-                    events.push(OutgoingEvent::PublicTrade(PublicTrade {
-                        market_id: payload.market_id.clone(),
-                        trade_id: fill.trade_id,
-                        price: price_str,
-                        quantity: quantity_str,
-                        taker_side: payload.side,
-                        ts,
-                        seq,
-                    }));
-
-                    let maker_status = if fill.maker_remaining_after == 0 {
-                        AckStatus::Filled
-                    } else {
-                        AckStatus::Partial
-                    };
-                    events.push(OutgoingEvent::Ack(OrderAck {
-                        market_id: payload.market_id.clone(),
-                        user_id: fill.maker_user_id.clone(),
-                        client_order_id: fill.maker_client_order_id.clone(),
-                        status: maker_status,
-                        filled_qty: to_decimal_string(fill.quantity, market.lot_exp),
-                        reason: None,
                         ts,
                         seq,
                     }));

@@ -17,7 +17,6 @@ pub struct Fill {
     pub(crate) trade_id: TradeId,
     pub(crate) maker_user_id: UserId,
     pub(crate) maker_client_order_id: ClientOrderId,
-    pub(crate) maker_remaining_after: Quantity,
 }
 
 #[derive(Serialize, Default)]

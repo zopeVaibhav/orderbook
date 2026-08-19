@@ -29,6 +29,7 @@ model LedgerEntry {
   timestamp    DateTime     @default(now())
 
   @@unique([refId, refType, ledgerReason, asset, userId])
+  @@index([userId, asset, ledgerReason])
   @@index([userId, asset])
   @@index([userId, timestamp])
   @@index([refType, refId])

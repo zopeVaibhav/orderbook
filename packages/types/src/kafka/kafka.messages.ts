@@ -1,4 +1,4 @@
-import type { Side } from '../engine-events';
+import type { Side } from './engine-events';
 
 export type OrderKind = 'LimitGtc' | 'Market' | 'Ioc' | 'Fok' | 'PostOnly';
 

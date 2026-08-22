@@ -1,6 +1,6 @@
 import { Producer } from 'kafkajs';
 import { KafkaClient } from './kafka.client';
-import { CancelOrderPayload, IncomingOrder, KafkaTopics, NewOrderPayload } from '@repo/types';
+import { CancelOrderPayload, IncomingOrder, KafkaTopics, NewOrderPayload } from '@repo/types/kafka';
 
 export default class OrderProducer {
     static #producer: Producer | null = null;

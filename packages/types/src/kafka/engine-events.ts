@@ -9,10 +9,14 @@
  * Parsing to a JS number loses precision on money; parse only to display.
  */
 
-/** Rust `Side` derives Serialize with no rename, so it is PascalCase on the wire. */
-export type Side = 'Ask' | 'Bid';
+/**
+ * Rust renames these to SCREAMING_SNAKE_CASE on the wire so they match the
+ * Prisma enums verbatim — `Side` here is the same vocabulary as the domain
+ * `Side` in `@repo/types`, and `AckStatus` maps straight onto `OrderStatus`.
+ */
+export type Side = 'ASK' | 'BID';
 
-export type AckStatus = 'Filled' | 'Partial' | 'Rested' | 'Cancelled' | 'Rejected';
+export type AckStatus = 'FILLED' | 'PARTIAL' | 'RESTED' | 'CANCELLED' | 'REJECTED';
 
 export interface OrderAck {
     market_id: string;

@@ -28,7 +28,7 @@ export async function settleTrade(trade: TradeOut): Promise<void> {
     const baseAmount = new Prisma.Decimal(trade.quantity);
     const quoteAmount = new Prisma.Decimal(trade.price).mul(baseAmount);
 
-    const takerBuysBase = trade.taker_side === 'Bid';
+    const takerBuysBase = trade.taker_side === 'BID';
     const takerBase = takerBuysBase ? baseAmount : baseAmount.neg();
     const takerQuote = takerBuysBase ? quoteAmount.neg() : quoteAmount;
 

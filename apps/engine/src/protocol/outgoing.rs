@@ -2,6 +2,7 @@ use crate::engine::{ClientOrderId, MarketId, Side, TradeId, UserId};
 use serde::Serialize;
 
 #[derive(Serialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum AckStatus {
     Filled,
     Partial,

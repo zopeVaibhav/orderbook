@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Side, TradeOut } from '@repo/types';
+import type { Side, TradeOut } from '@repo/types/kafka';
 
 export type MarketTrade = {
     id: number;

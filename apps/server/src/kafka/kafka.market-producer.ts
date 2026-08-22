@@ -1,6 +1,6 @@
 import { Producer } from 'kafkajs';
 import { KafkaClient } from './kafka.client';
-import { KafkaTopics, MarketControlEvent, MarketRegistered } from '@repo/types';
+import { KafkaTopics, MarketControlEvent, MarketRegistered } from '@repo/types/kafka';
 
 export default class MarketProducer {
     static #producer: Producer | null = null;

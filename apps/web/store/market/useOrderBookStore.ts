@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { BookDelta, BookSnapshotPayload } from '@repo/types';
+import type { BookDelta, BookSnapshotPayload } from '@repo/types/kafka';
 
 export type FeedStatus = 'connecting' | 'live' | 'stale';
 
@@ -63,7 +63,7 @@ export const useOrderBookStore = create<OrderBookState>((set, get) => ({
             if (delta.seq <= lastSeq) continue;
 
             for (const change of delta.changes) {
-                const side = change.side === 'Ask' ? asks : bids;
+                const side = change.side === 'ASK' ? asks : bids;
                 if (parseFloat(change.new_quantity) === 0) side.delete(change.price);
                 else side.set(change.price, change.new_quantity);
             }

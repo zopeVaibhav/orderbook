@@ -3,7 +3,10 @@
     "module": "index.ts",
     "type": "module",
     "private": true,
-    "exports": "./src/index.ts",
+    "exports": {
+        ".": "./src/index.ts",
+        "./kafka": "./src/kafka/index.ts"
+    },
     "scripts": {
         "lint": "eslint .",
         "check-types": "tsc --noEmit"

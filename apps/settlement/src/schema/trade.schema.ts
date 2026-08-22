@@ -18,7 +18,7 @@ export const tradeOutSchema = z.object({
     maker_client_order_id: z.string().min(1),
     taker_user_id: z.string().min(1),
     taker_client_order_id: z.string().min(1),
-    taker_side: z.enum(['Ask', 'Bid']),
+    taker_side: z.enum(['ASK', 'BID']),
     ts: z.number(),
     seq: z.number().int(),
 });

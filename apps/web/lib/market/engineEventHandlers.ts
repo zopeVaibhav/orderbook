@@ -1,7 +1,7 @@
 import { useCandlesStore } from '@/store/market/useCandlesStore';
 import { queueBookDelta, useOrderBookStore } from '@/store/market/useOrderBookStore';
 import { useTradesStore } from '@/store/market/useTradesStore';
-import type { BookSnapshotPayload, EngineEvent } from '@repo/types';
+import type { BookSnapshotPayload, EngineEvent } from '@repo/types/kafka';
 
 /**
  * The single entry point for everything the engine emits.

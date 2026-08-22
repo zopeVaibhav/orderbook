@@ -1,5 +1,5 @@
 import { MAX_CANDLES, type Candle } from '@/types/candles';
-import type { BookDeltaEntry, BookSnapshotPayload, EngineEvent } from '@repo/types';
+import type { BookDeltaEntry, BookSnapshotPayload, EngineEvent } from '@repo/types/kafka';
 
 /**
  * Development transport. It speaks the engine's wire protocol — book deltas and
@@ -40,7 +40,7 @@ function buildSide(mid: number, direction: 1 | -1): Map<string, string> {
 function diffSide(
     prev: Map<string, string>,
     next: Map<string, string>,
-    side: 'Ask' | 'Bid',
+    side: 'ASK' | 'BID',
 ): BookDeltaEntry[] {
     const changes: BookDeltaEntry[] = [];
     for (const [price, quantity] of next) {
@@ -98,8 +98,8 @@ class MockFeed {
         const nextAsks = buildSide(this.mid, 1);
         const nextBids = buildSide(this.mid, -1);
         const changes = [
-            ...diffSide(this.asks, nextAsks, 'Ask'),
-            ...diffSide(this.bids, nextBids, 'Bid'),
+            ...diffSide(this.asks, nextAsks, 'ASK'),
+            ...diffSide(this.bids, nextBids, 'BID'),
         ];
         this.asks = nextAsks;
         this.bids = nextBids;
@@ -127,7 +127,7 @@ class MockFeed {
                 maker_client_order_id: `m-${this.tradeId}`,
                 taker_user_id: 'mock-taker',
                 taker_client_order_id: `t-${this.tradeId}`,
-                taker_side: takerBuys ? 'Bid' : 'Ask',
+                taker_side: takerBuys ? 'BID' : 'ASK',
                 ts,
                 seq: this.seq,
             });

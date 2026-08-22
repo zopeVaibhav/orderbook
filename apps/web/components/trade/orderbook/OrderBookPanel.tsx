@@ -100,7 +100,7 @@ export default function OrderBookPanel() {
     // Prefer the last print; fall back to the mid until the first trade lands.
     const markPrice =
         lastTrade?.price ?? (bestAsk !== null && bestBid !== null ? (bestAsk + bestBid) / 2 : null);
-    const markColor = lastTrade?.side === 'Ask' ? 'text-loss' : 'text-profit';
+    const markColor = lastTrade?.side === 'ASK' ? 'text-loss' : 'text-profit';
 
     return (
         <div className="flex w-[320px] shrink-0 flex-col overflow-hidden rounded-md border border-border">
@@ -201,7 +201,7 @@ export default function OrderBookPanel() {
                                     className="grid grid-cols-3 px-2 py-0.5 text-xs tabular-nums"
                                 >
                                     <span
-                                        className={t.side === 'Ask' ? 'text-loss' : 'text-profit'}
+                                        className={t.side === 'ASK' ? 'text-loss' : 'text-profit'}
                                     >
                                         {t.price.toFixed(1)}
                                     </span>

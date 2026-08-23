@@ -7,6 +7,9 @@ import { useState } from 'react';
 const STALE_TIME_MS = 60_000;
 
 export default function QueryProvider({ children }: { children: React.ReactNode }) {
+    /**
+     * In state so the client survives re-renders but is never shared between requests.
+     */
     const [queryClient] = useState(
         () =>
             new QueryClient({
@@ -23,7 +26,6 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
     return (
         <QueryClientProvider client={queryClient}>
             {children}
-            {/* The package no-ops itself in production builds. */}
             <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
         </QueryClientProvider>
     );

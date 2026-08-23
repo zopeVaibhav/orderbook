@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MARKETS } from '@/data/markets';
+import { useMarkets } from '@/hooks/market/useMarkets';
 import { formatPrice } from '@/lib/format';
 import type { Market } from '@/types/market';
 
@@ -17,16 +17,18 @@ export default function Searchbar() {
     const [active, setActive] = useState(0);
     const wrapperRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const { data: markets, isPending } = useMarkets();
 
     const results = useMemo(() => {
+        const all = markets ?? [];
         const q = query.trim().toLowerCase();
         const base = q
-            ? MARKETS.filter(
+            ? all.filter(
                   (m) => m.symbol.toLowerCase().includes(q) || m.name.toLowerCase().includes(q),
               )
-            : MARKETS;
+            : all;
         return base.slice(0, 8);
-    }, [query]);
+    }, [markets, query]);
 
     useEffect(() => {
         function onDocClick(e: MouseEvent) {
@@ -52,7 +54,7 @@ export default function Searchbar() {
     }, []);
 
     function go(m: Market) {
-        router.push(`/trade/${m.symbol}`);
+        router.push(`/trade/${m.slug}`);
         setOpen(false);
         setQuery('');
         inputRef.current?.blur();
@@ -95,16 +97,20 @@ export default function Searchbar() {
                         {query ? 'Results' : 'Trending'}
                     </div>
                     <div className="scrollbar-none max-h-80 overflow-y-auto [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                        {results.length === 0 ? (
+                        {isPending ? (
+                            <div className="p-4 text-center text-sm text-muted-foreground">
+                                Loading markets…
+                            </div>
+                        ) : results.length === 0 ? (
                             <div className="p-4 text-center text-sm text-muted-foreground">
                                 No markets match &ldquo;{query}&rdquo;
                             </div>
                         ) : (
                             results.map((m, i) => {
-                                const positive = m.change24h >= 0;
+                                const positive = (m.change24h ?? 0) >= 0;
                                 return (
                                     <Button
-                                        key={m.symbol}
+                                        key={m.id}
                                         variant="ghost"
                                         onMouseEnter={() => setActive(i)}
                                         onMouseDown={(e) => {
@@ -137,13 +143,16 @@ export default function Searchbar() {
                                         </div>
                                         <div className="flex flex-col items-end leading-tight">
                                             <span className="text-sm text-foreground">
-                                                ${formatPrice(m.price)}
+                                                {m.price === undefined
+                                                    ? '—'
+                                                    : `$${formatPrice(m.price)}`}
                                             </span>
                                             <span
                                                 className={`text-xs ${positive ? 'text-profit' : 'text-loss'}`}
                                             >
-                                                {positive ? '+' : ''}
-                                                {m.change24h.toFixed(2)}%
+                                                {m.change24h === undefined
+                                                    ? '—'
+                                                    : `${positive ? '+' : ''}${m.change24h.toFixed(2)}%`}
                                             </span>
                                         </div>
                                     </Button>

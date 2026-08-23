@@ -1,7 +1,9 @@
 'use client';
 
 import Image from 'next/image';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { useMarket } from '@/hooks/market/useMarkets';
 
 function Stat({
     label,
@@ -23,17 +25,36 @@ function Stat({
 }
 
 export default function MarketHeader({ onToggleMarkets }: { onToggleMarkets: () => void }) {
+    const params = useParams<{ market?: string }>();
+    const { data: market } = useMarket(params?.market);
+
     return (
         <div className="relative flex h-16 shrink-0 items-center gap-8 overflow-hidden overflow-x-scroll border-b border-border px-3">
             <Button
                 variant="ghost"
                 onClick={onToggleMarkets}
-                className="absolute left-0 h-10 w-2 min-w-0 rounded-tr-md rounded-br-md rounded-tl-none rounded-bl-none bg-muted p-0 hover:bg-muted/70"
+                className="absolute left-0 h-10 w-2 min-w-0 rounded-tr-md rounded-br-md rounded-tl-none rounded-bl-none border-0 bg-muted p-0 hover:bg-muted/70"
             />
 
             <div className="ml-2 flex items-center gap-2">
-                <Image src="/coins/bitcoin.svg" alt="bitcoin logo" height={20} width={20} />
-                <div className="text-xl font-medium">BTC</div>
+                {market?.iconSrc ? (
+                    <Image
+                        src={market.iconSrc}
+                        alt={`${market.name} logo`}
+                        height={20}
+                        width={20}
+                    />
+                ) : (
+                    <div className="flex size-5 items-center justify-center rounded-full bg-muted text-[10px] font-semibold text-muted-foreground">
+                        {market?.symbol.slice(0, 1) ?? '?'}
+                    </div>
+                )}
+                <div className="text-xl font-medium">{market?.symbol ?? '—'}</div>
+                {market && (
+                    <span className="rounded bg-muted px-1 text-[10px] text-muted-foreground">
+                        {market.quote}
+                    </span>
+                )}
             </div>
             <Stat label="Mark" value="$64,235.00" tone="positive" />
             <Stat label="Oracle" value="$64,271.30" tone="positive" />

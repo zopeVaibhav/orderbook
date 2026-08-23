@@ -3,12 +3,13 @@ import { ResponseWriter } from '../../services/service.response';
 import { z } from 'zod';
 import { OrderKind, Side, TimeInForce } from '@repo/types';
 import type { OrderKind as EngineOrderKind } from '@repo/types/kafka';
+import { prisma } from '@repo/database';
+import { isJsonSafe, scale } from '@repo/money';
 import OrderProducer from '../../kafka/kafka.order-producer';
+import { acceptOrder, releaseReserve, reserveFor } from '../../services/service.reserve';
 
 /**
- * `side` needs no mapping — the engine renames its variants to
- * SCREAMING_SNAKE_CASE, so BID/ASK is one vocabulary end to end. Order kind
- * does: the engine collapses kind and time-in-force into a single flat enum.
+ * The engine collapses kind and time-in-force into one flat enum; side needs no mapping.
  */
 const ENGINE_LIMIT_KIND: Record<TimeInForce, EngineOrderKind> = {
     [TimeInForce.GTC]: 'LimitGtc',
@@ -18,8 +19,7 @@ const ENGINE_LIMIT_KIND: Record<TimeInForce, EngineOrderKind> = {
 };
 
 /**
-    Money never crosses the wire as a JS number — 0.1 + 0.2 is not 0.3, and the
-    engine holds these as scaled integers. Decimal strings all the way down.
+ * Money never crosses the wire as a JS number — decimal strings all the way down.
  */
 const positiveDecimal = z
     .string()
@@ -84,24 +84,80 @@ export default class PlaceOrderController {
 
             const { data } = parsed;
 
-            if (data.kind === OrderKind.LIMIT && !data.timeInForce) {
-                return ResponseWriter.invalidData(res);
+            const market = await prisma.markets.findUnique({
+                where: { id: data.marketId },
+                select: {
+                    base: true,
+                    quote: true,
+                    status: true,
+                    minQuantity: true,
+                    lotExp: true,
+                    tickExp: true,
+                },
+            });
+
+            if (!market || market.status !== 'ACTIVE') {
+                return ResponseWriter.notFound(res, 'market not tradable');
+            }
+
+            const scaledQuantity = scale(data.quantity, market.lotExp);
+            if (scaledQuantity === null || scaledQuantity < market.minQuantity) {
+                return ResponseWriter.invalidData(res, 'quantity below the market minimum');
+            }
+
+            const scaledPrice =
+                data.price === undefined ? undefined : scale(data.price, market.tickExp);
+            if (scaledPrice === null) {
+                return ResponseWriter.invalidData(res, 'price is finer than the market tick');
+            }
+
+            if (!isJsonSafe(scaledQuantity, scaledPrice)) {
+                return ResponseWriter.invalidData(res, 'order is too large to encode');
             }
 
             const orderKind: EngineOrderKind =
                 data.kind === OrderKind.MARKET
                     ? 'Market'
                     : ENGINE_LIMIT_KIND[data.timeInForce as TimeInForce];
+            const reserve = reserveFor(market, data.side, data.kind, data.price, data.quantity);
+            if (!reserve) {
+                return ResponseWriter.invalidData(res, 'market buys are not supported yet');
+            }
 
-            await OrderProducer.publishNewOrder({
-                client_order_id: data.clientOrderId,
-                user_id: userId,
-                market_id: data.marketId,
+            const accepted = await acceptOrder({
+                userId,
+                clientOrderId: data.clientOrderId,
+                marketId: data.marketId,
                 side: data.side,
-                order_kind: orderKind,
+                kind: data.kind,
+                timeInForce: data.timeInForce,
                 price: data.price,
                 quantity: data.quantity,
+                reserve,
             });
+
+            if (!accepted.ok) {
+                return ResponseWriter.invalidData(res, accepted.reason, 'insufficient balance');
+            }
+
+            try {
+                await OrderProducer.publishNewOrder({
+                    client_order_id: data.clientOrderId,
+                    user_id: userId,
+                    market_id: data.marketId,
+                    side: data.side,
+                    order_kind: orderKind,
+                    price: scaledPrice === undefined ? undefined : Number(scaledPrice),
+                    quantity: Number(scaledQuantity),
+                });
+            } catch (error) {
+                await releaseReserve(userId, data.clientOrderId);
+                await prisma.order.update({
+                    where: { userId_clientOrderId: { userId, clientOrderId: data.clientOrderId } },
+                    data: { status: 'REJECTED', rejectReason: 'publish failed' },
+                });
+                throw error;
+            }
 
             return ResponseWriter.success(res, data);
         } catch (error) {

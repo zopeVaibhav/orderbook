@@ -8,8 +8,10 @@ export interface NewOrderPayload {
     market_id: string;
     side: Side;
     order_kind: OrderKind;
-    price?: string;
-    quantity: string;
+
+    price?: number;
+
+    quantity: number;
 }
 
 export interface CancelOrderPayload {

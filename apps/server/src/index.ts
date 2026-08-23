@@ -4,6 +4,7 @@ import cors from 'cors';
 import appRoutes from './routers/v1/router.v1';
 import { ENV, parseEnv } from './configs/env.config';
 import OrderProducer from './kafka/kafka.order-producer';
+import EngineConsumer from './kafka/kafka.consumer';
 
 parseEnv();
 
@@ -25,6 +26,7 @@ app.get('/health', (_req, res) => {
 });
 
 await OrderProducer.connect();
+await EngineConsumer.start();
 
 const server = app.listen(ENV.SERVER_PORT, () => {
     console.log(`Server is running on port: ${ENV.SERVER_PORT}`);
@@ -42,6 +44,12 @@ const shutdown = (signal: string) => {
             await OrderProducer.disconnect();
         } catch (error) {
             console.error('Producer disconnect failed:', error);
+        }
+
+        try {
+            await EngineConsumer.stop();
+        } catch (error) {
+            console.error('Consumer disconnect failed:', error);
         }
 
         process.exit(err ? 1 : 0);

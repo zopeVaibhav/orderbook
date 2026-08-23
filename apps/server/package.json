@@ -26,6 +26,7 @@
     "dependencies": {
         "@paralleldrive/cuid2": "^3.3.0",
         "@repo/database": "workspace:*",
+        "@repo/money": "workspace:*",
         "@repo/types": "workspace:*",
         "chalk": "^6.0.0",
         "cookie-parser": "^1.4.7",

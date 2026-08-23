@@ -6,9 +6,9 @@ use crate::{
 };
 use dotenvy::dotenv;
 use rdkafka::{Message, Offset, TopicPartitionList};
-use std::{env, time::Duration};
+use std::{collections::HashMap, env, time::Duration};
 
-const SNAPSHOT_INTERVAL: i64 = 10_000;
+const DEFAULT_SNAPSHOT_INTERVAL: i64 = 10_000;
 const ORDERS_TOPIC: &str = "orders.in";
 const MARKET_CONTROL_TOPIC: &str = "markets.control";
 const CONTROL_DRAIN_TIMEOUT_SECS: u64 = 10;
@@ -33,6 +33,17 @@ pub async fn run() -> anyhow::Result<()> {
 
     let mut engine = Engine::default();
     let mut snapshot_writer = SnapshotWriter::new()?;
+
+    // The production cadence is unreachable in development, where a few orders
+    // would never trigger a snapshot and every boot replays from zero.
+    let snapshot_interval = env::var("SNAPSHOT_INTERVAL")
+        .ok()
+        .and_then(|v| v.parse::<i64>().ok())
+        .filter(|v| *v > 0)
+        .unwrap_or(DEFAULT_SNAPSHOT_INTERVAL);
+
+    // Snapshots record the partition they came from, so it is tracked per market.
+    let mut market_partitions: HashMap<MarketId, i32> = HashMap::new();
 
     /*
        PHASE 1 — rehydrate markets from snapshots. Each snapshot carries the
@@ -81,6 +92,10 @@ pub async fn run() -> anyhow::Result<()> {
 
     loop {
         let msg = tokio::select! {
+            _ = tokio::signal::ctrl_c() => {
+                shutdown(&mut snapshot_writer, &engine, &market_partitions).await;
+                return Ok(());
+            }
             ctrl = ctrl_consumer.recv() => {
                 apply_market_control(&mut engine, ctrl?.payload());
                 continue;
@@ -143,15 +158,41 @@ pub async fn run() -> anyhow::Result<()> {
         }
 
         engine.mark_applied(&market_id, seq);
+        market_partitions.insert(market_id.clone(), msg.partition());
 
         if seq > 0
-            && seq % SNAPSHOT_INTERVAL == 0
+            && seq % snapshot_interval == 0
             && let Some(state) = engine.markets.get(&market_id)
         {
             snapshot_writer.take_snapshot(&market_id, state, msg.partition())?;
         }
 
         order_consumer.commit(&msg)?
+    }
+}
+
+/**
+ * Without this the book dies with the process, and the next boot replays every
+ * order ever published to rebuild it.
+ */
+async fn shutdown(
+    snapshot_writer: &mut SnapshotWriter,
+    engine: &Engine,
+    market_partitions: &HashMap<MarketId, i32>,
+) {
+    println!(
+        "\nShutting down, snapshotting {} markets",
+        market_partitions.len()
+    );
+    snapshot_writer.flush().await;
+
+    for (market_id, partition) in market_partitions {
+        let Some(state) = engine.markets.get(market_id) else {
+            continue;
+        };
+        if let Err(e) = snapshot_writer.take_snapshot_now(market_id, state, *partition) {
+            eprintln!("snapshot on shutdown failed for {market_id}: {e}");
+        }
     }
 }
 

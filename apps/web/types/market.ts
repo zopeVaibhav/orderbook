@@ -7,12 +7,13 @@ export type ApiMarket = {
     tickExp: number;
     lotExp: number;
     minQuantity: string;
-    makerFeeBps: number;
-    takerFeeBps: number;
     baseRef: { name: string; decimals: number };
     quoteRef: { name: string; decimals: number };
 };
 
+/**
+ * Price and change come from the feed, not this endpoint, so both stay optional.
+ */
 export type Market = {
     id: string;
     slug: string;
@@ -23,8 +24,6 @@ export type Market = {
     tickExp: number;
     lotExp: number;
     minQuantity: string;
-    makerFeeBps: number;
-    takerFeeBps: number;
     baseDecimals: number;
     quoteDecimals: number;
     price?: number;

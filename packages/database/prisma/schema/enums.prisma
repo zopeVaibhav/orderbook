@@ -7,7 +7,6 @@ enum RefType {
 
 enum LedgerReason {
   FILL
-  FEE
   RESERVE
   RELEASE
   DEPOSIT

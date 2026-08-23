@@ -6,6 +6,9 @@ import type { Market } from '@/types/market';
 
 export const marketsQueryKey = ['markets'] as const;
 
+/**
+ * The list only changes when a market is listed or halted, so it is cached long.
+ */
 export function useMarkets() {
     return useQuery<Market[]>({
         queryKey: marketsQueryKey,

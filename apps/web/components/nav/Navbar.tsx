@@ -1,6 +1,6 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
+import { signIn, signOut } from 'next-auth/react';
 import Searchbar from '../searchbar/Searchbar';
 import { Button } from '@/components/ui/button';
 import { useUserSessionStore } from '@/store/user/useUserSessionStore';
@@ -25,7 +25,7 @@ export default function Navbar({ location }: NavbarProps) {
                 </div>
             )}
             {user ? (
-                <div>
+                <div className="flex items-center gap-2">
                     <Image
                         src={`https://api.dicebear.com/10.x/critters/svg?seed=${encodeURIComponent(user.email ?? user.name ?? 'user')}`}
                         alt={user.name ?? ''}
@@ -34,6 +34,9 @@ export default function Navbar({ location }: NavbarProps) {
                         unoptimized
                         className="rounded-full cursor-pointer"
                     />
+                    <Button onClick={() => signOut()} className="shrink-0">
+                        Sign Out
+                    </Button>
                 </div>
             ) : (
                 <Button onClick={() => signIn('google', { callbackUrl: '/' })} className="shrink-0">

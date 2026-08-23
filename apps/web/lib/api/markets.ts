@@ -15,8 +15,6 @@ function toMarket(m: ApiMarket): Market {
         tickExp: m.tickExp,
         lotExp: m.lotExp,
         minQuantity: m.minQuantity,
-        makerFeeBps: m.makerFeeBps,
-        takerFeeBps: m.takerFeeBps,
         baseDecimals: m.baseRef.decimals,
         quoteDecimals: m.quoteRef.decimals,
     };

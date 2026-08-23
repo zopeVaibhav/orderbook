@@ -2,6 +2,7 @@
     "name": "orderbook",
     "private": true,
     "scripts": {
+        "setup": "bun run --filter @repo/database generate && bun run --filter @repo/database migrate:deploy && bun run --filter @repo/database seed && bun run --filter server sync-markets",
         "build": "turbo run build",
         "dev": "turbo run dev",
         "lint": "turbo run lint",

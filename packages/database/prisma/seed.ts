@@ -31,8 +31,6 @@ const MARKETS: Array<{
     lotExp: number;
     tickExp: number;
     minQuantity: bigint;
-    makerFeeBps: number;
-    takerFeeBps: number;
 }> = [
     {
         base: 'BTC',
@@ -40,8 +38,6 @@ const MARKETS: Array<{
         lotExp: 8,
         tickExp: 1,
         minQuantity: 100n,
-        makerFeeBps: 5,
-        takerFeeBps: 10,
     },
     {
         base: 'ETH',
@@ -49,8 +45,6 @@ const MARKETS: Array<{
         lotExp: 6,
         tickExp: 2,
         minQuantity: 1000n,
-        makerFeeBps: 5,
-        takerFeeBps: 10,
     },
     {
         base: 'SOL',
@@ -58,8 +52,6 @@ const MARKETS: Array<{
         lotExp: 6,
         tickExp: 2,
         minQuantity: 1000n,
-        makerFeeBps: 10,
-        takerFeeBps: 20,
     },
     {
         base: 'AVAX',
@@ -67,8 +59,6 @@ const MARKETS: Array<{
         lotExp: 4,
         tickExp: 3,
         minQuantity: 5000n,
-        makerFeeBps: 10,
-        takerFeeBps: 20,
     },
     {
         base: 'MATIC',
@@ -76,8 +66,6 @@ const MARKETS: Array<{
         lotExp: 2,
         tickExp: 4,
         minQuantity: 10000n,
-        makerFeeBps: 15,
-        takerFeeBps: 25,
     },
     {
         base: 'DOGE',
@@ -85,8 +73,6 @@ const MARKETS: Array<{
         lotExp: 2,
         tickExp: 5,
         minQuantity: 100000n,
-        makerFeeBps: 15,
-        takerFeeBps: 30,
     },
     {
         base: 'XRP',
@@ -94,8 +80,6 @@ const MARKETS: Array<{
         lotExp: 2,
         tickExp: 4,
         minQuantity: 10000n,
-        makerFeeBps: 10,
-        takerFeeBps: 20,
     },
     {
         base: 'ADA',
@@ -103,8 +87,6 @@ const MARKETS: Array<{
         lotExp: 2,
         tickExp: 4,
         minQuantity: 10000n,
-        makerFeeBps: 15,
-        takerFeeBps: 25,
     },
     {
         base: 'DOT',
@@ -112,8 +94,6 @@ const MARKETS: Array<{
         lotExp: 4,
         tickExp: 3,
         minQuantity: 1000n,
-        makerFeeBps: 10,
-        takerFeeBps: 20,
     },
     {
         base: 'LINK',
@@ -121,8 +101,6 @@ const MARKETS: Array<{
         lotExp: 4,
         tickExp: 3,
         minQuantity: 1000n,
-        makerFeeBps: 10,
-        takerFeeBps: 20,
     },
     {
         base: 'UNI',
@@ -130,8 +108,6 @@ const MARKETS: Array<{
         lotExp: 4,
         tickExp: 3,
         minQuantity: 1000n,
-        makerFeeBps: 15,
-        takerFeeBps: 25,
     },
     {
         base: 'ATOM',
@@ -139,8 +115,6 @@ const MARKETS: Array<{
         lotExp: 4,
         tickExp: 3,
         minQuantity: 1000n,
-        makerFeeBps: 15,
-        takerFeeBps: 25,
     },
     {
         base: 'NEAR',
@@ -148,8 +122,6 @@ const MARKETS: Array<{
         lotExp: 4,
         tickExp: 3,
         minQuantity: 1000n,
-        makerFeeBps: 15,
-        takerFeeBps: 25,
     },
     {
         base: 'APT',
@@ -157,8 +129,6 @@ const MARKETS: Array<{
         lotExp: 4,
         tickExp: 3,
         minQuantity: 1000n,
-        makerFeeBps: 15,
-        takerFeeBps: 25,
     },
     {
         base: 'ARB',
@@ -166,8 +136,6 @@ const MARKETS: Array<{
         lotExp: 2,
         tickExp: 4,
         minQuantity: 10000n,
-        makerFeeBps: 15,
-        takerFeeBps: 25,
     },
     {
         base: 'OP',
@@ -175,8 +143,6 @@ const MARKETS: Array<{
         lotExp: 2,
         tickExp: 4,
         minQuantity: 10000n,
-        makerFeeBps: 15,
-        takerFeeBps: 25,
     },
     {
         base: 'LTC',
@@ -184,8 +150,6 @@ const MARKETS: Array<{
         lotExp: 6,
         tickExp: 2,
         minQuantity: 1000n,
-        makerFeeBps: 10,
-        takerFeeBps: 20,
     },
     {
         base: 'BCH',
@@ -193,8 +157,6 @@ const MARKETS: Array<{
         lotExp: 6,
         tickExp: 2,
         minQuantity: 1000n,
-        makerFeeBps: 10,
-        takerFeeBps: 20,
     },
     {
         base: 'HYPE',
@@ -202,8 +164,6 @@ const MARKETS: Array<{
         lotExp: 4,
         tickExp: 4,
         minQuantity: 1000n,
-        makerFeeBps: 20,
-        takerFeeBps: 35,
     },
     {
         base: 'PEPE',
@@ -211,8 +171,6 @@ const MARKETS: Array<{
         lotExp: 0,
         tickExp: 8,
         minQuantity: 1000000n,
-        makerFeeBps: 25,
-        takerFeeBps: 40,
     },
 ];
 
@@ -231,7 +189,7 @@ async function main() {
             where: { base: market.base, quote: market.quote },
         });
 
-        const { lotExp, tickExp, minQuantity, makerFeeBps, takerFeeBps } = market;
+        const { lotExp, tickExp, minQuantity } = market;
 
         await prisma.markets.upsert({
             where: { id: existing?.id ?? randomUUID() },
@@ -242,15 +200,11 @@ async function main() {
                 lotExp,
                 tickExp,
                 minQuantity,
-                makerFeeBps,
-                takerFeeBps,
             },
             update: {
                 lotExp,
                 tickExp,
                 minQuantity,
-                makerFeeBps,
-                takerFeeBps,
             },
         });
     }

@@ -45,8 +45,6 @@ model Markets {
   tickExp     Int
   minQuantity BigInt
   status      MarketStatus @default(ACTIVE)
-  makerFeeBps Int
-  takerFeeBps Int
   orders      Order[]
   trades      Trade[]
 }

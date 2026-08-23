@@ -31,6 +31,8 @@ services:
         ports:
             - '9092:9092'
             - '9644:9644'
+        volumes:
+            - redpanda-data:/var/lib/redpanda/data
 
     topic-init:
         image: redpandadata/redpanda:latest
@@ -58,3 +60,4 @@ services:
 
 volumes:
     postgres-data:
+    redpanda-data:

@@ -12,6 +12,7 @@
     "dependencies": {
         "@base-ui/react": "^1.7.0",
         "@repo/types": "workspace:*",
+        "@tanstack/react-query": "^5.102.0",
         "axios": "^1.19.0",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
@@ -32,6 +33,7 @@
         "@repo/eslint-config": "workspace:*",
         "@repo/typescript-config": "workspace:*",
         "@tailwindcss/postcss": "^4.3.3",
+        "@tanstack/react-query-devtools": "^5.102.0",
         "@types/node": "^25.9.5",
         "@types/react": "^19.2.18",
         "@types/react-dom": "^19.2.4",

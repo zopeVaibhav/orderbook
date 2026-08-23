@@ -27,9 +27,9 @@ export default class MarketController {
                 minQuantity: m.minQuantity.toString(),
             }));
 
-            ResponseWriter.created(res, { markets: response });
+            return ResponseWriter.success(res, { markets: response });
         } catch (error) {
-            ResponseWriter.created(res, error);
+            return ResponseWriter.systemError(res, error);
         }
     }
 }

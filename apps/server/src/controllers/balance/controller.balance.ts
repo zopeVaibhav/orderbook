@@ -11,7 +11,7 @@ export default class BalanceController {
                 return ResponseWriter.unauthorized(res);
             }
 
-            const [available, locked] = await Promise.all([
+            const [totals, reserves] = await Promise.all([
                 prisma.ledgerEntry.groupBy({
                     by: ['asset'],
                     where: { userId },
@@ -30,15 +30,15 @@ export default class BalanceController {
             ]);
 
             const lockedByAsset = new Map(
-                locked.map((entry) => [
+                reserves.map((entry) => [
                     entry.asset,
                     (entry._sum.amount ?? new Prisma.Decimal(0)).negated(),
                 ]),
             );
 
-            const balance = available.map((entry) => ({
+            const balance = totals.map((entry) => ({
                 asset: entry.asset,
-                amount: (entry._sum.amount ?? new Prisma.Decimal(0)).toString(),
+                available: (entry._sum.amount ?? new Prisma.Decimal(0)).toString(),
                 locked: lockedByAsset.get(entry.asset)?.toString() ?? '0',
             }));
 

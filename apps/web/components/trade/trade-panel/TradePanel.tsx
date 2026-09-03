@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useForm, useWatch, type FieldPath, type PathValue } from 'react-hook-form';
 import { OrderKind, Side as ApiSide, TimeInForce as ApiTimeInForce } from '@repo/types';
 import { Button } from '@/components/ui/button';
@@ -107,7 +108,7 @@ export default function TradePanel() {
         : placeOrder.isError
           ? { tone: 'error' as const, text: placeOrderErrorMessage(placeOrder.error) }
           : placeOrder.isSuccess
-            ? { tone: 'ok' as const, text: 'Order sent to the engine' }
+            ? { tone: 'ok' as const, text: 'Order placed successfully.' }
             : null;
 
     const requireMarket = (validate: (market: Market, value: string) => string | null) => ({
@@ -257,13 +258,18 @@ export default function TradePanel() {
                         </span>
                     </div>
 
-                    {status && (
-                        <p
-                            className={`text-xs ${status.tone === 'error' ? 'text-loss' : 'text-profit'}`}
-                        >
-                            {status.text}
-                        </p>
-                    )}
+                    <AnimatePresence>
+                        {status && (
+                            <motion.p
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className={`text-xs ${status.tone === 'error' ? 'text-loss' : 'text-profit'}`}
+                            >
+                                {status.text}
+                            </motion.p>
+                        )}
+                    </AnimatePresence>
 
                     {signedIn ? (
                         <Button

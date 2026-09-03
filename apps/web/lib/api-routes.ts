@@ -6,5 +6,6 @@ const AUTH_URL = API_URL + '/auth';
 export const SIGNIN_URL = AUTH_URL + '/signin';
 
 export const MARKETS_URL = API_URL + '/markets';
+export const BALANCE_URL = API_URL + '/balance';
 
 export const ORDERS_URL = API_URL + '/orders';

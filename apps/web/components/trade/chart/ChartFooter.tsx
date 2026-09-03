@@ -6,7 +6,6 @@ import { useCandlesStore } from '@/store/market/useCandlesStore';
 import { TIMEFRAMES } from '@/types/candles';
 
 export default function ChartFooter() {
-    // Selector, so price ticks do not re-render the toolbar.
     const timeframe = useCandlesStore((s) => s.timeframe);
 
     return (
@@ -26,7 +25,7 @@ export default function ChartFooter() {
                     {tf.key}
                 </Button>
             ))}
-            {/* Axis renders in the viewer's zone, so labelling it UTC would lie. */}
+            {}
             <div className="ml-auto text-muted-foreground">Local</div>
         </div>
     );

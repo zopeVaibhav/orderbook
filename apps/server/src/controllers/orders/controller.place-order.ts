@@ -8,9 +8,6 @@ import { isJsonSafe, scale } from '@repo/money';
 import OrderProducer from '../../kafka/kafka.order-producer';
 import { acceptOrder, releaseReserve, reserveFor } from '../../services/service.reserve';
 
-/**
- * The engine collapses kind and time-in-force into one flat enum; side needs no mapping.
- */
 const ENGINE_LIMIT_KIND: Record<TimeInForce, EngineOrderKind> = {
     [TimeInForce.GTC]: 'LimitGtc',
     [TimeInForce.IOC]: 'Ioc',
@@ -18,9 +15,6 @@ const ENGINE_LIMIT_KIND: Record<TimeInForce, EngineOrderKind> = {
     [TimeInForce.POST_ONLY]: 'PostOnly',
 };
 
-/**
- * Money never crosses the wire as a JS number — decimal strings all the way down.
- */
 const positiveDecimal = z
     .string()
     .regex(/^\d+(\.\d+)?$/, 'must be a decimal string')

@@ -15,16 +15,6 @@ interface OrderBookState {
     reset: () => void;
 }
 
-/**
- * Price keys stay strings on purpose. The engine sends scaled decimals as
- * strings; parsing them to floats risks 64328.3 and 64328.30000000001 becoming
- * separate keys, and loses precision on money. Parse only when sorting or
- * displaying.
- *
- * Maps are replaced rather than mutated so Zustand/React see a new reference.
- * Deltas are batched to a frame first (see queueDelta), so the copy happens once
- * per frame instead of once per event.
- */
 export const useOrderBookStore = create<OrderBookState>((set, get) => ({
     marketId: null,
     asks: new Map(),
@@ -43,7 +33,6 @@ export const useOrderBookStore = create<OrderBookState>((set, get) => ({
 
     applyDelta: (delta) => get().applyDeltas([delta]),
 
-    /** Copies the maps once for the whole batch rather than once per delta. */
     applyDeltas: (deltas) => {
         const state = get();
         let lastSeq = state.lastSeq;
@@ -54,12 +43,6 @@ export const useOrderBookStore = create<OrderBookState>((set, get) => ({
         let applied = false;
 
         for (const delta of deltas) {
-            // `seq` is the Kafka offset of the order that produced the event, and
-            // every event from one order carries the same value — so consecutive
-            // book deltas legitimately skip numbers and `seq + 1` is NOT a valid
-            // gap test. All we can safely reject here is replayed or reordered
-            // events. Detecting genuine loss needs a per-stream counter the engine
-            // does not emit yet; until it does, resync is snapshot-driven.
             if (delta.seq <= lastSeq) continue;
 
             for (const change of delta.changes) {
@@ -86,15 +69,6 @@ export const useOrderBookStore = create<OrderBookState>((set, get) => ({
             status: 'connecting',
         }),
 }));
-
-// --- frame batching -------------------------------------------------------
-// The engine can emit deltas far faster than the screen refreshes. Applying
-// each one straight to React state would commit many times per frame, so
-// buffer them and flush once on the next animation frame.
-
-// A hidden tab gets no animation frames at all, so rAF alone would freeze the
-// book and let the buffer grow without bound until the user came back. Fall
-// back to a timer whenever the document is hidden, and hard-cap the buffer.
 
 const HIDDEN_FLUSH_MS = 250;
 const MAX_PENDING = 500;
@@ -130,7 +104,6 @@ function schedule() {
 
 export function queueBookDelta(delta: BookDelta): void {
     pending.push(delta);
-    // Never let a stalled scheduler turn into unbounded memory growth.
     if (pending.length >= MAX_PENDING) {
         flush();
         return;
@@ -143,8 +116,6 @@ export function clearBookDeltaQueue(): void {
     pending = [];
 }
 
-// Switching visibility invalidates whichever scheduler is armed: a pending rAF
-// will never fire once hidden, and a timer is the slower choice once visible.
 if (typeof document !== 'undefined') {
     document.addEventListener('visibilitychange', () => {
         if (pending.length === 0) return;

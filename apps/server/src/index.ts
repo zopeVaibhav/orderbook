@@ -34,8 +34,6 @@ const server = app.listen(ENV.SERVER_PORT, () => {
 
 const shutdown = (signal: string) => {
     console.log(`\nReceived ${signal}, shutting down gracefully...`);
-    // Stop accepting requests first, then flush the producer so orders already
-    // accepted still reach kafka.
     server.close(async (err) => {
         if (err) console.error('Error during shutdown:', err);
         else console.log('Server closed.');

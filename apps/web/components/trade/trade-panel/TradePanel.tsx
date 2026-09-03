@@ -63,9 +63,6 @@ export default function TradePanel() {
     });
     const { register, handleSubmit, setValue, resetField, control, formState } = form;
 
-    /**
-     * useWatch, not form.watch: the latter opts the component out of React Compiler.
-     */
     const [side, orderType, tif, postOnly, price, quantity] = useWatch({
         control,
         name: ['side', 'orderType', 'tif', 'postOnly', 'price', 'quantity'],
@@ -75,9 +72,6 @@ export default function TradePanel() {
     const signedIn = Boolean(accessToken);
     const orderValue = isLimit ? Number(price) * Number(quantity) : NaN;
 
-    /**
-     * Any edit invalidates the last result, so a stale error stops being shown.
-     */
     const clearResult = () => placeOrder.reset();
 
     const set = <K extends FieldPath<OrderForm>>(name: K, value: PathValue<OrderForm, K>) => {
@@ -173,7 +167,6 @@ export default function TradePanel() {
                                     className="h-10 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                     {...register('price', {
                                         ...requireMarket(validatePrice),
-                                        // Market orders unmount this field; its stale error would survive.
                                         shouldUnregister: true,
                                         onChange: clearResult,
                                     })}

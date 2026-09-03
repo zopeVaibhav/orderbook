@@ -2,9 +2,6 @@ import { prisma } from '@repo/database';
 import type { OrderAck } from '@repo/types/kafka';
 import { releaseReserve } from '../../services/service.reserve';
 
-/**
- * RESTED and PARTIAL are still live on the book, so their hold stays.
- */
 const TERMINAL = new Set(['FILLED', 'CANCELLED', 'REJECTED']);
 
 export async function handleAck(ack: OrderAck): Promise<void> {
@@ -12,9 +9,6 @@ export async function handleAck(ack: OrderAck): Promise<void> {
         userId_clientOrderId: { userId: ack.user_id, clientOrderId: ack.client_order_id },
     };
 
-    /**
-     * Kafka redelivers and reorders, so an older sequence must never overwrite newer state.
-     */
     const order = await prisma.order.findUnique({ where: key, select: { engineSeq: true } });
 
     if (!order) return;

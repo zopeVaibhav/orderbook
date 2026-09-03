@@ -5,9 +5,6 @@ type Market = { base: string; quote: string };
 
 type ReserveTarget = { asset: string; amount: Prisma.Decimal };
 
-/**
- * A market buy has no ceiling — only the engine knows how far the sweep walks.
- */
 export function reserveFor(
     market: Market,
     side: Side,
@@ -41,9 +38,6 @@ export type AcceptOrderInput = {
     reserve: ReserveTarget;
 };
 
-/**
- * A balance is a SUM() with no row to lock, so the advisory lock is what stops two concurrent orders reading the same total.
- */
 export type AcceptResult = { ok: true } | { ok: false; reason: string };
 
 export async function acceptOrder(input: AcceptOrderInput): Promise<AcceptResult> {
@@ -93,9 +87,6 @@ export async function acceptOrder(input: AcceptOrderInput): Promise<AcceptResult
     return shortfall ? { ok: false, reason: shortfall } : { ok: true };
 }
 
-/**
- * Releases in full, not proportionally: settlement debits the real cost as its own FILL rows.
- */
 export async function releaseReserve(userId: string, clientOrderId: string): Promise<void> {
     const reserve = await prisma.ledgerEntry.findFirst({
         where: { userId, refId: clientOrderId, refType: 'ORDER', ledgerReason: 'RESERVE' },

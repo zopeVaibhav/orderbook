@@ -1,18 +1,3 @@
-/**
- * Client-facing enums, shared by the API layer and the web app.
- *
- * Values mirror the Prisma enums exactly, so a value here assigns straight into
- * a Prisma field with no mapping. They are declared here rather than imported
- * from `@repo/database` because that package pulls the Node-only Prisma client,
- * which has no business in a browser bundle.
- *
- * Declared as const objects so `z.enum(Side)` and `Side.BID` both work off one
- * definition — add a value and the validators pick it up.
- *
- * Distinct from the engine's wire enums in `@repo/types/kafka`, which are
- * PascalCase and carry the engine's own vocabulary.
- */
-
 export const Side = {
     BID: 'BID',
     ASK: 'ASK',

@@ -4,9 +4,6 @@ import { useMutation } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import { placeOrder, type PlaceOrderInput } from '@/lib/api/orders';
 
-/**
- * Nothing to invalidate: the response only confirms the order reached kafka.
- */
 export function usePlaceOrder() {
     return useMutation({
         mutationFn: (input: PlaceOrderInput) => placeOrder(input),

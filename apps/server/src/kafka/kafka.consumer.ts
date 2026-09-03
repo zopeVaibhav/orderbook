@@ -5,9 +5,6 @@ import { KafkaTopics, type OrderAck } from '@repo/types/kafka';
 import { ENV } from '../configs/env.config';
 import { handleAck } from './handlers/handler.ack';
 
-/**
- * Without this the reserve written at accept time is never given back.
- */
 export default class EngineConsumer {
     static #consumer: Consumer | null = null;
 

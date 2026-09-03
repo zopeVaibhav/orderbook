@@ -3,15 +3,10 @@ import type { Market } from '@/types/market';
 
 export { stepFor } from '@repo/money';
 
-/** Market minimum in human units, for the hint under the quantity field. */
 export function minQuantityOf(market: Market): string {
     return unscale(market.minQuantity, market.lotExp);
 }
 
-/**
- * Same rules the server enforces, checked before the request so a typo costs a
- * render instead of a round trip.
- */
 export function validateQuantity(market: Market, value: string): string | null {
     const scaled = scale(value, market.lotExp);
     if (scaled === null) return `Quantity accepts at most ${market.lotExp} decimals`;

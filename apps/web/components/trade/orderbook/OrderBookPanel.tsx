@@ -11,8 +11,6 @@ import OrderBookRow from './OrderBookRow';
 type Tab = 'book' | 'trades';
 
 const DEPTH = 30;
-
-/** Slack around the centred position before the Recenter button is offered. */
 const RECENTER_THRESHOLD_PX = 12;
 
 export default function OrderBookPanel() {
@@ -27,11 +25,6 @@ export default function OrderBookPanel() {
     const [recenterShown, setRecenterShown] = useState(false);
     const scrollRafRef = useRef(0);
 
-    /**
-     * scrollTop that puts the spread row in the middle of the viewport, clamped
-     * to the scrollable range — the browser clamps scrollTo the same way, so an
-     * unclamped target would read as permanently off-centre.
-     */
     const centredScrollTop = useCallback((scroller: HTMLDivElement, spread: HTMLDivElement) => {
         const target = spread.offsetTop - (scroller.clientHeight - spread.offsetHeight) / 2;
         return Math.min(Math.max(target, 0), scroller.scrollHeight - scroller.clientHeight);
@@ -50,8 +43,6 @@ export default function OrderBookPanel() {
         [centredScrollTop],
     );
 
-    // Scroll fires far more often than the screen repaints, and the measurement
-    // forces layout, so collapse a burst of events into one read per frame.
     const handleScroll = useCallback(() => {
         if (scrollRafRef.current !== 0) return;
         scrollRafRef.current = requestAnimationFrame(() => {
@@ -64,9 +55,6 @@ export default function OrderBookPanel() {
         });
     }, [centredScrollTop]);
 
-    // The flex height cascade settles over several frames after mount, so a single
-    // measurement lands off-center (or clamps to 0 before the rows have laid out).
-    // Re-apply for a few frames, then keep following resizes until the user scrolls.
     useLayoutEffect(() => {
         if (active !== 'book') return;
         const scroller = scrollRef.current;
@@ -97,7 +85,6 @@ export default function OrderBookPanel() {
         };
     }, [active, recenter]);
 
-    // Prefer the last print; fall back to the mid until the first trade lands.
     const markPrice =
         lastTrade?.price ?? (bestAsk !== null && bestBid !== null ? (bestAsk + bestBid) / 2 : null);
     const markColor = lastTrade?.side === 'ASK' ? 'text-loss' : 'text-profit';
@@ -148,8 +135,7 @@ export default function OrderBookPanel() {
                                           maximumFractionDigits: 1,
                                       })}
                             </div>
-                            {/* Kept mounted and faded instead of unmounted, so the
-                                spread row never changes height mid-scroll. */}
+                            {}
                             <span
                                 tabIndex={recenterShown ? 0 : -1}
                                 aria-hidden={!recenterShown}

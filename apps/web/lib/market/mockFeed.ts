@@ -1,13 +1,6 @@
 import { MAX_CANDLES, type Candle } from '@/types/candles';
 import type { BookDeltaEntry, BookSnapshotPayload, EngineEvent } from '@repo/types/kafka';
 
-/**
- * Development transport. It speaks the engine's wire protocol — book deltas and
- * trades — rather than handing the UI finished snapshots, so the render path is
- * identical under mock and live data. Replacing it with the WebSocket client
- * means deleting this file and pointing the same handler at the socket.
- */
-
 export const MOCK_MARKET_ID = 'BTC/USDC';
 export const TICK_MS = 250;
 
@@ -36,7 +29,6 @@ function buildSide(mid: number, direction: 1 | -1): Map<string, string> {
     return side;
 }
 
-/** Emit only what actually changed, including deletions as "0". */
 function diffSide(
     prev: Map<string, string>,
     next: Map<string, string>,
@@ -104,8 +96,6 @@ class MockFeed {
         this.asks = nextAsks;
         this.bids = nextBids;
 
-        // One order produces several events that share its offset, exactly as
-        // the engine does — so the client cannot assume seq increments by one.
         this.seq += 1;
         const ts = Date.now();
 
@@ -113,7 +103,6 @@ class MockFeed {
             emit({ type: 'book_delta', market_id: MOCK_MARKET_ID, changes, ts, seq: this.seq });
         }
 
-        // Most ticks cross the spread and print a trade.
         if (Math.random() < 0.7) {
             const takerBuys = drift >= 0;
             this.tradeId += 1;
@@ -137,7 +126,6 @@ class MockFeed {
 
 export const mockFeed = new MockFeed();
 
-// Deterministic PRNG so the seeded chart history is identical every load.
 function seededRng(seed: number) {
     let s = seed;
     return () => {
@@ -146,10 +134,6 @@ function seededRng(seed: number) {
     };
 }
 
-/**
- * Stand-in for the REST candle history a server would serve. Ends on
- * CENTER_START so the seeded chart lines up with the book's opening price.
- */
 export function seedCandleHistory(
     nowMs: number,
     candleMs: number,

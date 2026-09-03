@@ -1,4 +1,3 @@
-// Mirrors apps/engine/src/engine/order.rs
 export type Side = 'bid' | 'ask';
 
 export type OrderKind = 'LimitGtc' | 'Market' | 'Ioc' | 'Fok' | 'PostOnly';

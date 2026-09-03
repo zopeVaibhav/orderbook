@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useForm, useWatch, type FieldPath, type PathValue } from 'react-hook-form';
 import { OrderKind, Side as ApiSide, TimeInForce as ApiTimeInForce } from '@repo/types';
 import { Button } from '@/components/ui/button';
@@ -63,9 +64,6 @@ export default function TradePanel() {
     });
     const { register, handleSubmit, setValue, resetField, control, formState } = form;
 
-    /**
-     * useWatch, not form.watch: the latter opts the component out of React Compiler.
-     */
     const [side, orderType, tif, postOnly, price, quantity] = useWatch({
         control,
         name: ['side', 'orderType', 'tif', 'postOnly', 'price', 'quantity'],
@@ -75,9 +73,6 @@ export default function TradePanel() {
     const signedIn = Boolean(accessToken);
     const orderValue = isLimit ? Number(price) * Number(quantity) : NaN;
 
-    /**
-     * Any edit invalidates the last result, so a stale error stops being shown.
-     */
     const clearResult = () => placeOrder.reset();
 
     const set = <K extends FieldPath<OrderForm>>(name: K, value: PathValue<OrderForm, K>) => {
@@ -113,7 +108,7 @@ export default function TradePanel() {
         : placeOrder.isError
           ? { tone: 'error' as const, text: placeOrderErrorMessage(placeOrder.error) }
           : placeOrder.isSuccess
-            ? { tone: 'ok' as const, text: 'Order sent to the engine' }
+            ? { tone: 'ok' as const, text: 'Order placed successfully.' }
             : null;
 
     const requireMarket = (validate: (market: Market, value: string) => string | null) => ({
@@ -173,7 +168,6 @@ export default function TradePanel() {
                                     className="h-10 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                     {...register('price', {
                                         ...requireMarket(validatePrice),
-                                        // Market orders unmount this field; its stale error would survive.
                                         shouldUnregister: true,
                                         onChange: clearResult,
                                     })}
@@ -264,13 +258,18 @@ export default function TradePanel() {
                         </span>
                     </div>
 
-                    {status && (
-                        <p
-                            className={`text-xs ${status.tone === 'error' ? 'text-loss' : 'text-profit'}`}
-                        >
-                            {status.text}
-                        </p>
-                    )}
+                    <AnimatePresence>
+                        {status && (
+                            <motion.p
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className={`text-xs ${status.tone === 'error' ? 'text-loss' : 'text-profit'}`}
+                            >
+                                {status.text}
+                            </motion.p>
+                        )}
+                    </AnimatePresence>
 
                     {signedIn ? (
                         <Button

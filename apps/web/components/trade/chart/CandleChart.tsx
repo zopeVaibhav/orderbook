@@ -24,18 +24,14 @@ function resolveColor(raw: string, fallback: string): string {
     const sentinel = '#123456';
     ctx.fillStyle = sentinel;
     ctx.fillStyle = raw;
-    // A rejected assignment leaves the sentinel in place.
     if (ctx.fillStyle === sentinel && raw.toLowerCase() !== sentinel) return fallback;
 
-    // Reading the painted pixel forces a conversion to sRGB bytes; the fillStyle
-    // getter alone can hand back lab()/oklch(), which the chart cannot parse.
     ctx.clearRect(0, 0, 1, 1);
     ctx.fillRect(0, 0, 1, 1);
     const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
     return a === 255 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${(a! / 255).toFixed(3)})`;
 }
 
-/** The chart draws to canvas, so CSS variables must be resolved to real colors. */
 function readTheme() {
     const css = getComputedStyle(document.documentElement);
     const read = (name: string, fallback: string) =>
@@ -49,11 +45,6 @@ function readTheme() {
     };
 }
 
-/**
- * Bars are stamped in UNIX seconds, which the chart renders as UTC by default —
- * so the axis ran hours behind the wall clock. Render in the viewer's local zone
- * instead, matching the trade tape.
- */
 function formatLocalTime(seconds: number, withSeconds: boolean): string {
     const d = new Date(seconds * 1000);
     const hh = String(d.getHours()).padStart(2, '0');
@@ -85,18 +76,14 @@ export default function CandleChart({
 }: {
     candles: Candle[];
     timeframe: Timeframe;
-    /** Bumped whenever the series is replaced wholesale, not merely extended. */
     epoch: number;
 }) {
     const hostRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<IChartApi | null>(null);
     const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
-    /** Bar under the crosshair; null means "not hovering", so show the latest. */
     const [hovered, setHovered] = useState<OhlcValues | null>(null);
-    // Latest candles without re-creating the chart when they change.
     const candlesRef = useRef(candles);
     const epochRef = useRef(epoch);
-    // The formatters are installed once, so they read the interval through a ref.
     const intervalMsRef = useRef(timeframe.ms);
     intervalMsRef.current = timeframe.ms;
 
@@ -146,8 +133,6 @@ export default function CandleChart({
         series.setData(toSeriesData(candlesRef.current));
         chart.timeScale().fitContent();
 
-        // Legend follows the crosshair; falling back to the latest bar when the
-        // pointer leaves the plot (no seriesData for that point).
         const onCrosshair = (param: { seriesData: Map<unknown, unknown> }) => {
             const bar = param.seriesData.get(series) as BarData<UTCTimestamp> | undefined;
             setHovered(
@@ -167,9 +152,6 @@ export default function CandleChart({
         };
     }, []);
 
-    // The panel can still be zero-sized when the chart is created, and fitting to
-    // a zero-width plot leaves the bars crushed against the right edge. Re-fit
-    // whenever the host actually resizes (ResizeObserver also fires on observe).
     useEffect(() => {
         const host = hostRef.current;
         if (!host) return;
@@ -184,8 +166,6 @@ export default function CandleChart({
         const series = seriesRef.current;
         if (!series) return;
 
-        // A reseed or timeframe switch rewrites every timestamp, which update()
-        // rejects because times must not move backwards — replace the series.
         if (epochRef.current !== epoch) {
             epochRef.current = epoch;
             chartRef.current?.applyOptions({
@@ -196,8 +176,6 @@ export default function CandleChart({
             return;
         }
 
-        // update() both extends the forming candle and appends new ones, so the
-        // chart keeps its own history instead of being reset on every tick.
         const last = candles[candles.length - 1];
         if (!last) return;
         series.update({

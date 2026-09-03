@@ -3,8 +3,11 @@ import express from 'express';
 import cors from 'cors';
 import appRoutes from './routers/v1/router.v1';
 import { ENV, parseEnv } from './configs/env.config';
-import OrderProducer from './kafka/kafka.order-producer';
-import EngineConsumer from './kafka/kafka.consumer';
+import OrderProducer from './kafka/producers/kafka.order-producer';
+import EngineConsumer from './kafka/consumers/kafka.engine-consumer';
+import BookConsumer from './kafka/consumers/kafka.book-consumer';
+import TradeConsumer from './kafka/consumers/kafka.trade-consumer';
+import SocketServer from './socket/socket.server';
 
 parseEnv();
 
@@ -27,18 +30,26 @@ app.get('/health', (_req, res) => {
 
 await OrderProducer.connect();
 await EngineConsumer.start();
+await BookConsumer.start();
+await TradeConsumer.start();
 
 const server = app.listen(ENV.SERVER_PORT, () => {
     console.log(`Server is running on port: ${ENV.SERVER_PORT}`);
 });
 
+SocketServer.start(server);
+
 const shutdown = (signal: string) => {
     console.log(`\nReceived ${signal}, shutting down gracefully...`);
-    // Stop accepting requests first, then flush the producer so orders already
-    // accepted still reach kafka.
     server.close(async (err) => {
         if (err) console.error('Error during shutdown:', err);
         else console.log('Server closed.');
+
+        try {
+            SocketServer.stop();
+        } catch (error) {
+            console.error('Socket server stop failed:', error);
+        }
 
         try {
             await OrderProducer.disconnect();
@@ -50,6 +61,18 @@ const shutdown = (signal: string) => {
             await EngineConsumer.stop();
         } catch (error) {
             console.error('Consumer disconnect failed:', error);
+        }
+
+        try {
+            await BookConsumer.stop();
+        } catch (error) {
+            console.error('Book consumer disconnect failed:', error);
+        }
+
+        try {
+            await TradeConsumer.stop();
+        } catch (error) {
+            console.error('Trade consumer disconnect failed:', error);
         }
 
         process.exit(err ? 1 : 0);

@@ -5,7 +5,8 @@
     "private": true,
     "exports": {
         ".": "./src/index.ts",
-        "./kafka": "./src/kafka/index.ts"
+        "./kafka": "./src/kafka/index.ts",
+        "./socket": "./src/socket/index.ts"
     },
     "scripts": {
         "lint": "eslint .",

@@ -1,23 +1,9 @@
 import { MAX_CANDLES, type Candle } from '@/types/candles';
 
-/**
- * OHLCV aggregation from an executed-trade stream. This is real logic, not mock
- * scaffolding — it keeps working unchanged once trades arrive over the socket
- * instead of from the simulator.
- */
-
-/** Start of the candle bucket containing `tsMs`, in UNIX seconds. */
 export function bucketSec(tsMs: number, candleMs: number): number {
     return (Math.floor(tsMs / candleMs) * candleMs) / 1000;
 }
 
-/**
- * Fold one executed trade into the window. Extends the forming candle while the
- * trade lands in its bucket, otherwise opens a new candle at the previous close.
- *
- * Bucketing uses the trade's own timestamp (the engine's `ts`), not wall clock,
- * so every client aggregates to identical buckets.
- */
 export function rollCandles(
     candles: Candle[],
     price: number,
@@ -34,7 +20,6 @@ export function rollCandles(
         ];
     }
 
-    // Out-of-order trades would rewind the series, which the chart rejects.
     if (bucket < last.time) return candles;
 
     if (bucket > last.time) {

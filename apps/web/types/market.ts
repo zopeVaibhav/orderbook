@@ -11,9 +11,6 @@ export type ApiMarket = {
     quoteRef: { name: string; decimals: number };
 };
 
-/**
- * Price and change come from the feed, not this endpoint, so both stay optional.
- */
 export type Market = {
     id: string;
     slug: string;

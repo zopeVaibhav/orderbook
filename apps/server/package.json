@@ -18,7 +18,8 @@
         "@types/cors": "^2.8.19",
         "@types/express": "^5.0.6",
         "@types/jsonwebtoken": "^9.0.10",
-        "@types/node": "^25.9.5"
+        "@types/node": "^25.9.5",
+        "@types/ws": "^8.18.1"
     },
     "peerDependencies": {
         "typescript": "^6.0.3"
@@ -36,6 +37,7 @@
         "google-auth-library": "^11.0.2",
         "jsonwebtoken": "^9.0.3",
         "kafkajs": "^2.2.4",
+        "ws": "^8.21.3",
         "zod": "^4.4.3"
     }
 }

@@ -2,14 +2,26 @@
 
 import { useMutation } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
-import { placeOrder, type PlaceOrderInput } from '@/lib/api/orders';
+import type { ApiResponse, OrderKind, Side, TimeInForce } from '@repo/types';
+import { ORDERS_URL } from '@/lib/api-routes';
+import { apiClient } from '@/lib/axios';
 
-/**
- * Nothing to invalidate: the response only confirms the order reached kafka.
- */
+export type PlaceOrderInput = {
+    marketId: string;
+    clientOrderId: string;
+    side: Side;
+    kind: OrderKind;
+    timeInForce?: TimeInForce;
+    price?: string;
+    quantity: string;
+};
+
 export function usePlaceOrder() {
     return useMutation({
-        mutationFn: (input: PlaceOrderInput) => placeOrder(input),
+        mutationFn: async (input: PlaceOrderInput) => {
+            const { data } = await apiClient.post<ApiResponse<PlaceOrderInput>>(ORDERS_URL, input);
+            return data.data;
+        },
     });
 }
 

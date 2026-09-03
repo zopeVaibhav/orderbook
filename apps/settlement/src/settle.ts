@@ -5,6 +5,13 @@ type MarketAssets = { base: string; quote: string };
 
 const marketCache = new Map<string, MarketAssets>();
 
+/**
+ * A trade referencing a market that no longer exists (e.g. a dev DB reset
+ * wiped it) can never be settled. Distinct type so the consumer skips it
+ * instead of retrying the same offset forever.
+ */
+export class UnknownMarketError extends Error {}
+
 async function getMarket(marketId: string): Promise<MarketAssets> {
     const cached = marketCache.get(marketId);
     if (cached) return cached;
@@ -15,7 +22,7 @@ async function getMarket(marketId: string): Promise<MarketAssets> {
     });
 
     if (!market) {
-        throw new Error(`settlement: unknown market "${marketId}"`);
+        throw new UnknownMarketError(`settlement: unknown market "${marketId}"`);
     }
 
     marketCache.set(marketId, market);

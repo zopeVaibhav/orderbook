@@ -1,7 +1,7 @@
 import { Kafka } from 'kafkajs';
 import chalk from 'chalk';
 import { ENV, parseEnv } from './config/env.config';
-import { settleTrade } from './settle';
+import { settleTrade, UnknownMarketError } from './settle';
 import { tradeOutSchema } from './schema/trade.schema';
 
 parseEnv();
@@ -63,7 +63,17 @@ async function main() {
                 return;
             }
 
-            await settleTrade(parsed);
+            try {
+                await settleTrade(parsed);
+            } catch (err) {
+                if (!(err instanceof UnknownMarketError)) throw err;
+                console.error(
+                    chalk.red(
+                        `unsettleable trade skipped at ${topic}[${partition}]@${message.offset}:`,
+                    ),
+                    err.message,
+                );
+            }
             await commit(topic, partition, message.offset);
         },
     });

@@ -1,9 +1,9 @@
 import { Consumer } from 'kafkajs';
 import chalk from 'chalk';
-import { KafkaClient } from './kafka.client';
+import { KafkaClient } from '../kafka.client';
 import { KafkaTopics, type OrderAck } from '@repo/types/kafka';
-import { ENV } from '../configs/env.config';
-import { handleAck } from './handlers/handler.ack';
+import { ENV } from '../../configs/env.config';
+import { handleAck } from '../handlers/handler.ack';
 
 export default class EngineConsumer {
     static #consumer: Consumer | null = null;
@@ -23,8 +23,7 @@ export default class EngineConsumer {
                     await handleAck(JSON.parse(message.value.toString()) as OrderAck);
                 } catch (error) {
                     console.error(
-                        chalk.red(`ack handling failed at ${topic}[${partition}]:`),
-                        error,
+                        console.error(chalk.red(`${topic}[${partition}] handling failed:`), error),
                     );
                 }
             },

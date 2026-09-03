@@ -5,7 +5,7 @@ import { OrderKind, Side, TimeInForce } from '@repo/types';
 import type { OrderKind as EngineOrderKind } from '@repo/types/kafka';
 import { prisma } from '@repo/database';
 import { isJsonSafe, scale } from '@repo/money';
-import OrderProducer from '../../kafka/kafka.order-producer';
+import OrderProducer from '../../kafka/producers/kafka.order-producer';
 import { acceptOrder, releaseReserve, reserveFor } from '../../services/service.reserve';
 
 const ENGINE_LIMIT_KIND: Record<TimeInForce, EngineOrderKind> = {

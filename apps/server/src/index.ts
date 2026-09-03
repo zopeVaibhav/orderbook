@@ -3,8 +3,9 @@ import express from 'express';
 import cors from 'cors';
 import appRoutes from './routers/v1/router.v1';
 import { ENV, parseEnv } from './configs/env.config';
-import OrderProducer from './kafka/kafka.order-producer';
-import EngineConsumer from './kafka/kafka.consumer';
+import OrderProducer from './kafka/producers/kafka.order-producer';
+import EngineConsumer from './kafka/consumers/kafka.engine-consumer';
+import BookConsumer from './kafka/consumers/kafka.book-consumer';
 
 parseEnv();
 
@@ -27,6 +28,7 @@ app.get('/health', (_req, res) => {
 
 await OrderProducer.connect();
 await EngineConsumer.start();
+await BookConsumer.start();
 
 const server = app.listen(ENV.SERVER_PORT, () => {
     console.log(`Server is running on port: ${ENV.SERVER_PORT}`);
@@ -48,6 +50,12 @@ const shutdown = (signal: string) => {
             await EngineConsumer.stop();
         } catch (error) {
             console.error('Consumer disconnect failed:', error);
+        }
+
+        try {
+            await BookConsumer.stop();
+        } catch (error) {
+            console.error('Book consumer disconnect failed:', error);
         }
 
         process.exit(err ? 1 : 0);

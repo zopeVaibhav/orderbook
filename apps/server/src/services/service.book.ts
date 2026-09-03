@@ -1,4 +1,5 @@
-import type { BookDelta, BookSnapshotPayload } from '@repo/types/kafka';
+import type { BookDelta } from '@repo/types/kafka';
+import type { BookSnapshotPayload } from '@repo/types/socket';
 
 type Book = {
     bids: Map<string, string>;

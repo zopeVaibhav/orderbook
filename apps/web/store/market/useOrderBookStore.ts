@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import type { BookDelta, BookSnapshotPayload } from '@repo/types/kafka';
+import type { BookDelta } from '@repo/types/kafka';
+import type { BookSnapshotPayload } from '@repo/types/socket';
 
 export type FeedStatus = 'connecting' | 'live' | 'stale';
 

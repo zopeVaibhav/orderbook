@@ -44,10 +44,3 @@ export type EngineEvent =
     | ({ type: 'ack' } & OrderAck)
     | ({ type: 'trade' } & TradeOut)
     | ({ type: 'book_delta' } & BookDelta);
-
-export interface BookSnapshotPayload {
-    market_id: string;
-    asks: [string, string][];
-    bids: [string, string][];
-    seq: number;
-}

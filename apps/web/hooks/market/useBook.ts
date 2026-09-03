@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import type { ApiResponse } from '@repo/types';
-import type { BookSnapshotPayload } from '@repo/types/kafka';
+import type { BookSnapshotPayload } from '@repo/types/socket';
 import { BOOK_URL } from '@/lib/api-routes';
 import { apiClient } from '@/lib/axios';
 

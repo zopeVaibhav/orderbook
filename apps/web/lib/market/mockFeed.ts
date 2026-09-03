@@ -1,5 +1,6 @@
 import { MAX_CANDLES, type Candle } from '@/types/candles';
-import type { BookDeltaEntry, BookSnapshotPayload, EngineEvent } from '@repo/types/kafka';
+import type { BookDeltaEntry } from '@repo/types/kafka';
+import type { BookSnapshotPayload, ServerSocketMessage } from '@repo/types/socket';
 
 export const MOCK_MARKET_ID = 'BTC/USDC';
 export const TICK_MS = 250;
@@ -44,7 +45,7 @@ function diffSide(
     return changes;
 }
 
-type Listener = (event: EngineEvent) => void;
+type Listener = (event: ServerSocketMessage) => void;
 
 class MockFeed {
     private mid = CENTER_START;

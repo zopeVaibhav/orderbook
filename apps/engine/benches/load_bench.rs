@@ -3,7 +3,9 @@
 //! Run: cargo bench --bench load_bench
 //! Report: target/criterion/report/index.html
 
-use criterion::{black_box, criterion_group, criterion_main, BatchSize, BenchmarkId, Criterion, Throughput};
+use criterion::{
+    BatchSize, BenchmarkId, Criterion, Throughput, black_box, criterion_group, criterion_main,
+};
 use engine::engine::{Engine, Market, MarketId, NewOrderPayload};
 use serde_json::json;
 
@@ -82,7 +84,11 @@ fn mixed_workload(n: usize, seed: u64) -> Vec<NewOrderPayload> {
     for i in 0..n {
         let user = format!("user-{}", rng.range(0, USER_POOL as u64));
         let id = format!("cid-{}", i);
-        let side = if rng.next_u64() % 2 == 0 { "BID" } else { "ASK" };
+        let side = if rng.next_u64() % 2 == 0 {
+            "BID"
+        } else {
+            "ASK"
+        };
 
         if rng.next_u64() % 10 < 6 {
             let offset = rng.range(0, 200) as i64 - 100;
@@ -99,8 +105,22 @@ fn mixed_workload(n: usize, seed: u64) -> Vec<NewOrderPayload> {
 
 fn seed_liquidity(engine: &mut Engine, levels: u64) {
     for i in 0..levels {
-        let bid = limit(&format!("seed-bid-{i}"), "seed-maker", MKT, "BID", MID_PRICE - 1 - i, 100);
-        let ask = limit(&format!("seed-ask-{i}"), "seed-maker", MKT, "ASK", MID_PRICE + 1 + i, 100);
+        let bid = limit(
+            &format!("seed-bid-{i}"),
+            "seed-maker",
+            MKT,
+            "BID",
+            MID_PRICE - 1 - i,
+            100,
+        );
+        let ask = limit(
+            &format!("seed-ask-{i}"),
+            "seed-maker",
+            MKT,
+            "ASK",
+            MID_PRICE + 1 + i,
+            100,
+        );
         engine.submit_new_order(&bid).unwrap();
         engine.submit_new_order(&ask).unwrap();
     }

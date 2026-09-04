@@ -4,7 +4,7 @@
     "type": "module",
     "private": true,
     "scripts": {
-        "dev": "bun --hot src/index.ts",
+        "dev": "bun --watch src/index.ts",
         "start": "bun src/index.ts",
         "seed-bots": "bun src/scripts/seed-bots.ts",
         "check-types": "tsc --noEmit",

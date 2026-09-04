@@ -19,6 +19,23 @@ async function loadBots(): Promise<string[]> {
     return rows.map((row) => row.id);
 }
 
+async function cancelStaleOrders(): Promise<void> {
+    const stale = await prisma.order.findMany({
+        where: { userId: { in: bots }, status: { in: ['PENDING', 'RESTED', 'PARTIAL'] } },
+        select: { userId: true, marketId: true, clientOrderId: true },
+    });
+
+    for (const order of stale) {
+        await OrderProducer.publishCancelOrder({
+            client_order_id: order.clientOrderId,
+            user_id: order.userId,
+            market_id: order.marketId,
+        });
+    }
+
+    if (stale.length > 0) console.log(chalk.yellow(`cancelled ${stale.length} stale bot orders`));
+}
+
 async function sync(): Promise<void> {
     if (shuttingDown) return;
 
@@ -91,6 +108,7 @@ async function main() {
     }
 
     await OrderProducer.connect();
+    await cancelStaleOrders();
     await sync();
 
     setInterval(() => void sync(), REGISTRY_POLL_MS);

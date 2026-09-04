@@ -7,8 +7,6 @@ import { cancelOrder, placeOrder } from '../orders/submit';
 
 const TERMINAL = new Set(['FILLED', 'CANCELLED', 'REJECTED']);
 
-/** Client order ids stay unique per user forever, and cancelled rows are kept,
- *  so ids carry a per-run stamp rather than restarting a counter at one. */
 const RUN_ID = Date.now().toString(36);
 
 type Resting = {
@@ -23,8 +21,6 @@ type Resting = {
 export type Touch = {
     priceTicks: bigint;
     qtyLots: bigint;
-    /** Owners of the levels a sweep would reach, so a taker can pick a bot
-     *  that is not about to be matched against itself. */
     owners: string[];
 };
 
@@ -32,11 +28,6 @@ function slotKey(side: Side, level: number): string {
     return `${side}:${level}`;
 }
 
-/**
- * Quotes one market: a full ladder each side, kept alive by replacing whatever
- * has filled or drifted. One bot owns a given level so the book carries many
- * identities rather than one.
- */
 export class MarketMaker {
     readonly #market: MarketSpec;
     readonly #bots: string[];
@@ -61,7 +52,6 @@ export class MarketMaker {
         return this.#walk.price;
     }
 
-    /** Best resting level on a side, plus who owns the levels behind it. */
     touch(side: Side, depth: number): Touch | null {
         const best = this.#bySlot.get(slotKey(side, 0));
         if (!best) return null;
@@ -76,7 +66,6 @@ export class MarketMaker {
     }
 
     async start(): Promise<void> {
-        await this.#cancelStaleOrders();
         await this.#place(buildLadder(this.#market, this.#walk.price));
 
         this.#timer = setInterval(() => void this.#tick(), QUOTE.REFRESH_MS);
@@ -101,23 +90,6 @@ export class MarketMaker {
         this.#seq += 1;
         const short = this.#market.id.slice(0, 8);
         return `mm-${short}-${RUN_ID}-${side === Side.ASK ? 'a' : 'b'}${level}-${this.#seq}`;
-    }
-
-    /** Anything this service left resting in a previous run is unknown to the
-     *  new state map, so it is cancelled rather than orphaned on the book. */
-    async #cancelStaleOrders(): Promise<void> {
-        const stale = await prisma.order.findMany({
-            where: {
-                marketId: this.#market.id,
-                userId: { in: this.#bots },
-                status: { in: ['PENDING', 'RESTED', 'PARTIAL'] },
-            },
-            select: { userId: true, clientOrderId: true },
-        });
-
-        for (const order of stale) {
-            await cancelOrder(order.userId, this.#market.id, order.clientOrderId);
-        }
     }
 
     async #reconcile(): Promise<void> {
@@ -176,8 +148,6 @@ export class MarketMaker {
             const mid = this.#walk.step();
             const target = buildLadder(this.#market, mid);
 
-            /** A level is only worth replacing once mid has carried it a whole
-             *  step away; without this every tick would restate the whole book. */
             const tolerance = levelStep(mid, this.#market.tickExp);
 
             const missing: Quote[] = [];
@@ -199,8 +169,6 @@ export class MarketMaker {
                 if (drift >= tolerance) stale.push(resting);
             }
 
-            /** Refilling comes first so a burst of fills can never leave the
-             *  book thinner while the budget is spent cancelling. */
             const refill = missing.sort((a, b) => a.level - b.level);
             await this.#place(refill.slice(0, QUOTE.MAX_ACTIONS_PER_TICK));
 

@@ -1,9 +1,17 @@
-import { LedgerReason, Prisma, prisma, RefType, writeLedger } from '@repo/database';
-import { OrderKind, Side } from '@repo/types';
+import {
+    LedgerReason,
+    OrderKind,
+    Prisma,
+    RefType,
+    Side,
+    TimeInForce,
+} from '../generated/prisma/client';
+import { prisma } from './prisma';
+import { writeLedger } from './ledger';
 
 type Market = { base: string; quote: string };
 
-type ReserveTarget = { asset: string; amount: Prisma.Decimal };
+export type ReserveTarget = { asset: string; amount: Prisma.Decimal };
 
 export function reserveFor(
     market: Market,
@@ -32,7 +40,7 @@ export type AcceptOrderInput = {
     marketId: string;
     side: Side;
     kind: OrderKind;
-    timeInForce?: 'GTC' | 'IOC' | 'FOK' | 'POST_ONLY';
+    timeInForce?: TimeInForce;
     price?: string;
     quantity: string;
     reserve: ReserveTarget;
@@ -40,6 +48,10 @@ export type AcceptOrderInput = {
 
 export type AcceptResult = { ok: true } | { ok: false; reason: string };
 
+/**
+ * Takes the reserve and writes the Order row in one transaction, so an order
+ * never reaches the engine without funds already locked behind it.
+ */
 export async function acceptOrder(input: AcceptOrderInput): Promise<AcceptResult> {
     const { userId, reserve } = input;
 
@@ -108,7 +120,16 @@ export async function releaseReserve(userId: string, clientOrderId: string): Pro
     );
 }
 
-export async function releaseRemaining(userId: string, clientOrderId: string): Promise<void> {
+/**
+ * Releases whatever of the reserve the order never used. Pass filledQuantity
+ * when the engine's own count is ahead of the row's, which it is for an order
+ * whose remainder was cancelled before settlement caught up.
+ */
+export async function releaseRemaining(
+    userId: string,
+    clientOrderId: string,
+    filledQuantity?: Prisma.Decimal | string,
+): Promise<void> {
     const order = await prisma.order.findUnique({
         where: { userId_clientOrderId: { userId, clientOrderId } },
         select: {
@@ -122,7 +143,10 @@ export async function releaseRemaining(userId: string, clientOrderId: string): P
 
     if (!order) return;
 
-    const remaining = order.quantity.minus(order.filledQuantity);
+    const filled =
+        filledQuantity === undefined ? order.filledQuantity : new Prisma.Decimal(filledQuantity);
+
+    const remaining = order.quantity.minus(filled);
     if (remaining.lessThanOrEqualTo(0)) return;
 
     const asset = order.side === Side.ASK ? order.marketRef.base : order.marketRef.quote;

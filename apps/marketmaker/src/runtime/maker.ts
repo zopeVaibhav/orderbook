@@ -17,6 +17,15 @@ type Resting = {
     side: Side;
     level: number;
     priceTicks: bigint;
+    qtyLots: bigint;
+};
+
+export type Touch = {
+    priceTicks: bigint;
+    qtyLots: bigint;
+    /** Owners of the levels a sweep would reach, so a taker can pick a bot
+     *  that is not about to be matched against itself. */
+    owners: string[];
 };
 
 function slotKey(side: Side, level: number): string {
@@ -46,6 +55,24 @@ export class MarketMaker {
 
     get marketId(): string {
         return this.#market.id;
+    }
+
+    get mid(): number {
+        return this.#walk.price;
+    }
+
+    /** Best resting level on a side, plus who owns the levels behind it. */
+    touch(side: Side, depth: number): Touch | null {
+        const best = this.#bySlot.get(slotKey(side, 0));
+        if (!best) return null;
+
+        const owners: string[] = [];
+        for (let level = 0; level < depth; level++) {
+            const resting = this.#bySlot.get(slotKey(side, level));
+            if (resting) owners.push(resting.userId);
+        }
+
+        return { priceTicks: best.priceTicks, qtyLots: best.qtyLots, owners };
     }
 
     async start(): Promise<void> {
@@ -134,6 +161,7 @@ export class MarketMaker {
                 side: quote.side,
                 level: quote.level,
                 priceTicks: quote.priceTicks,
+                qtyLots: quote.qtyLots,
             });
         }
     }

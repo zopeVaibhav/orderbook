@@ -76,3 +76,12 @@ export const WALK = {
 /** How often the enabled-market set is re-read, so a toggle in the UI takes
  *  effect without restarting the service. */
 export const REGISTRY_POLL_MS = 5000;
+
+/** Taker flow. Without it the ladder just sits there: nothing prints a trade,
+ *  so there is no tape and no candles. */
+export const TAKE = {
+    MEAN_INTERVAL_MS: 4000,
+    MIN_SIZE_FRACTION: 0.15,
+    MAX_SIZE_FRACTION: 1.2,
+    SWEEP_DEPTH: 3,
+};

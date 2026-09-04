@@ -4,11 +4,13 @@ import { parseEnv } from './config/env.config';
 import { REGISTRY_POLL_MS, SEED_PRICES } from './config/bots.config';
 import OrderProducer from './orders/producer';
 import { MarketMaker } from './runtime/maker';
+import { Taker } from './runtime/taker';
 import type { MarketSpec } from './quotes/ladder';
 
 parseEnv();
 
 const makers = new Map<string, MarketMaker>();
+const takers = new Map<string, Taker>();
 let bots: string[] = [];
 let shuttingDown = false;
 
@@ -36,6 +38,8 @@ async function sync(): Promise<void> {
 
     for (const [id, maker] of makers) {
         if (wanted.has(id)) continue;
+        takers.get(id)?.stop();
+        takers.delete(id);
         await maker.stop();
         makers.delete(id);
         console.log(chalk.yellow(`maker off ${id}`));
@@ -53,6 +57,11 @@ async function sync(): Promise<void> {
         const maker = new MarketMaker(market as MarketSpec, bots, Number(anchor));
         makers.set(market.id, maker);
         await maker.start();
+
+        const taker = new Taker(market as MarketSpec, bots, maker);
+        takers.set(market.id, taker);
+        taker.start();
+
         console.log(chalk.green(`maker on ${market.base}/${market.quote}`));
     }
 }
@@ -62,6 +71,7 @@ async function shutdown(reason: string) {
     shuttingDown = true;
     console.log(chalk.yellow(`marketmaker shutting down: ${reason}`));
 
+    for (const taker of takers.values()) taker.stop();
     for (const maker of makers.values()) await maker.stop();
 
     await OrderProducer.disconnect();

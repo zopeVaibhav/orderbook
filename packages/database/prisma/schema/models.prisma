@@ -38,17 +38,18 @@ model LedgerEntry {
 }
 
 model Markets {
-  id          String       @id
-  base        String
-  baseRef     Asset        @relation("MarketBase", fields: [base], references: [symbol])
-  quote       String
-  quoteRef    Asset        @relation("MarketQuote", fields: [quote], references: [symbol])
-  lotExp      Int
-  tickExp     Int
-  minQuantity BigInt
-  status      MarketStatus @default(ACTIVE)
-  orders      Order[]
-  trades      Trade[]
+  id           String       @id
+  base         String
+  baseRef      Asset        @relation("MarketBase", fields: [base], references: [symbol])
+  quote        String
+  quoteRef     Asset        @relation("MarketQuote", fields: [quote], references: [symbol])
+  lotExp       Int
+  tickExp      Int
+  minQuantity  BigInt
+  status       MarketStatus @default(ACTIVE)
+  makerEnabled Boolean      @default(false)
+  orders       Order[]
+  trades       Trade[]
 }
 
 model Asset {

@@ -51,3 +51,28 @@ export const BOT_EMAIL_DOMAIN = 'bots.invalid';
 export function botEmail(handle: string): string {
     return `${handle}@${BOT_EMAIL_DOMAIN}`;
 }
+
+/** Ladder shape. Spread and step are in basis points of mid, so one set of
+ *  numbers works for BTC at 95000 and PEPE at 0.00001 alike. */
+export const QUOTE = {
+    LEVELS: 40,
+    SPREAD_BPS: 8,
+    LEVEL_STEP_BPS: 6,
+    BASE_NOTIONAL: 2500,
+    SIZE_GROWTH: 1.06,
+    REFRESH_MS: 1500,
+    /** Repricing is capped per tick and taken innermost first, so the touch
+     *  stays fresh, deep levels lag, and the book is never emptied wholesale. */
+    MAX_ACTIONS_PER_TICK: 8,
+};
+
+/** Reversion is what keeps a market from wandering off its anchor over a long
+ *  session; without it a random walk eventually leaves the seeded price far behind. */
+export const WALK = {
+    VOL_BPS: 12,
+    REVERSION: 0.02,
+};
+
+/** How often the enabled-market set is re-read, so a toggle in the UI takes
+ *  effect without restarting the service. */
+export const REGISTRY_POLL_MS = 5000;

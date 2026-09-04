@@ -110,3 +110,41 @@ export async function releaseReserve(userId: string, clientOrderId: string): Pro
         throw error;
     }
 }
+
+export async function releaseRemaining(userId: string, clientOrderId: string): Promise<void> {
+    const order = await prisma.order.findUnique({
+        where: { userId_clientOrderId: { userId, clientOrderId } },
+        select: {
+            side: true,
+            price: true,
+            quantity: true,
+            filledQuantity: true,
+            marketRef: { select: { base: true, quote: true } },
+        },
+    });
+
+    if (!order) return;
+
+    const remaining = order.quantity.minus(order.filledQuantity);
+    if (remaining.lessThanOrEqualTo(0)) return;
+
+    const asset = order.side === Side.ASK ? order.marketRef.base : order.marketRef.quote;
+    const amount =
+        order.side === Side.ASK ? remaining : (order.price ?? new Prisma.Decimal(0)).mul(remaining);
+
+    try {
+        await prisma.ledgerEntry.create({
+            data: {
+                userId,
+                asset,
+                amount,
+                ledgerReason: 'RELEASE',
+                refType: 'ORDER',
+                refId: clientOrderId,
+            },
+        });
+    } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') return;
+        throw error;
+    }
+}

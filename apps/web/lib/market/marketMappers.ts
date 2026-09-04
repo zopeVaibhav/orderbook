@@ -12,6 +12,7 @@ export function toMarket(m: ApiMarket): Market {
         tickExp: m.tickExp,
         lotExp: m.lotExp,
         minQuantity: m.minQuantity,
+        makerEnabled: m.makerEnabled,
         baseDecimals: m.baseRef.decimals,
         quoteDecimals: m.quoteRef.decimals,
     };

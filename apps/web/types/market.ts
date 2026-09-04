@@ -7,6 +7,7 @@ export type ApiMarket = {
     tickExp: number;
     lotExp: number;
     minQuantity: string;
+    makerEnabled: boolean;
     baseRef: { name: string; decimals: number };
     quoteRef: { name: string; decimals: number };
 };
@@ -23,6 +24,7 @@ export type Market = {
     minQuantity: string;
     baseDecimals: number;
     quoteDecimals: number;
+    makerEnabled: boolean;
     price?: number;
     change24h?: number;
 };

@@ -67,6 +67,7 @@ export default class SignInController {
                 res,
                 {
                     ...user,
+                    isAdmin: ENV.ADMIN_EMAIL !== '' && user.email === ENV.ADMIN_EMAIL,
                     accessToken: JWT.signSessionJwt({ id: user.id }),
                     expiresIn: ENV.ACCESS_TOKEN_TTL_SEC,
                 },

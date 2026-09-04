@@ -7,6 +7,8 @@ import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useMarkets } from '@/hooks/market/useMarkets';
+import { useUserSessionStore } from '@/store/user/useUserSessionStore';
+import MakerToggle from './MakerToggle';
 import { formatPrice } from '@/lib/format';
 import type { Market } from '@/types/market';
 
@@ -18,6 +20,7 @@ export default function Searchbar() {
     const wrapperRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const { data: markets, isPending } = useMarkets();
+    const isAdmin = useUserSessionStore((s) => s.user?.isAdmin ?? false);
 
     const results = useMemo(() => {
         const all = markets ?? [];
@@ -109,53 +112,60 @@ export default function Searchbar() {
                             results.map((m, i) => {
                                 const positive = (m.change24h ?? 0) >= 0;
                                 return (
-                                    <Button
+                                    <div
                                         key={m.id}
-                                        variant="ghost"
-                                        onMouseEnter={() => setActive(i)}
-                                        onMouseDown={(e) => {
-                                            e.preventDefault();
-                                            go(m);
-                                        }}
-                                        className={`h-auto border-none w-full justify-start gap-3 rounded-none px-3 py-2 text-left ${
-                                            i === active ? 'bg-muted' : ''
-                                        }`}
+                                        className={`flex items-center ${i === active ? 'bg-muted' : ''}`}
                                     >
-                                        {m.iconSrc ? (
-                                            <Image
-                                                src={m.iconSrc}
-                                                alt={m.symbol}
-                                                width={20}
-                                                height={20}
-                                            />
-                                        ) : (
-                                            <div className="flex size-5 items-center justify-center rounded-full bg-muted text-[10px] font-semibold text-muted-foreground">
-                                                {m.symbol.slice(0, 1)}
+                                        <Button
+                                            variant="ghost"
+                                            onMouseEnter={() => setActive(i)}
+                                            onMouseDown={(e) => {
+                                                e.preventDefault();
+                                                go(m);
+                                            }}
+                                            className="h-auto min-w-0 flex-1 border-none justify-start gap-3 rounded-none bg-transparent px-3 py-2 text-left"
+                                        >
+                                            {m.iconSrc ? (
+                                                <Image
+                                                    src={m.iconSrc}
+                                                    alt={m.symbol}
+                                                    width={20}
+                                                    height={20}
+                                                />
+                                            ) : (
+                                                <div className="flex size-5 items-center justify-center rounded-full bg-muted text-[10px] font-semibold text-muted-foreground">
+                                                    {m.symbol.slice(0, 1)}
+                                                </div>
+                                            )}
+                                            <div className="flex min-w-0 flex-1 flex-col leading-tight">
+                                                <span className="truncate text-sm font-medium text-foreground">
+                                                    {m.symbol}
+                                                </span>
+                                                <span className="truncate text-xs text-muted-foreground">
+                                                    {m.name}
+                                                </span>
+                                            </div>
+                                            <div className="flex flex-col items-end leading-tight">
+                                                <span className="text-sm text-foreground">
+                                                    {m.price === undefined
+                                                        ? '—'
+                                                        : `$${formatPrice(m.price)}`}
+                                                </span>
+                                                <span
+                                                    className={`text-xs ${positive ? 'text-profit' : 'text-loss'}`}
+                                                >
+                                                    {m.change24h === undefined
+                                                        ? '—'
+                                                        : `${positive ? '+' : ''}${m.change24h.toFixed(2)}%`}
+                                                </span>
+                                            </div>
+                                        </Button>
+                                        {isAdmin && (
+                                            <div className="pr-3">
+                                                <MakerToggle market={m} />
                                             </div>
                                         )}
-                                        <div className="flex min-w-0 flex-1 flex-col leading-tight">
-                                            <span className="truncate text-sm font-medium text-foreground">
-                                                {m.symbol}
-                                            </span>
-                                            <span className="truncate text-xs text-muted-foreground">
-                                                {m.name}
-                                            </span>
-                                        </div>
-                                        <div className="flex flex-col items-end leading-tight">
-                                            <span className="text-sm text-foreground">
-                                                {m.price === undefined
-                                                    ? '—'
-                                                    : `$${formatPrice(m.price)}`}
-                                            </span>
-                                            <span
-                                                className={`text-xs ${positive ? 'text-profit' : 'text-loss'}`}
-                                            >
-                                                {m.change24h === undefined
-                                                    ? '—'
-                                                    : `${positive ? '+' : ''}${m.change24h.toFixed(2)}%`}
-                                            </span>
-                                        </div>
-                                    </Button>
+                                    </div>
                                 );
                             })
                         )}

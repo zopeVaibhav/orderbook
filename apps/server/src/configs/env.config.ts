@@ -16,6 +16,9 @@ const envSchema = z.object({
     GOOGLE_CLIENT_ID: z.string(),
     KAFKA_BROKER: z.string(),
     KAFKA_GROUP_ID: z.string(),
+    /** Empty means nobody can toggle the market maker, which is the right
+     *  default for any deployment that is not the owner's laptop. */
+    ADMIN_EMAIL: z.string().default(''),
 });
 
 export let ENV: z.infer<typeof envSchema>;

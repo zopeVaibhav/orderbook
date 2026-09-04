@@ -39,6 +39,13 @@ async function cancelStaleOrders(): Promise<void> {
 async function sync(): Promise<void> {
     if (shuttingDown) return;
 
+    if (bots.length === 0) {
+        bots = await loadBots();
+        if (bots.length === 0) return;
+        console.log(chalk.green(`found ${bots.length} bot accounts`));
+        await cancelStaleOrders();
+    }
+
     const markets = await prisma.markets.findMany({
         where: { status: 'ACTIVE', makerEnabled: true },
         select: {
@@ -103,12 +110,13 @@ async function main() {
     bots = await loadBots();
 
     if (bots.length === 0) {
-        console.error(chalk.red('no bot accounts: run `bun run --filter marketmaker seed-bots`'));
-        process.exit(1);
+        console.warn(
+            chalk.yellow('no bot accounts yet: run `bun run --filter marketmaker seed-bots`'),
+        );
     }
 
     await OrderProducer.connect();
-    await cancelStaleOrders();
+    if (bots.length > 0) await cancelStaleOrders();
     await sync();
 
     setInterval(() => void sync(), REGISTRY_POLL_MS);

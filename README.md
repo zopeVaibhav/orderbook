@@ -29,8 +29,8 @@ A CLOB (central limit order book) exchange. The matching engine is Rust, everyth
         │   └─────┬──────┘
         │         ▼
         │    ┌──────────┐
-        └───▶│ postgres │
-             └──────────┘
+        └───▶│ postgres │◀─── marketmaker ──▶ orders.in
+             └──────────┘     quotes and crosses the book
 ```
 
 The engine is the only writer of order state and holds every book in memory. It never reads Postgres — markets reach it over the compacted `markets.control` topic, orders over `orders.in`. Everything it decides comes back out as events, and the TypeScript side is responsible for turning those into rows.
@@ -56,6 +56,7 @@ apps/
   engine/       Rust matching engine — books, order kinds, snapshots
   server/       Express API, Kafka producers/consumers, market sync script
   settlement/   Kafka consumer that turns trades.out into ledger entries
+  marketmaker/  bot accounts that quote and trade the enabled markets
   web/          Next.js frontend
 packages/
   database/     Prisma schema, client, migrations, seed
@@ -128,6 +129,7 @@ Fill it in. Every one of these is required — the services validate their envir
 | `NEXTAUTH_SECRET`, `NEXTAUTH_URL`                   | `NEXTAUTH_URL` is `http://localhost:3000`                                                           |
 | `NEXT_PUBLIC_API_URL`                               | `http://localhost:8080`                                                                             |
 | `KAFKA_BROKER`, `KAFKA_GROUP_ID`                    | `localhost:9092` and any group name                                                                 |
+| `ADMIN_EMAIL`                                       | Google account allowed to toggle the market maker. Empty means nobody can.                          |
 
 On PowerShell, generate a secret with:
 
@@ -241,16 +243,18 @@ Add `-v` to that to also drop the Postgres volume, which throws away every row a
 
 ## Everyday commands
 
-| Command                                         | What it does                          |
-| ----------------------------------------------- | ------------------------------------- |
-| `bun run dev`                                   | web + server + settlement             |
-| `bun run check-types`                           | `tsc --noEmit` across every workspace |
-| `bun run lint`                                  | eslint across every workspace         |
-| `bun run format`                                | prettier over the repo                |
-| `cd apps/engine && cargo run`                   | the matching engine                   |
-| `cd apps/engine && cargo clippy -- -D warnings` | what the pre-push hook enforces       |
-| `bun run --filter @repo/database studio`        | Prisma Studio                         |
-| `bun run --filter @repo/database migrate:reset` | drop and rebuild the database         |
+| Command                                            | What it does                          |
+| -------------------------------------------------- | ------------------------------------- |
+| `bun run dev`                                      | web + server + settlement             |
+| `bun run check-types`                              | `tsc --noEmit` across every workspace |
+| `bun run lint`                                     | eslint across every workspace         |
+| `bun run format`                                   | prettier over the repo                |
+| `cd apps/engine && cargo run`                      | the matching engine                   |
+| `cd apps/engine && cargo clippy -- -D warnings`    | what the pre-push hook enforces       |
+| `bun run --filter marketmaker seed-bots`           | create and fund the bot accounts      |
+| `bun run --filter @repo/database rebuild-balances` | recompute Balance from the ledger     |
+| `bun run --filter @repo/database studio`           | Prisma Studio                         |
+| `bun run --filter @repo/database migrate:reset`    | drop and rebuild the database         |
 
 Husky runs `prettier --write` on staged files at commit time. Pre-push is heavier: lint, type check, full build, `cargo fmt --check`, and `cargo clippy -- -D warnings`. Clippy runs with warnings denied, so something as small as a `collapsible_if` fails the push rather than warning.
 
@@ -268,8 +272,24 @@ Husky runs `prettier --write` on staged files at commit time. Pre-push is heavie
 
 **You want to see what is actually on a topic.** The Redpanda console at http://localhost:8090 shows every message, which is usually faster than adding a log line.
 
+## Simulated liquidity
+
+There are no other traders yet, so `apps/marketmaker` supplies them. It holds ten bot accounts — separate `User` rows, because the engine's self-trade prevention cancels a resting maker whose user id matches the taker, and one shared identity would eat its own book. Each is funded with $2m notional of every listed asset.
+
+Per enabled market it quotes a forty-level ladder on each side, priced off a mean-reverting random walk from an anchor hardcoded in `bots.config.ts`. There is no oracle: seeded prices drift and are meant to be edited. A separate taker loop crosses that book at Poisson intervals, which is what produces the tape and the candles. Bots take real profit and loss against each other; nothing about their accounting is special-cased.
+
+Bots go through the same reserve, `Order` row and settlement path as a person does — they skip the HTTP hop, not the database. Settlement cannot settle a trade whose order rows do not exist.
+
+Markets start with it off. Toggle one from the searchbar (visible only to `ADMIN_EMAIL`) and the service picks it up within five seconds. Any market with it on carries a **simulated liquidity** badge in the trade header, since the depth and trades there are generated rather than other people's orders.
+
+```bash
+bun run --filter marketmaker seed-bots
+```
+
+Run once, then the service starts with `bun run dev` like everything else.
+
 ## Status
 
-Working end to end: Google sign-in, market listing, balances, order placement (`POST /api/v1/orders`), matching across all five order kinds, trade settlement into the ledger.
+Working end to end: Google sign-in, market listing, balances, order placement and cancellation, matching across all five order kinds, trade settlement into the ledger, live book and trade feed over the socket, and the bot market maker above.
 
-Not yet wired: the server's `orders.ack` / `book.delta` consumers and the socket layer are stubs, so the frontend still runs off `apps/web/lib/market/mockFeed.ts` rather than live engine output. Placed orders are not yet persisted as `Order` rows — the ack comes back over Kafka with nowhere to land.
+Not yet wired: the API does not wait for `orders.ack` before responding, and there is no reaper releasing reservations for orders that never ack.

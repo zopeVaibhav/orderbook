@@ -16,7 +16,7 @@ read -r -p "Stopped server/bots/settlement/web/engine? This drops all data. Cont
 
 TOPICS=(orders.in orders.ack trades.out book.delta markets.control)
 
-echo "==> 1/4 wiping redpanda topics + consumer groups"
+echo "==> 1/5 wiping redpanda topics + consumer groups"
 docker exec redpanda rpk topic delete "${TOPICS[@]}" || true
 
 # Delete isn't synchronous — recreating immediately can race it (worse: a
@@ -36,16 +36,22 @@ docker exec redpanda rpk topic create markets.control -p 1 -c cleanup.policy=com
 docker exec redpanda rpk group delete server settlement-group engine engine_control || true
 docker exec redpanda rpk topic list
 
-echo "==> 2/4 resetting database (drop, migrate, seed)"
+echo "==> 2/5 resetting database (drop, migrate, seed)"
 (cd packages/database && bunx prisma migrate reset --force)
 bun run --filter @repo/database seed
 
-echo "==> 3/4 clearing engine snapshots (stale market ids from before the reset)"
+echo "==> 3/5 clearing engine snapshots (stale market ids from before the reset)"
 rm -f apps/engine/snapshots/*.bin
 
-echo "==> 4/4 syncing fresh market ids to the engine"
+echo "==> 4/5 syncing fresh market ids to the engine"
 bun run --filter server sync-markets
+
+echo "==> 5/5 recreating the bot accounts"
+bun run --filter marketmaker seed-bots
 
 echo
 echo "done. restart: bun run dev (+ the engine), then sign out/in in the browser"
 echo "(your old session's JWT points at a user id that no longer exists)."
+echo
+echo "markets come back with makerEnabled=false, so no bot quotes until you"
+echo "toggle one on from the searchbar."

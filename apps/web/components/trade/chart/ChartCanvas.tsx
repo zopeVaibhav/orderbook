@@ -16,7 +16,7 @@ export default function ChartCanvas() {
             candles={candles}
             timeframe={timeframe}
             epoch={epoch}
-            symbol={market?.symbol ?? ''}
+            symbol={market ? `${market.symbol}/${market.quote}` : ''}
         />
     );
 }

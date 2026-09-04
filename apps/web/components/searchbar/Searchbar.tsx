@@ -117,7 +117,7 @@ export default function Searchbar() {
                                             e.preventDefault();
                                             go(m);
                                         }}
-                                        className={`h-auto w-full justify-start gap-3 rounded-none px-3 py-2 text-left ${
+                                        className={`h-auto border-none w-full justify-start gap-3 rounded-none px-3 py-2 text-left ${
                                             i === active ? 'bg-muted' : ''
                                         }`}
                                     >

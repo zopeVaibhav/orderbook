@@ -112,58 +112,72 @@ export default function OrderBookPanel() {
                         onScroll={handleScroll}
                         className="scrollbar-none relative min-h-0 flex-1 overflow-y-auto [-ms-overflow-style:none] [overflow-anchor:none] [&::-webkit-scrollbar]:hidden"
                     >
-                        {asks.map((l, i) => (
-                            <OrderBookRow
-                                key={`a-${i}`}
-                                price={l.price}
-                                size={l.size}
-                                total={l.total}
-                                depthPct={(l.total / maxTotal) * 100}
-                                side="ask"
-                            />
-                        ))}
-
-                        <div
-                            ref={spreadRef}
-                            className="sticky top-0 bottom-0 z-10 flex h-9 items-center justify-between bg-background px-2"
-                        >
-                            <div className={`text-base font-semibold tabular-nums ${markColor}`}>
-                                {markPrice === null
-                                    ? '—'
-                                    : markPrice.toLocaleString('en-US', {
-                                          minimumFractionDigits: 1,
-                                          maximumFractionDigits: 1,
-                                      })}
+                        {asks.length === 0 && bids.length === 0 ? (
+                            <div className="flex h-full items-center justify-center p-4 text-center text-sm text-muted-foreground">
+                                Waiting for orders
                             </div>
-                            {}
-                            <span
-                                tabIndex={recenterShown ? 0 : -1}
-                                aria-hidden={!recenterShown}
-                                onClick={() => {
-                                    takenOverRef.current = false;
-                                    setRecenterShown(false);
-                                    recenter();
-                                }}
-                                className={`text-xs cursor-pointer text-sky-500 transition-[opacity,transform] duration-200 ease-out ${
-                                    recenterShown
-                                        ? 'translate-x-0 opacity-100'
-                                        : 'pointer-events-none opacity-0'
-                                }`}
-                            >
-                                Recenter
-                            </span>
-                        </div>
+                        ) : (
+                            <div className="flex min-h-full flex-col">
+                                <div className="flex flex-1 basis-0 flex-col justify-end">
+                                    {asks.map((l, i) => (
+                                        <OrderBookRow
+                                            key={`a-${i}`}
+                                            price={l.price}
+                                            size={l.size}
+                                            total={l.total}
+                                            depthPct={(l.total / maxTotal) * 100}
+                                            side="ask"
+                                        />
+                                    ))}
+                                </div>
 
-                        {bids.map((l, i) => (
-                            <OrderBookRow
-                                key={`b-${i}`}
-                                price={l.price}
-                                size={l.size}
-                                total={l.total}
-                                depthPct={(l.total / maxTotal) * 100}
-                                side="bid"
-                            />
-                        ))}
+                                <div
+                                    ref={spreadRef}
+                                    className="sticky top-0 bottom-0 z-10 flex h-9 items-center justify-between bg-background px-2"
+                                >
+                                    <div
+                                        className={`text-base font-semibold tabular-nums ${markColor}`}
+                                    >
+                                        {markPrice === null
+                                            ? '—'
+                                            : markPrice.toLocaleString('en-US', {
+                                                  minimumFractionDigits: 1,
+                                                  maximumFractionDigits: 1,
+                                              })}
+                                    </div>
+                                    {}
+                                    <span
+                                        tabIndex={recenterShown ? 0 : -1}
+                                        aria-hidden={!recenterShown}
+                                        onClick={() => {
+                                            takenOverRef.current = false;
+                                            setRecenterShown(false);
+                                            recenter();
+                                        }}
+                                        className={`text-xs cursor-pointer text-sky-500 transition-[opacity,transform] duration-200 ease-out ${
+                                            recenterShown
+                                                ? 'translate-x-0 opacity-100'
+                                                : 'pointer-events-none opacity-0'
+                                        }`}
+                                    >
+                                        Recenter
+                                    </span>
+                                </div>
+
+                                <div className="flex-1 basis-0">
+                                    {bids.map((l, i) => (
+                                        <OrderBookRow
+                                            key={`b-${i}`}
+                                            price={l.price}
+                                            size={l.size}
+                                            total={l.total}
+                                            depthPct={(l.total / maxTotal) * 100}
+                                            side="bid"
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <DepthFooter buyPct={buyPct} sellPct={sellPct} />

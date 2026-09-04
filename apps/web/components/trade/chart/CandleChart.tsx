@@ -73,10 +73,12 @@ export default function CandleChart({
     candles,
     timeframe,
     epoch,
+    symbol,
 }: {
     candles: Candle[];
     timeframe: Timeframe;
     epoch: number;
+    symbol: string;
 }) {
     const hostRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<IChartApi | null>(null);
@@ -199,7 +201,9 @@ export default function CandleChart({
 
             {shown && (
                 <div className="pointer-events-none absolute top-2 left-3 z-10 flex flex-col gap-0.5 text-xs tabular-nums">
-                    <div className="font-medium text-foreground">BTC/USDC · {timeframe.key}</div>
+                    <div className="font-medium text-foreground">
+                        {symbol} · {timeframe.key}
+                    </div>
                     <div className="flex items-center gap-2">
                         <span className="text-muted-foreground">
                             O

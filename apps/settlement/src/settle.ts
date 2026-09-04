@@ -119,5 +119,21 @@ export async function settleTrade(trade: TradeOut): Promise<void> {
             },
             data: { filledQuantity: { increment: baseAmount } },
         });
+
+        await tx.trade.create({
+            data: {
+                tradeId: BigInt(trade.trade_id),
+                marketId: trade.market_id,
+                price: new Prisma.Decimal(trade.price),
+                quantity: baseAmount,
+                makerUserId: trade.maker_user_id,
+                makerClientOrderId: trade.maker_client_order_id,
+                takerUserId: trade.taker_user_id,
+                takerClientOrderId: trade.taker_client_order_id,
+                takerSide: trade.taker_side,
+                ts: BigInt(trade.ts),
+                seq: BigInt(trade.seq),
+            },
+        });
     });
 }

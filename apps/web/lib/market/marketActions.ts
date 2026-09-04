@@ -1,14 +1,6 @@
-import { seedCandleHistory } from '@/lib/market/mockFeed';
 import { useCandlesStore } from '@/store/market/useCandlesStore';
-import { useTradesStore } from '@/store/market/useTradesStore';
 import type { Timeframe } from '@/types/candles';
 
 export function changeTimeframe(timeframe: Timeframe): void {
-    const candles = useCandlesStore.getState();
-    const anchor =
-        useTradesStore.getState().trades[0]?.price ??
-        candles.candles[candles.candles.length - 1]?.close;
-
-    candles.setTimeframe(timeframe);
-    candles.seed(seedCandleHistory(Date.now(), timeframe.ms, anchor));
+    useCandlesStore.getState().setTimeframe(timeframe);
 }

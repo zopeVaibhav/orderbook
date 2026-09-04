@@ -14,6 +14,7 @@ model User {
   image         String?
   ledgerEntries LedgerEntry[]
   orders        Order[]
+  balances      Balance[]
 }
 
 model LedgerEntry {
@@ -54,8 +55,24 @@ model Asset {
   name          String
   decimals      Int
   ledgerEntries LedgerEntry[]
+  balances      Balance[]
   marketAsBase  Markets[]     @relation("MarketBase")
   marketAsQuote Markets[]     @relation("MarketQuote")
+}
+
+/// Projection over ledgerEntries, rebuildable from them at any time.
+/// available is the sum of every entry; locked is the negated sum of the
+/// RESERVE and RELEASE entries.
+model Balance {
+  userId    String
+  userRef   User     @relation(fields: [userId], references: [id])
+  asset     String
+  assetRef  Asset    @relation(fields: [asset], references: [symbol])
+  available Decimal  @default(0) @db.Decimal(38, 18)
+  locked    Decimal  @default(0) @db.Decimal(38, 18)
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, asset])
 }
 
 model Order {

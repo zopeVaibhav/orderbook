@@ -1,4 +1,4 @@
-import { Prisma, prisma } from '@repo/database';
+import { LedgerReason, Prisma, prisma, RefType, writeLedger } from '@repo/database';
 import { OrderKind, Side } from '@repo/types';
 
 type Market = { base: string; quote: string };
@@ -48,12 +48,12 @@ export async function acceptOrder(input: AcceptOrderInput): Promise<AcceptResult
     await prisma.$transaction(async (tx) => {
         await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${userId}), hashtext(${reserve.asset}))`;
 
-        const totals = await tx.ledgerEntry.aggregate({
-            where: { userId, asset: reserve.asset },
-            _sum: { amount: true },
+        const balance = await tx.balance.findUnique({
+            where: { userId_asset: { userId, asset: reserve.asset } },
+            select: { available: true },
         });
 
-        const available = totals._sum.amount ?? new Prisma.Decimal(0);
+        const available = balance?.available ?? new Prisma.Decimal(0);
         if (available.lessThan(reserve.amount)) {
             shortfall = `insufficient ${reserve.asset}: need ${reserve.amount}, have ${available}`;
             return;
@@ -72,16 +72,16 @@ export async function acceptOrder(input: AcceptOrderInput): Promise<AcceptResult
             },
         });
 
-        await tx.ledgerEntry.create({
-            data: {
+        await writeLedger(tx, [
+            {
                 userId,
                 asset: reserve.asset,
                 amount: reserve.amount.neg(),
-                ledgerReason: 'RESERVE',
-                refType: 'ORDER',
+                ledgerReason: LedgerReason.RESERVE,
+                refType: RefType.ORDER,
                 refId: input.clientOrderId,
             },
-        });
+        ]);
     });
 
     return shortfall ? { ok: false, reason: shortfall } : { ok: true };
@@ -94,21 +94,18 @@ export async function releaseReserve(userId: string, clientOrderId: string): Pro
 
     if (!reserve) return;
 
-    try {
-        await prisma.ledgerEntry.create({
-            data: {
+    await prisma.$transaction((tx) =>
+        writeLedger(tx, [
+            {
                 userId,
                 asset: reserve.asset,
                 amount: reserve.amount.neg(),
-                ledgerReason: 'RELEASE',
-                refType: 'ORDER',
+                ledgerReason: LedgerReason.RELEASE,
+                refType: RefType.ORDER,
                 refId: clientOrderId,
             },
-        });
-    } catch (error) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') return;
-        throw error;
-    }
+        ]),
+    );
 }
 
 export async function releaseRemaining(userId: string, clientOrderId: string): Promise<void> {
@@ -132,19 +129,16 @@ export async function releaseRemaining(userId: string, clientOrderId: string): P
     const amount =
         order.side === Side.ASK ? remaining : (order.price ?? new Prisma.Decimal(0)).mul(remaining);
 
-    try {
-        await prisma.ledgerEntry.create({
-            data: {
+    await prisma.$transaction((tx) =>
+        writeLedger(tx, [
+            {
                 userId,
                 asset,
                 amount,
-                ledgerReason: 'RELEASE',
-                refType: 'ORDER',
+                ledgerReason: LedgerReason.RELEASE,
+                refType: RefType.ORDER,
                 refId: clientOrderId,
             },
-        });
-    } catch (error) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') return;
-        throw error;
-    }
+        ]),
+    );
 }

@@ -1,4 +1,4 @@
-import { prisma, Prisma, RefType, LedgerReason } from '@repo/database';
+import { prisma, Prisma, RefType, LedgerReason, writeLedger } from '@repo/database';
 import { TradeOut } from './schema/trade.schema';
 
 type MarketAssets = { base: string; quote: string };
@@ -95,11 +95,8 @@ export async function settleTrade(trade: TradeOut): Promise<void> {
     }));
 
     await prisma.$transaction(async (tx) => {
-        const inserted = await tx.ledgerEntry.createMany({
-            data: rows,
-            skipDuplicates: true,
-        });
-        if (inserted.count === 0) return;
+        const inserted = await writeLedger(tx, rows);
+        if (inserted === 0) return;
 
         await tx.order.update({
             where: {

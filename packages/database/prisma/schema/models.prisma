@@ -12,6 +12,7 @@ model User {
   name          String
   email         String        @unique
   image         String?
+  isBot         Boolean       @default(false)
   ledgerEntries LedgerEntry[]
   orders        Order[]
   balances      Balance[]

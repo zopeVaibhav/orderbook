@@ -1,0 +1,30 @@
+{
+    "name": "marketmaker",
+    "module": "src/index.ts",
+    "type": "module",
+    "private": true,
+    "scripts": {
+        "dev": "bun --hot src/index.ts",
+        "start": "bun src/index.ts",
+        "seed-bots": "bun src/scripts/seed-bots.ts",
+        "check-types": "tsc --noEmit",
+        "lint": "eslint ."
+    },
+    "dependencies": {
+        "@repo/database": "workspace:*",
+        "@repo/money": "workspace:*",
+        "@repo/types": "workspace:*",
+        "chalk": "^6.0.0",
+        "dotenv": "^17.4.2",
+        "kafkajs": "^2.2.4",
+        "zod": "^4.4.3"
+    },
+    "devDependencies": {
+        "@repo/eslint-config": "workspace:*",
+        "@repo/typescript-config": "workspace:*",
+        "@types/bun": "latest"
+    },
+    "peerDependencies": {
+        "typescript": "^6.0.3"
+    }
+}

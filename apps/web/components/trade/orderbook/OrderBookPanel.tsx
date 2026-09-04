@@ -21,9 +21,14 @@ export default function OrderBookPanel() {
 
     const scrollRef = useRef<HTMLDivElement>(null);
     const spreadRef = useRef<HTMLDivElement>(null);
+    const contentRef = useRef<HTMLDivElement>(null);
     const takenOverRef = useRef(false);
     const [recenterShown, setRecenterShown] = useState(false);
     const scrollRafRef = useRef(0);
+
+    /** The content node only mounts once there are levels, so the observer
+     *  below has to be re-attached when the book stops being empty. */
+    const hasRows = asks.length > 0 || bids.length > 0;
 
     const centredScrollTop = useCallback((scroller: HTMLDivElement, spread: HTMLDivElement) => {
         const target = spread.offsetTop - (scroller.clientHeight - spread.offsetHeight) / 2;
@@ -77,13 +82,17 @@ export default function OrderBookPanel() {
         });
         ro.observe(scroller);
 
+        /** The scroller's own box never changes as levels arrive, only its
+         *  content's — so the rows are what has to be watched. */
+        if (contentRef.current) ro.observe(contentRef.current);
+
         return () => {
             cancelAnimationFrame(raf);
             cancelAnimationFrame(scrollRafRef.current);
             scrollRafRef.current = 0;
             ro.disconnect();
         };
-    }, [active, recenter]);
+    }, [active, hasRows, recenter]);
 
     const markPrice =
         lastTrade?.price ?? (bestAsk !== null && bestBid !== null ? (bestAsk + bestBid) / 2 : null);
@@ -117,7 +126,7 @@ export default function OrderBookPanel() {
                                 Waiting for orders
                             </div>
                         ) : (
-                            <div className="flex min-h-full flex-col">
+                            <div ref={contentRef} className="flex min-h-full flex-col">
                                 <div className="flex flex-1 basis-0 flex-col justify-end">
                                     {asks.map((l, i) => (
                                         <OrderBookRow

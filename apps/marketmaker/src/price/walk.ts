@@ -8,10 +8,6 @@ function gaussian(): number {
     return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random());
 }
 
-/**
- * Mean-reverting random walk around a fixed anchor. No oracle is involved:
- * the anchor is whatever bots.config.ts seeds the asset at.
- */
 export class PriceWalk {
     readonly #anchor: number;
     #price: number;

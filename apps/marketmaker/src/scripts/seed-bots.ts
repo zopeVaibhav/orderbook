@@ -39,8 +39,6 @@ async function main() {
             const amount = inventoryFor(asset);
             if (amount === null) continue;
 
-            /** refId is derived from bot and asset, so re-running tops nothing
-             *  up — the unique ledger key makes the whole script idempotent. */
             const written = await prisma.$transaction((tx) =>
                 writeLedger(tx, [
                     {

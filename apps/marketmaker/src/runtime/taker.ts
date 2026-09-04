@@ -7,8 +7,6 @@ import type { MarketMaker } from './maker';
 
 const RUN_ID = Date.now().toString(36);
 
-/** Exponential gaps give arrivals that cluster and gap the way real flow does,
- *  rather than the metronome a fixed interval would print. */
 function poissonDelay(meanMs: number): number {
     return Math.max(250, Math.round(-Math.log(1 - Math.random()) * meanMs));
 }
@@ -17,11 +15,6 @@ function pick<T>(items: T[]): T {
     return items[Math.floor(Math.random() * items.length)] as T;
 }
 
-/**
- * Crosses the maker's own book at random intervals so the market prints trades.
- * The taker is always a different bot from the makers it is about to lift, or
- * the engine's self-trade prevention would cancel the resting side instead.
- */
 export class Taker {
     readonly #market: MarketSpec;
     readonly #bots: string[];
@@ -81,8 +74,6 @@ export class Taker {
         const qtyLots = BigInt(Math.round(Number(touch.qtyLots) * fraction));
         if (qtyLots < this.#market.minQuantity) return;
 
-        /** Priced past the touch so a larger order sweeps rather than resting
-         *  what it cannot fill; IOC throws the remainder away either way. */
         const reach = levelStep(this.#maker.mid, this.#market.tickExp) * BigInt(TAKE.SWEEP_DEPTH);
         const priceTicks =
             takerSide === Side.BID ? touch.priceTicks + reach : touch.priceTicks - reach;

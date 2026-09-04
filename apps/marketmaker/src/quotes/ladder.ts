@@ -27,8 +27,6 @@ export function priceOf(priceTicks: bigint, tickExp: number): number {
     return Number(priceTicks) / 10 ** tickExp;
 }
 
-/** A step measured in basis points rounds to zero on assets whose tick is
- *  coarse relative to their price, so every gap is at least one tick. */
 function stepTicks(midTicks: bigint, bps: number): bigint {
     const raw = Math.round((Number(midTicks) * bps) / BPS);
     return BigInt(Math.max(1, raw));
@@ -45,11 +43,6 @@ export function levelStep(mid: number, tickExp: number): bigint {
     return stepTicks(ticksFor(mid, tickExp), QUOTE.LEVEL_STEP_BPS);
 }
 
-/**
- * Both sides of a full ladder: geometric size growth outward from a spread
- * centred on mid. Prices are in ticks and quantities in lots throughout, so
- * nothing here can produce a value the engine would reject as off-tick.
- */
 export function buildLadder(market: MarketSpec, mid: number): Quote[] {
     const midTicks = ticksFor(mid, market.tickExp);
     const half = stepTicks(midTicks, QUOTE.SPREAD_BPS);

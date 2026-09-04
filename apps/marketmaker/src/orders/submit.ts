@@ -29,11 +29,6 @@ export type PlaceInput = {
 
 export type PlaceResult = { ok: true } | { ok: false; reason: string };
 
-/**
- * Same path a human order takes, minus the HTTP hop: reserve and Order row
- * first, then the engine. Settlement needs that row to exist or the trade it
- * produces can never be settled.
- */
 export async function placeOrder(input: PlaceInput): Promise<PlaceResult> {
     const { market, userId, clientOrderId } = input;
 

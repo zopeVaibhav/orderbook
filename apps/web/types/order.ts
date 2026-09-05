@@ -1,6 +1,6 @@
 export type Side = 'bid' | 'ask';
 
-export type OrderKind = 'LimitGtc' | 'Market' | 'Ioc' | 'Fok' | 'PostOnly';
+export type { EngineOrderKind as OrderKind } from '@repo/types/kafka';
 
 export type OrderTypeTab = 'limit' | 'market';
 

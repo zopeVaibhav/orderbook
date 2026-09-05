@@ -1,15 +1,19 @@
 import { useCandlesStore } from '@/store/market/useCandlesStore';
 import { queueBookDelta, useOrderBookStore } from '@/store/market/useOrderBookStore';
 import { useTradesStore } from '@/store/market/useTradesStore';
-import type { BookSnapshotPayload, ServerSocketMessage } from '@repo/types/socket';
+import {
+    ServerMessageType,
+    type BookSnapshotPayload,
+    type ServerSocketMessage,
+} from '@repo/types/socket';
 
 export function handleEngineEvent(event: ServerSocketMessage): void {
     switch (event.type) {
-        case 'book_delta':
+        case ServerMessageType.BOOK_DELTA:
             queueBookDelta(event);
             break;
 
-        case 'trade': {
+        case ServerMessageType.TRADE: {
             useTradesStore.getState().addTrade(event);
             useCandlesStore
                 .getState()
@@ -17,7 +21,7 @@ export function handleEngineEvent(event: ServerSocketMessage): void {
             break;
         }
 
-        case 'ack':
+        case ServerMessageType.ACK:
             break;
     }
 }

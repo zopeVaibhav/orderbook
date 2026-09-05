@@ -1,6 +1,12 @@
 import { Producer } from 'kafkajs';
 import { KafkaClient } from '../kafka.client';
-import { CancelOrderPayload, IncomingOrder, KafkaTopics, NewOrderPayload } from '@repo/types/kafka';
+import {
+    CancelOrderPayload,
+    IncomingOrder,
+    IncomingOrderType,
+    KafkaTopics,
+    NewOrderPayload,
+} from '@repo/types/kafka';
 
 export default class OrderProducer {
     static #producer: Producer | null = null;
@@ -26,10 +32,10 @@ export default class OrderProducer {
     }
 
     static async publishNewOrder(order: NewOrderPayload) {
-        await this.#send({ type: 'new_order', ...order });
+        await this.#send({ type: IncomingOrderType.NEW_ORDER, ...order });
     }
 
     static async publishCancelOrder(order: CancelOrderPayload) {
-        await this.#send({ type: 'cancel_order', ...order });
+        await this.#send({ type: IncomingOrderType.CANCEL_ORDER, ...order });
     }
 }

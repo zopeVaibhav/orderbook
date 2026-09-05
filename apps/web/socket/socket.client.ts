@@ -1,4 +1,8 @@
-import type { ClientSocketMessage, ServerSocketMessage } from '@repo/types/socket';
+import {
+    ClientMessageType,
+    type ClientSocketMessage,
+    type ServerSocketMessage,
+} from '@repo/types/socket';
 import { WS_URL } from '@/lib/api-routes';
 
 type Listener = (event: ServerSocketMessage) => void;
@@ -41,8 +45,9 @@ export class SocketClient {
         this.#ws = ws;
 
         ws.onopen = () => {
-            if (this.#token) this.#send({ type: 'auth', token: this.#token });
-            if (this.#marketId) this.#send({ type: 'subscribe', market_id: this.#marketId });
+            if (this.#token) this.#send({ type: ClientMessageType.AUTH, token: this.#token });
+            if (this.#marketId)
+                this.#send({ type: ClientMessageType.SUBSCRIBE, market_id: this.#marketId });
         };
 
         ws.onmessage = (raw) => {

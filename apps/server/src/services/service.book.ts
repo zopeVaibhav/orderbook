@@ -1,4 +1,4 @@
-import type { BookDelta } from '@repo/types/kafka';
+import { Side, type BookDelta } from '@repo/types/kafka';
 import type { BookSnapshotPayload } from '@repo/types/socket';
 
 type Book = {
@@ -25,7 +25,7 @@ export function applyDelta(delta: BookDelta): void {
     if (delta.seq <= book.lastSeq) return;
 
     for (const change of delta.changes) {
-        const side = change.side === 'ASK' ? book.asks : book.bids;
+        const side = change.side === Side.ASK ? book.asks : book.bids;
 
         if (parseFloat(change.new_quantity) === 0) side.delete(change.price);
         else side.set(change.price, change.new_quantity);

@@ -1,8 +1,10 @@
 'use client';
 
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCumulativeBook } from '@/hooks/orderbook/useCumulativeBook';
+import { useMarket } from '@/hooks/market/useMarkets';
 import { formatTime } from '@/lib/format';
 import { useTradesStore } from '@/store/market/useTradesStore';
 import DepthFooter from './DepthFooter';
@@ -12,10 +14,16 @@ type Tab = 'book' | 'trades';
 
 const DEPTH = 30;
 const RECENTER_THRESHOLD_PX = 12;
+const MAX_SIZE_DP = 5;
 
 export default function OrderBookPanel() {
     const [active, setActive] = useState<Tab>('book');
+    const params = useParams<{ market?: string }>();
+    const { data: market } = useMarket(params?.market);
     const { asks, bids, maxTotal, bestAsk, bestBid, buyPct, sellPct } = useCumulativeBook(DEPTH);
+
+    const priceDp = market?.tickExp ?? 2;
+    const sizeDp = Math.min(market?.lotExp ?? 4, MAX_SIZE_DP);
     const lastTrade = useTradesStore((s) => s.trades[0]);
     const trades = useTradesStore((s) => s.trades);
 
@@ -26,8 +34,6 @@ export default function OrderBookPanel() {
     const [recenterShown, setRecenterShown] = useState(false);
     const scrollRafRef = useRef(0);
 
-    /** The content node only mounts once there are levels, so the observer
-     *  below has to be re-attached when the book stops being empty. */
     const hasRows = asks.length > 0 || bids.length > 0;
 
     const centredScrollTop = useCallback((scroller: HTMLDivElement, spread: HTMLDivElement) => {
@@ -110,9 +116,9 @@ export default function OrderBookPanel() {
             {active === 'book' ? (
                 <div className="flex min-h-0 flex-1 flex-col">
                     <div className="grid shrink-0 grid-cols-3 border-b border-border px-2 py-1.5 text-[11px] tracking-wide text-muted-foreground">
-                        <div>Price (USD)</div>
-                        <div className="text-right">Size (BTC)</div>
-                        <div className="text-right">Total (BTC)</div>
+                        <div>Price ({market?.quote ?? '—'})</div>
+                        <div className="text-right">Size ({market?.symbol ?? '—'})</div>
+                        <div className="text-right">Total ({market?.symbol ?? '—'})</div>
                     </div>
                     <div
                         ref={scrollRef}
@@ -136,6 +142,8 @@ export default function OrderBookPanel() {
                                             total={l.total}
                                             depthPct={(l.total / maxTotal) * 100}
                                             side="ask"
+                                            priceDp={priceDp}
+                                            sizeDp={sizeDp}
                                         />
                                     ))}
                                 </div>
@@ -150,8 +158,8 @@ export default function OrderBookPanel() {
                                         {markPrice === null
                                             ? '—'
                                             : markPrice.toLocaleString('en-US', {
-                                                  minimumFractionDigits: 1,
-                                                  maximumFractionDigits: 1,
+                                                  minimumFractionDigits: priceDp,
+                                                  maximumFractionDigits: priceDp,
                                               })}
                                     </div>
                                     {}
@@ -182,6 +190,8 @@ export default function OrderBookPanel() {
                                             total={l.total}
                                             depthPct={(l.total / maxTotal) * 100}
                                             side="bid"
+                                            priceDp={priceDp}
+                                            sizeDp={sizeDp}
                                         />
                                     ))}
                                 </div>
@@ -194,8 +204,8 @@ export default function OrderBookPanel() {
             ) : (
                 <div className="flex min-h-0 flex-1 flex-col">
                     <div className="grid shrink-0 grid-cols-3 border-b border-border px-2 py-1.5 text-[11px] tracking-wide text-muted-foreground">
-                        <div>Price (USD)</div>
-                        <div className="text-right">Qty (BTC)</div>
+                        <div>Price ({market?.quote ?? '—'})</div>
+                        <div className="text-right">Qty ({market?.symbol ?? '—'})</div>
                         <div className="text-right">Time</div>
                     </div>
                     <div className="scrollbar-none min-h-0 flex-1 overflow-y-auto [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
@@ -212,10 +222,10 @@ export default function OrderBookPanel() {
                                     <span
                                         className={t.side === 'ASK' ? 'text-loss' : 'text-profit'}
                                     >
-                                        {t.price.toFixed(1)}
+                                        {t.price.toFixed(priceDp)}
                                     </span>
                                     <span className="text-right text-foreground">
-                                        {t.quantity.toFixed(5)}
+                                        {t.quantity.toFixed(sizeDp)}
                                     </span>
                                     <span className="text-right text-muted-foreground">
                                         {formatTime(t.ts)}

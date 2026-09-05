@@ -298,7 +298,7 @@ export default function TradePanel() {
                     )}
                 </div>
             </div>
-            <BalanceCard />
+            <BalanceCard side={side} />
         </form>
     );
 }

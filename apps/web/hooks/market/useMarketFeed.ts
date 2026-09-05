@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import type { ServerSocketMessage } from '@repo/types/socket';
+import { ServerMessageType, type ServerSocketMessage } from '@repo/types/socket';
 import { handleBookSnapshot, handleEngineEvent } from '@/lib/market/engineEventHandlers';
 import { useCandlesStore } from '@/store/market/useCandlesStore';
 import { clearBookDeltaQueue, useOrderBookStore } from '@/store/market/useOrderBookStore';
@@ -49,7 +49,7 @@ export function useMarketFeed(): void {
         let refresh: ReturnType<typeof setTimeout> | null = null;
 
         const listener = (event: ServerSocketMessage) => {
-            if (event.type !== 'balance_stale') {
+            if (event.type !== ServerMessageType.BALANCE_STALE) {
                 handleEngineEvent(event);
                 return;
             }

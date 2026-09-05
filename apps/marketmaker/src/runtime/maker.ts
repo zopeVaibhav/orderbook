@@ -1,11 +1,16 @@
 import chalk from 'chalk';
-import { prisma, Side } from '@repo/database';
+import { OrderStatus, prisma, Side } from '@repo/database';
+import { TimeInForce } from '@repo/types';
 import { QUOTE } from '../config/bots.config';
 import { buildLadder, levelStep, type MarketSpec, type Quote } from '../quotes/ladder';
 import { PriceWalk } from '../price/walk';
 import { cancelOrder, placeOrder } from '../orders/submit';
 
-const TERMINAL = new Set(['FILLED', 'CANCELLED', 'REJECTED']);
+const TERMINAL: ReadonlySet<OrderStatus> = new Set([
+    OrderStatus.FILLED,
+    OrderStatus.CANCELLED,
+    OrderStatus.REJECTED,
+]);
 
 const RUN_ID = Date.now().toString(36);
 
@@ -122,7 +127,7 @@ export class MarketMaker {
                 side: quote.side,
                 priceTicks: quote.priceTicks,
                 qtyLots: quote.qtyLots,
-                timeInForce: 'POST_ONLY',
+                timeInForce: TimeInForce.POST_ONLY,
             });
 
             if (!result.ok) continue;

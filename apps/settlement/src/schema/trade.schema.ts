@@ -1,3 +1,4 @@
+import { Side } from '@repo/database';
 import z from 'zod';
 
 const positiveDecimalString = z.string().refine(
@@ -18,7 +19,7 @@ export const tradeOutSchema = z.object({
     maker_client_order_id: z.string().min(1),
     taker_user_id: z.string().min(1),
     taker_client_order_id: z.string().min(1),
-    taker_side: z.enum(['ASK', 'BID']),
+    taker_side: z.enum(Side),
     ts: z.number(),
     seq: z.number().int(),
 });

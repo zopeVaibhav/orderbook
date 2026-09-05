@@ -1,6 +1,7 @@
 import {
     acceptOrder,
     OrderKind,
+    OrderStatus,
     prisma,
     releaseReserve,
     Side,
@@ -8,13 +9,13 @@ import {
     reserveFor,
 } from '@repo/database';
 import { isJsonSafe, unscale } from '@repo/money';
-import type { OrderKind as EngineOrderKind } from '@repo/types/kafka';
+import { EngineOrderKind } from '@repo/types/kafka';
 import OrderProducer from './producer';
 import type { MarketSpec } from '../quotes/ladder';
 
 const ENGINE_KIND: Record<'POST_ONLY' | 'IOC', EngineOrderKind> = {
-    POST_ONLY: 'PostOnly',
-    IOC: 'Ioc',
+    POST_ONLY: EngineOrderKind.POST_ONLY,
+    IOC: EngineOrderKind.IOC,
 };
 
 export type PlaceInput = {
@@ -79,7 +80,7 @@ export async function placeOrder(input: PlaceInput): Promise<PlaceResult> {
         await releaseReserve(userId, clientOrderId);
         await prisma.order.update({
             where: { userId_clientOrderId: { userId, clientOrderId } },
-            data: { status: 'REJECTED', rejectReason: 'publish failed' },
+            data: { status: OrderStatus.REJECTED, rejectReason: 'publish failed' },
         });
         return { ok: false, reason: `publish failed: ${error}` };
     }

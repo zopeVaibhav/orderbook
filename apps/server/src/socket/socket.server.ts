@@ -1,7 +1,12 @@
 import type { Server } from 'node:http';
 import { WebSocket, WebSocketServer } from 'ws';
 import chalk from 'chalk';
-import type { ClientSocketMessage, ServerSocketMessage } from '@repo/types/socket';
+import {
+    ClientMessageType,
+    ServerMessageType,
+    type ClientSocketMessage,
+    type ServerSocketMessage,
+} from '@repo/types/socket';
 import JWT from '../services/service.jwt';
 
 const MARKET = 'market:';
@@ -25,12 +30,12 @@ export default class SocketServer {
                     return;
                 }
 
-                if (msg.type === 'subscribe') {
+                if (msg.type === ClientMessageType.SUBSCRIBE) {
                     this.#joinOnly(ws, MARKET, MARKET + msg.market_id);
                     return;
                 }
 
-                if (msg.type === 'auth') {
+                if (msg.type === ClientMessageType.AUTH) {
                     this.#authenticate(ws, msg.token);
                 }
             });
@@ -109,7 +114,7 @@ export default class SocketServer {
 
     static balanceStale(...userIds: string[]) {
         for (const userId of new Set(userIds)) {
-            this.sendToUser(userId, { type: 'balance_stale' });
+            this.sendToUser(userId, { type: ServerMessageType.BALANCE_STALE });
         }
     }
 

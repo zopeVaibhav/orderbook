@@ -1,18 +1,18 @@
 import { Request, Response } from 'express';
 import { ResponseWriter } from '../../services/service.response';
 import { z } from 'zod';
-import { OrderKind, Side, TimeInForce } from '@repo/types';
-import type { OrderKind as EngineOrderKind } from '@repo/types/kafka';
+import { OrderKind, OrderStatus, Side, TimeInForce } from '@repo/types';
+import { EngineOrderKind } from '@repo/types/kafka';
 import { acceptOrder, prisma, releaseReserve, reserveFor } from '@repo/database';
 import { isJsonSafe, scale } from '@repo/money';
 import OrderProducer from '../../kafka/producers/kafka.order-producer';
 import SocketServer from '../../socket/socket.server';
 
 const ENGINE_LIMIT_KIND: Record<TimeInForce, EngineOrderKind> = {
-    [TimeInForce.GTC]: 'LimitGtc',
-    [TimeInForce.IOC]: 'Ioc',
-    [TimeInForce.FOK]: 'Fok',
-    [TimeInForce.POST_ONLY]: 'PostOnly',
+    [TimeInForce.GTC]: EngineOrderKind.LIMIT_GTC,
+    [TimeInForce.IOC]: EngineOrderKind.IOC,
+    [TimeInForce.FOK]: EngineOrderKind.FOK,
+    [TimeInForce.POST_ONLY]: EngineOrderKind.POST_ONLY,
 };
 
 const positiveDecimal = z
@@ -111,7 +111,7 @@ export default class PlaceOrderController {
 
             const orderKind: EngineOrderKind =
                 data.kind === OrderKind.MARKET
-                    ? 'Market'
+                    ? EngineOrderKind.MARKET
                     : ENGINE_LIMIT_KIND[data.timeInForce as TimeInForce];
             const reserve = reserveFor(market, data.side, data.kind, data.price, data.quantity);
             if (!reserve) {
@@ -148,7 +148,7 @@ export default class PlaceOrderController {
                 await releaseReserve(userId, data.clientOrderId);
                 await prisma.order.update({
                     where: { userId_clientOrderId: { userId, clientOrderId: data.clientOrderId } },
-                    data: { status: 'REJECTED', rejectReason: 'publish failed' },
+                    data: { status: OrderStatus.REJECTED, rejectReason: 'publish failed' },
                 });
                 throw error;
             }

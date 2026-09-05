@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { prisma } from '@repo/database';
+import { OrderStatus, prisma } from '@repo/database';
 import { parseEnv } from './config/env.config';
 import { REGISTRY_POLL_MS, SEED_PRICES } from './config/bots.config';
 import OrderProducer from './orders/producer';
@@ -21,7 +21,10 @@ async function loadBots(): Promise<string[]> {
 
 async function cancelStaleOrders(): Promise<void> {
     const stale = await prisma.order.findMany({
-        where: { userId: { in: bots }, status: { in: ['PENDING', 'RESTED', 'PARTIAL'] } },
+        where: {
+            userId: { in: bots },
+            status: { in: [OrderStatus.PENDING, OrderStatus.RESTED, OrderStatus.PARTIAL] },
+        },
         select: { userId: true, marketId: true, clientOrderId: true },
     });
 

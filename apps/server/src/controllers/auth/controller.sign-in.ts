@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import { ResponseWriter } from '../../services/service.response';
-import { prisma, LedgerReason, RefType } from '@repo/database';
+import { prisma, LedgerReason, Prisma, RefType, writeLedger } from '@repo/database';
 import z from 'zod';
-import { randomUUID } from 'node:crypto';
 import JWT from '../../services/service.jwt';
 import GoogleAuthService, { GoogleIdentity } from '../../services/service.google';
 import { ENV } from '../../configs/env.config';
@@ -28,38 +27,44 @@ export default class SignInController {
                 return ResponseWriter.unauthorized(res, 'invalid google token');
             }
 
-            const user = await prisma.user.upsert({
-                where: { email: identity.email },
-                create: {
-                    email: identity.email,
-                    name: identity.name,
-                    image: identity.image,
-                    ledgerEntries: {
-                        create: {
-                            refId: randomUUID(),
-                            refType: RefType.DEPOSIT,
-                            ledgerReason: LedgerReason.DEPOSIT,
-                            amount: SIGNUP_BONUS_AMOUNT,
-                            assetRef: { connect: { symbol: SIGNUP_BONUS_ASSET } },
-                        },
+            const user = await prisma.$transaction(async (tx) => {
+                const record = await tx.user.upsert({
+                    where: { email: identity.email },
+                    create: {
+                        email: identity.email,
+                        name: identity.name,
+                        image: identity.image,
                     },
-                },
-                update: {
-                    name: identity.name,
-                    image: identity.image,
-                },
-                select: {
-                    id: true,
-                    email: true,
-                    name: true,
-                    image: true,
-                },
+                    update: {
+                        name: identity.name,
+                        image: identity.image,
+                    },
+                    select: {
+                        id: true,
+                        email: true,
+                        name: true,
+                        image: true,
+                    },
+                });
+                await writeLedger(tx, [
+                    {
+                        userId: record.id,
+                        asset: SIGNUP_BONUS_ASSET,
+                        amount: new Prisma.Decimal(SIGNUP_BONUS_AMOUNT),
+                        ledgerReason: LedgerReason.DEPOSIT,
+                        refType: RefType.DEPOSIT,
+                        refId: `signup-bonus:${record.id}`,
+                    },
+                ]);
+
+                return record;
             });
 
             return ResponseWriter.success(
                 res,
                 {
                     ...user,
+                    isAdmin: ENV.ADMIN_EMAIL !== '' && user.email === ENV.ADMIN_EMAIL,
                     accessToken: JWT.signSessionJwt({ id: user.id }),
                     expiresIn: ENV.ACCESS_TOKEN_TTL_SEC,
                 },

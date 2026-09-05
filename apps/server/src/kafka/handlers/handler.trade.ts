@@ -2,5 +2,14 @@ import type { TradeOut } from '@repo/types/kafka';
 import SocketServer from '../../socket/socket.server';
 
 export async function handleTrade(trade: TradeOut): Promise<void> {
-    SocketServer.broadcast(trade.market_id, { type: 'trade', ...trade });
+    SocketServer.broadcast(trade.market_id, {
+        type: 'trade',
+        market_id: trade.market_id,
+        trade_id: trade.trade_id,
+        price: trade.price,
+        quantity: trade.quantity,
+        taker_side: trade.taker_side,
+        ts: trade.ts,
+        seq: trade.seq,
+    });
 }

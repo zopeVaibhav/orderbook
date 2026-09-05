@@ -11,6 +11,7 @@ export interface SignInData {
     name: string;
     email: string;
     image: string | null;
+    isAdmin: boolean;
     accessToken: string;
     expiresIn: number;
 }
@@ -70,6 +71,7 @@ export const authOptions: AuthOptions = {
                         name: signedIn.name,
                         email: signedIn.email,
                         image: signedIn.image,
+                        isAdmin: signedIn.isAdmin ?? false,
                     },
                     accessToken: signedIn.accessToken,
                     expiresAt,

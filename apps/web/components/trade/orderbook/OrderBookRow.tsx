@@ -4,17 +4,23 @@ type Props = {
     total: number;
     depthPct: number;
     side: 'bid' | 'ask';
+    priceDp: number;
+    sizeDp: number;
 };
 
-function fmtPrice(n: number): string {
-    return n.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+function fixed(n: number, dp: number): string {
+    return n.toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp });
 }
 
-function fmtQty(n: number): string {
-    return n.toFixed(5);
-}
-
-export default function OrderBookRow({ price, size, total, depthPct, side }: Props) {
+export default function OrderBookRow({
+    price,
+    size,
+    total,
+    depthPct,
+    side,
+    priceDp,
+    sizeDp,
+}: Props) {
     const priceColor = side === 'bid' ? 'text-profit' : 'text-loss';
     const barColor = side === 'bid' ? 'bg-profit/20' : 'bg-loss/20';
     return (
@@ -23,9 +29,9 @@ export default function OrderBookRow({ price, size, total, depthPct, side }: Pro
                 className={`absolute inset-y-0 right-0 transition-[width] duration-500 ease-out ${barColor}`}
                 style={{ width: `${depthPct}%` }}
             />
-            <div className={`relative ${priceColor}`}>{fmtPrice(price)}</div>
-            <div className="relative text-right text-foreground">{fmtQty(size)}</div>
-            <div className="relative text-right text-foreground">{fmtQty(total)}</div>
+            <div className={`relative ${priceColor}`}>{fixed(price, priceDp)}</div>
+            <div className="relative text-right text-foreground">{fixed(size, sizeDp)}</div>
+            <div className="relative text-right text-foreground">{fixed(total, sizeDp)}</div>
         </div>
     );
 }

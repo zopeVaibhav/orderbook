@@ -1,24 +1,43 @@
-import { availableOf, totalOf, useBalance } from '@/hooks/balance/useGetBalances';
+'use client';
+
+import { AnimatePresence, motion } from 'motion/react';
+import { availableOf, useBalance } from '@/hooks/balance/useGetBalances';
 import { useMarket } from '@/hooks/market/useMarkets';
 import { formatUsd } from '@/lib/format';
+import type { Side } from '@/types/order';
 import { useParams } from 'next/navigation';
 
-export default function BalanceAccount() {
+export default function BalanceAccount({ side }: { side: Side }) {
     const param = useParams<{ market?: string }>();
     const { data: market } = useMarket(param.market);
-    const { data: balance } = useBalance(market?.quote);
+    const buying = side === 'bid';
+    const asset = buying ? market?.quote : market?.symbol;
+    const { data: balance } = useBalance(asset);
+
+    const amount = availableOf(balance);
+    const shown = buying
+        ? `$${formatUsd(amount)}`
+        : `${amount.toLocaleString('en-US', {
+              minimumFractionDigits: market?.lotExp ?? 2,
+              maximumFractionDigits: market?.lotExp ?? 2,
+          })} ${asset ?? ''}`;
 
     return (
-        <div className="flex flex-col gap-2.5 p-3">
-            <div className="flex items-baseline justify-between">
-                <span className="text-xs text-muted-foreground">Total Balance</span>
-                <span className="text-base font-semibold text-foreground">
-                    ${formatUsd(totalOf(balance))}
-                </span>
-            </div>
-            <div className="flex items-baseline justify-between">
-                <span className="text-xs text-muted-foreground">Available Balance</span>
-                <span className="text-sm text-foreground">${formatUsd(availableOf(balance))}</span>
+        <div className="flex items-center justify-between p-3">
+            <span className="text-xs text-muted-foreground">Available</span>
+            <div className="relative h-6 flex-1">
+                <AnimatePresence initial={false}>
+                    <motion.span
+                        key={side}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.16, ease: 'easeOut' }}
+                        className="absolute inset-0 flex items-center justify-end text-base font-semibold text-foreground tabular-nums"
+                    >
+                        {shown}
+                    </motion.span>
+                </AnimatePresence>
             </div>
         </div>
     );

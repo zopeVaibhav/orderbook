@@ -16,6 +16,7 @@ const envSchema = z.object({
     GOOGLE_CLIENT_ID: z.string(),
     KAFKA_BROKER: z.string(),
     KAFKA_GROUP_ID: z.string(),
+    ADMIN_EMAIL: z.string().default(''),
 });
 
 export let ENV: z.infer<typeof envSchema>;

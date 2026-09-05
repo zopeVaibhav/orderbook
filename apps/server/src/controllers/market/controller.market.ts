@@ -14,6 +14,7 @@ export default class MarketController {
                     tickExp: true,
                     lotExp: true,
                     minQuantity: true,
+                    makerEnabled: true,
                     baseRef: { select: { name: true, decimals: true } },
                     quoteRef: { select: { name: true, decimals: true } },
                 },

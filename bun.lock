@@ -14,6 +14,26 @@
         "typescript": "6.0.3",
       },
     },
+    "apps/marketmaker": {
+      "name": "marketmaker",
+      "dependencies": {
+        "@repo/database": "workspace:*",
+        "@repo/money": "workspace:*",
+        "@repo/types": "workspace:*",
+        "chalk": "^6.0.0",
+        "dotenv": "^17.4.2",
+        "kafkajs": "^2.2.4",
+        "zod": "^4.4.3",
+      },
+      "devDependencies": {
+        "@repo/eslint-config": "workspace:*",
+        "@repo/typescript-config": "workspace:*",
+        "@types/bun": "latest",
+      },
+      "peerDependencies": {
+        "typescript": "^6.0.3",
+      },
+    },
     "apps/server": {
       "name": "server",
       "dependencies": {
@@ -1388,6 +1408,8 @@
     "lucide-react": ["lucide-react@1.31.0", "", { "peerDependencies": { "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-G8u2eEtoHUnUa9f8lbvqDhCiORMnYLdUEo06EEG9MQvHQrInKcX3Pa2TH39MM5qyzRcWETxB0+aOwAPI1g1kEg=="],
 
     "magic-string": ["magic-string@0.30.21", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.5" } }, "sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ=="],
+
+    "marketmaker": ["marketmaker@workspace:apps/marketmaker"],
 
     "math-intrinsics": ["math-intrinsics@1.1.0", "", {}, "sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g=="],
 

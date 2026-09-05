@@ -243,18 +243,17 @@ Add `-v` to that to also drop the Postgres volume, which throws away every row a
 
 ## Everyday commands
 
-| Command                                            | What it does                          |
-| -------------------------------------------------- | ------------------------------------- |
-| `bun run dev`                                      | web + server + settlement             |
-| `bun run check-types`                              | `tsc --noEmit` across every workspace |
-| `bun run lint`                                     | eslint across every workspace         |
-| `bun run format`                                   | prettier over the repo                |
-| `cd apps/engine && cargo run`                      | the matching engine                   |
-| `cd apps/engine && cargo clippy -- -D warnings`    | what the pre-push hook enforces       |
-| `bun run --filter marketmaker seed-bots`           | create and fund the bot accounts      |
-| `bun run --filter @repo/database rebuild-balances` | recompute Balance from the ledger     |
-| `bun run --filter @repo/database studio`           | Prisma Studio                         |
-| `bun run --filter @repo/database migrate:reset`    | drop and rebuild the database         |
+| Command                                         | What it does                          |
+| ----------------------------------------------- | ------------------------------------- |
+| `bun run dev`                                   | web + server + settlement             |
+| `bun run check-types`                           | `tsc --noEmit` across every workspace |
+| `bun run lint`                                  | eslint across every workspace         |
+| `bun run format`                                | prettier over the repo                |
+| `cd apps/engine && cargo run`                   | the matching engine                   |
+| `cd apps/engine && cargo clippy -- -D warnings` | what the pre-push hook enforces       |
+| `bun run --filter marketmaker seed-bots`        | create and fund the bot accounts      |
+| `bun run --filter @repo/database studio`        | Prisma Studio                         |
+| `bun run --filter @repo/database migrate:reset` | drop and rebuild the database         |
 
 Husky runs `prettier --write` on staged files at commit time. Pre-push is heavier: lint, type check, full build, `cargo fmt --check`, and `cargo clippy -- -D warnings`. Clippy runs with warnings denied, so something as small as a `collapsible_if` fails the push rather than warning.
 

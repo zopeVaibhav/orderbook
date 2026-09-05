@@ -15,8 +15,7 @@
         "format": "prisma format",
         "validate": "prisma validate",
         "lint": "eslint .",
-        "check-types": "tsc --noEmit",
-        "rebuild-balances": "tsx src/scripts/rebuild-balances.ts"
+        "check-types": "tsc --noEmit"
     },
     "devDependencies": {
         "@repo/eslint-config": "workspace:*",

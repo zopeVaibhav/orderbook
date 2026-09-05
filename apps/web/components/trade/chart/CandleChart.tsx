@@ -53,8 +53,6 @@ function formatLocalTime(seconds: number, withSeconds: boolean): string {
     return `${hh}:${mm}:${String(d.getSeconds()).padStart(2, '0')}`;
 }
 
-/** Fixed pixel width per candle. Fitting the data to the pane instead would
- *  make four candles fill the screen and two hundred hairline thin. */
 const BAR_SPACING = 8;
 const RIGHT_OFFSET = 6;
 

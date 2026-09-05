@@ -24,8 +24,6 @@ export default class MakerToggleController {
             const body = body_schema.safeParse(req.body);
             if (!body.success) return ResponseWriter.invalidData(res, 'enabled must be a boolean');
 
-            /** Checked against the caller's own row rather than the token, so
-             *  revoking admin is a database edit and not a re-issued JWT. */
             const caller = await prisma.user.findUnique({
                 where: { id: userId },
                 select: { email: true },

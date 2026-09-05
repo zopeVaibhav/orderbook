@@ -46,9 +46,6 @@ export default class SignInController {
                         image: true,
                     },
                 });
-
-                /** refId is derived from the user, so the unique ledger key makes
-                 *  a repeat sign-in a no-op rather than a second bonus. */
                 await writeLedger(tx, [
                     {
                         userId: record.id,

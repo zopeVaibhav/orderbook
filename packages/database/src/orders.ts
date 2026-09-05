@@ -48,10 +48,6 @@ export type AcceptOrderInput = {
 
 export type AcceptResult = { ok: true } | { ok: false; reason: string };
 
-/**
- * Takes the reserve and writes the Order row in one transaction, so an order
- * never reaches the engine without funds already locked behind it.
- */
 export async function acceptOrder(input: AcceptOrderInput): Promise<AcceptResult> {
     const { userId, reserve } = input;
 
@@ -120,11 +116,6 @@ export async function releaseReserve(userId: string, clientOrderId: string): Pro
     );
 }
 
-/**
- * Releases whatever of the reserve the order never used. Pass filledQuantity
- * when the engine's own count is ahead of the row's, which it is for an order
- * whose remainder was cancelled before settlement caught up.
- */
 export async function releaseRemaining(
     userId: string,
     clientOrderId: string,

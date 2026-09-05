@@ -88,8 +88,6 @@ export default function OrderBookPanel() {
         });
         ro.observe(scroller);
 
-        /** The scroller's own box never changes as levels arrive, only its
-         *  content's — so the rows are what has to be watched. */
         if (contentRef.current) ro.observe(contentRef.current);
 
         return () => {

@@ -62,9 +62,6 @@ model Asset {
   marketAsQuote Markets[]     @relation("MarketQuote")
 }
 
-/// Projection over ledgerEntries, rebuildable from them at any time.
-/// available is the sum of every entry; locked is the negated sum of the
-/// RESERVE and RELEASE entries.
 model Balance {
   userId    String
   userRef   User     @relation(fields: [userId], references: [id])

@@ -9,8 +9,6 @@ export type LedgerRow = {
     refId: string;
 };
 
-/** RESERVE and RELEASE shift money between available and locked; every other
- *  reason only moves available. */
 const MOVES_LOCKED: ReadonlySet<LedgerReason> = new Set([
     LedgerReason.RESERVE,
     LedgerReason.RELEASE,
@@ -41,17 +39,11 @@ function deltasFor(rows: LedgerRow[]): BalanceDelta[] {
         byPair.set(key, delta);
     }
 
-    /** Sorted so two transactions touching the same pairs take the row locks in
-     *  the same order and cannot deadlock each other. */
     return [...byPair.values()].sort((a, b) =>
         a.userId === b.userId ? a.asset.localeCompare(b.asset) : a.userId.localeCompare(b.userId),
     );
 }
 
-/**
- * Writes ledger entries and moves the Balance projection by the same amounts.
- * Duplicates are skipped, so a replayed event is a no-op on both.
- */
 export async function writeLedger(
     tx: Prisma.TransactionClient,
     rows: LedgerRow[],

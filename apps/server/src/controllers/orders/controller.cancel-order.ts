@@ -32,8 +32,6 @@ export default class CancelOrderController {
                 return ResponseWriter.invalidData(res, `order is already ${order.status}`);
             }
 
-            /** Accepted, not applied. orders.in is keyed by market, so a PENDING
-             *  order is placed before this lands; the ack does the release. */
             await OrderProducer.publishCancelOrder({
                 client_order_id: clientOrderId,
                 user_id: userId,

@@ -6,6 +6,7 @@ import type { OrderKind as EngineOrderKind } from '@repo/types/kafka';
 import { acceptOrder, prisma, releaseReserve, reserveFor } from '@repo/database';
 import { isJsonSafe, scale } from '@repo/money';
 import OrderProducer from '../../kafka/producers/kafka.order-producer';
+import SocketServer from '../../socket/socket.server';
 
 const ENGINE_LIMIT_KIND: Record<TimeInForce, EngineOrderKind> = {
     [TimeInForce.GTC]: 'LimitGtc',
@@ -151,6 +152,8 @@ export default class PlaceOrderController {
                 });
                 throw error;
             }
+
+            SocketServer.balanceStale(userId);
 
             return ResponseWriter.success(res, data);
         } catch (error) {

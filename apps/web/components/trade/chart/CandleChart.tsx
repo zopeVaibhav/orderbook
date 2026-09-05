@@ -53,6 +53,11 @@ function formatLocalTime(seconds: number, withSeconds: boolean): string {
     return `${hh}:${mm}:${String(d.getSeconds()).padStart(2, '0')}`;
 }
 
+/** Fixed pixel width per candle. Fitting the data to the pane instead would
+ *  make four candles fill the screen and two hundred hairline thin. */
+const BAR_SPACING = 8;
+const RIGHT_OFFSET = 6;
+
 type OhlcValues = { open: number; high: number; low: number; close: number };
 
 function formatOhlc(n: number): string {
@@ -87,11 +92,14 @@ export default function CandleChart({
     const candlesRef = useRef(candles);
     const epochRef = useRef(epoch);
     const intervalMsRef = useRef(timeframe.ms);
-    intervalMsRef.current = timeframe.ms;
 
     useEffect(() => {
         candlesRef.current = candles;
     }, [candles]);
+
+    useEffect(() => {
+        intervalMsRef.current = timeframe.ms;
+    }, [timeframe.ms]);
 
     useEffect(() => {
         const host = hostRef.current;
@@ -118,7 +126,9 @@ export default function CandleChart({
             timeScale: {
                 borderColor: theme.border,
                 timeVisible: true,
-                secondsVisible: timeframe.ms < 60_000,
+                secondsVisible: intervalMsRef.current < 60_000,
+                barSpacing: BAR_SPACING,
+                rightOffset: RIGHT_OFFSET,
                 tickMarkFormatter: (t: unknown) =>
                     formatLocalTime(t as number, intervalMsRef.current < 60_000),
             },
@@ -133,7 +143,7 @@ export default function CandleChart({
         });
 
         series.setData(toSeriesData(candlesRef.current));
-        chart.timeScale().fitContent();
+        chart.timeScale().scrollToRealTime();
 
         const onCrosshair = (param: { seriesData: Map<unknown, unknown> }) => {
             const bar = param.seriesData.get(series) as BarData<UTCTimestamp> | undefined;
@@ -155,26 +165,20 @@ export default function CandleChart({
     }, []);
 
     useEffect(() => {
-        const host = hostRef.current;
-        if (!host) return;
-        const ro = new ResizeObserver(() => {
-            if (host.clientWidth > 0) chartRef.current?.timeScale().fitContent();
-        });
-        ro.observe(host);
-        return () => ro.disconnect();
-    }, []);
-
-    useEffect(() => {
         const series = seriesRef.current;
         if (!series) return;
 
         if (epochRef.current !== epoch) {
             epochRef.current = epoch;
             chartRef.current?.applyOptions({
-                timeScale: { secondsVisible: timeframe.ms < 60_000 },
+                timeScale: {
+                    secondsVisible: timeframe.ms < 60_000,
+                    barSpacing: BAR_SPACING,
+                    rightOffset: RIGHT_OFFSET,
+                },
             });
             series.setData(toSeriesData(candles));
-            chartRef.current?.timeScale().fitContent();
+            chartRef.current?.timeScale().scrollToRealTime();
             return;
         }
 

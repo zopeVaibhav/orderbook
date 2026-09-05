@@ -13,7 +13,6 @@ export default function BottomPanel() {
                 <TabsList>
                     <TabsTrigger value="positions">Positions (0)</TabsTrigger>
                     <TabsTrigger value="trades">Trades</TabsTrigger>
-                    <TabsTrigger value="funding">Funding</TabsTrigger>
                     <TabsTrigger value="orders">Order History</TabsTrigger>
                 </TabsList>
             </Tabs>

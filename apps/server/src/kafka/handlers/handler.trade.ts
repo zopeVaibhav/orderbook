@@ -12,4 +12,6 @@ export async function handleTrade(trade: TradeOut): Promise<void> {
         ts: trade.ts,
         seq: trade.seq,
     });
+
+    SocketServer.balanceStale(trade.maker_user_id, trade.taker_user_id);
 }

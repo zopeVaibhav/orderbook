@@ -1,6 +1,7 @@
 import { OrderKind, prisma, releaseRemaining, TimeInForce } from '@repo/database';
 import type { AckStatus, OrderAck } from '@repo/types/kafka';
 import { isTerminal } from '../../services/service.order-status';
+import SocketServer from '../../socket/socket.server';
 
 const RELEASES_REMAINDER: ReadonlySet<AckStatus> = new Set(['CANCELLED', 'REJECTED']);
 const NEVER_RESTS: ReadonlySet<TimeInForce> = new Set([TimeInForce.IOC, TimeInForce.FOK]);
@@ -43,4 +44,6 @@ export async function handleAck(ack: OrderAck): Promise<void> {
     if (!leftoverIsGone(ack.status, order.kind, order.timeInForce)) return;
     const filled = ack.status === 'PARTIAL' ? ack.filled_qty : undefined;
     await releaseRemaining(ack.user_id, ack.client_order_id, filled);
+
+    SocketServer.balanceStale(ack.user_id);
 }

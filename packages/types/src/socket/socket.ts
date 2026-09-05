@@ -17,12 +17,11 @@ export interface PublicTrade {
     seq: number;
 }
 
-export type ClientSocketMessage = {
-    type: 'subscribe';
-    market_id: string;
-};
+export type ClientSocketMessage =
+    { type: 'subscribe'; market_id: string } | { type: 'auth'; token: string };
 
 export type ServerSocketMessage =
     | ({ type: 'trade' } & PublicTrade)
     | ({ type: 'book_delta' } & BookDelta)
-    | ({ type: 'ack' } & OrderAck);
+    | ({ type: 'ack' } & OrderAck)
+    | { type: 'balance_stale' };

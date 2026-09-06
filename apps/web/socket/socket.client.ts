@@ -36,11 +36,12 @@ export class SocketClient {
             this.#reconnectTimer = null;
         }
 
-        this.#ws?.close();
-        this.#ws = null;
+        this.#detach();
     }
 
     #open(): void {
+        this.#detach();
+
         const ws = new WebSocket(WS_URL);
         this.#ws = ws;
 
@@ -56,9 +57,20 @@ export class SocketClient {
         };
 
         ws.onclose = () => {
-            if (!this.#wanted) return;
+            if (!this.#wanted || this.#ws !== ws) return;
             this.#reconnectTimer = setTimeout(() => this.#open(), RECONNECT_MS);
         };
+    }
+
+    #detach(): void {
+        const ws = this.#ws;
+        if (!ws) return;
+
+        ws.onopen = null;
+        ws.onmessage = null;
+        ws.onclose = null;
+        ws.close();
+        this.#ws = null;
     }
 
     #send(message: ClientSocketMessage): void {

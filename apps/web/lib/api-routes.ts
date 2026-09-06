@@ -7,9 +7,12 @@ const AUTH_URL = API_URL + '/auth';
 export const SIGNIN_URL = AUTH_URL + '/signin';
 
 export const MARKETS_URL = API_URL + '/markets';
+export const MARKET_STATS_URL = MARKETS_URL + '/stats';
 export const BOOK_URL = (marketId: string) => `${MARKETS_URL}/${marketId}/book`;
 export const TRADES_URL = (marketId: string) => `${MARKETS_URL}/${marketId}/trades`;
 export const MAKER_TOGGLE_URL = (marketId: string) => `${MARKETS_URL}/${marketId}/maker`;
 export const BALANCE_URL = API_URL + '/balance';
 
 export const ORDERS_URL = API_URL + '/orders';
+export const FILLS_URL = API_URL + '/fills';
+export const CANCEL_ORDER_URL = (clientOrderId: string) => `${ORDERS_URL}/${clientOrderId}`;

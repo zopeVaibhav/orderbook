@@ -26,13 +26,15 @@ export default class ListOrdersController {
 
             const { status, marketId, limit } = query.data;
 
+            const closed = status === 'closed';
+
             const rows = await prisma.order.findMany({
                 where: {
                     userId,
-                    status: { in: status === 'open' ? OPEN : CLOSED },
+                    status: { in: closed ? CLOSED : OPEN },
                     ...(marketId ? { marketId } : {}),
                 },
-                orderBy: { createdAt: 'desc' },
+                orderBy: closed ? { updatedAt: 'desc' } : { createdAt: 'desc' },
                 take: limit,
                 select: {
                     clientOrderId: true,
@@ -46,6 +48,7 @@ export default class ListOrdersController {
                     status: true,
                     rejectReason: true,
                     createdAt: true,
+                    updatedAt: true,
                     marketRef: { select: { base: true, quote: true } },
                 },
             });
@@ -64,6 +67,7 @@ export default class ListOrdersController {
                 status: row.status,
                 rejectReason: row.rejectReason,
                 createdAt: row.createdAt.getTime(),
+                updatedAt: row.updatedAt.getTime(),
             }));
 
             return ResponseWriter.success(res, { orders });

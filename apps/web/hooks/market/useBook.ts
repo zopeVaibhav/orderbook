@@ -19,6 +19,7 @@ export function useBook(marketId: string | undefined) {
             );
             return data.data.book;
         },
-        staleTime: Infinity,
+        staleTime: 0,
+        gcTime: 0,
     });
 }

@@ -1,10 +1,16 @@
-import type { Side } from './order';
+import type { Side } from '@repo/types';
+
+export type FillRole = 'MAKER' | 'TAKER';
 
 export type UserFill = {
-    id: string;
-    symbol: string;
+    tradeId: number;
+    marketId: string;
+    base: string;
+    quote: string;
+    clientOrderId: string;
     side: Side;
-    size: number;
-    price: number;
-    timestamp: number;
+    role: FillRole;
+    price: string;
+    quantity: string;
+    ts: number;
 };

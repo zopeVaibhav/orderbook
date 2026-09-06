@@ -1,5 +1,9 @@
 import { useCandlesStore } from '@/store/market/useCandlesStore';
-import { queueBookDelta, useOrderBookStore } from '@/store/market/useOrderBookStore';
+import {
+    flushBookDeltaQueue,
+    queueBookDelta,
+    useOrderBookStore,
+} from '@/store/market/useOrderBookStore';
 import { useTradesStore } from '@/store/market/useTradesStore';
 import {
     ServerMessageType,
@@ -28,4 +32,5 @@ export function handleEngineEvent(event: ServerSocketMessage): void {
 
 export function handleBookSnapshot(snapshot: BookSnapshotPayload): void {
     useOrderBookStore.getState().applySnapshot(snapshot);
+    flushBookDeltaQueue();
 }

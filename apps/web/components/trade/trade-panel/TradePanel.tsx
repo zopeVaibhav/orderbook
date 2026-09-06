@@ -17,7 +17,8 @@ import { minQuantityOf, stepFor, validatePrice, validateQuantity } from '@/lib/o
 import { useUserSessionStore } from '@/store/user/useUserSessionStore';
 import type { Market } from '@/types/market';
 import type { OrderTypeTab, Side, TimeInForce } from '@/types/order';
-import BalanceCard from './BalanceCard';
+import BalanceAccount from './BalanceAccount';
+import RecentFills from './RecentFills';
 
 const TIF_OPTIONS: { key: TimeInForce; label: string }[] = [
     { key: 'gtc', label: 'GTC' },
@@ -153,7 +154,7 @@ export default function TradePanel() {
                         ))}
                     </div>
 
-                    <div className="text-sm text-muted-foreground">Available</div>
+                    <BalanceAccount side={side} />
 
                     {isLimit && (
                         <div className="flex flex-col gap-1">
@@ -298,7 +299,7 @@ export default function TradePanel() {
                     )}
                 </div>
             </div>
-            <BalanceCard side={side} />
+            <RecentFills />
         </form>
     );
 }

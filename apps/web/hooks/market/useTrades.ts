@@ -19,6 +19,7 @@ export function useTrades(marketId: string | undefined) {
             );
             return data.data.trades;
         },
-        staleTime: Infinity,
+        staleTime: 0,
+        gcTime: 0,
     });
 }

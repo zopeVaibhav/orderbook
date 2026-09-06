@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useMarkets } from '@/hooks/market/useMarkets';
+import { useMarketsWithStats } from '@/hooks/market/useMarkets';
 import { useUserSessionStore } from '@/store/user/useUserSessionStore';
 import MakerToggle from './MakerToggle';
 import { formatPrice } from '@/lib/format';
@@ -19,18 +19,24 @@ export default function Searchbar() {
     const [active, setActive] = useState(0);
     const wrapperRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const { data: markets, isPending } = useMarkets();
+    const { data: markets, isPending } = useMarketsWithStats();
     const isAdmin = useUserSessionStore((s) => s.user?.isAdmin ?? false);
 
     const results = useMemo(() => {
         const all = markets ?? [];
         const q = query.trim().toLowerCase();
-        const base = q
-            ? all.filter(
-                  (m) => m.symbol.toLowerCase().includes(q) || m.name.toLowerCase().includes(q),
-              )
-            : all;
-        return base.slice(0, 8);
+
+        if (q) {
+            return all
+                .filter(
+                    (m) => m.symbol.toLowerCase().includes(q) || m.name.toLowerCase().includes(q),
+                )
+                .slice(0, 8);
+        }
+
+        return [...all]
+            .sort((a, b) => Math.abs(b.change24h ?? 0) - Math.abs(a.change24h ?? 0))
+            .slice(0, 8);
     }, [markets, query]);
 
     useEffect(() => {

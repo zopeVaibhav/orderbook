@@ -16,7 +16,7 @@ export default function TradeShell() {
         <div className="flex min-h-0 flex-1 gap-2 p-2 pt-0">
             <MarketsSidebar open={marketsOpen} />
             <div className="scrollbar-none flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto">
-                <div className="flex h-[calc(100%-1rem)] shrink-0 gap-2">
+                <div className="flex h-[calc(100%-5rem)] shrink-0 gap-2">
                     <ChartPanel onToggleMarkets={() => setMarketsOpen((v) => !v)} />
                     <OrderBookPanel />
                 </div>

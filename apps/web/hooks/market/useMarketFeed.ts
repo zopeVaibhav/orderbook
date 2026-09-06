@@ -12,6 +12,8 @@ import { useMarket } from '@/hooks/market/useMarkets';
 import { useBook } from '@/hooks/market/useBook';
 import { useTrades } from '@/hooks/market/useTrades';
 import { balancesQueryKey } from '@/hooks/balance/useGetBalances';
+import { FILLS_QUERY_ROOT } from '@/hooks/orders/useFills';
+import { ORDERS_QUERY_ROOT } from '@/hooks/orders/useOrders';
 import { useUserSessionStore } from '@/store/user/useUserSessionStore';
 import { socketClient } from '@/socket/singleton.socket';
 
@@ -46,10 +48,12 @@ export function useMarketFeed(): void {
     useEffect(() => {
         if (!market?.id) return;
 
+        const marketId = market.id;
         let refresh: ReturnType<typeof setTimeout> | null = null;
 
         const listener = (event: ServerSocketMessage) => {
             if (event.type !== ServerMessageType.BALANCE_STALE) {
+                if ('market_id' in event && event.market_id !== marketId) return;
                 handleEngineEvent(event);
                 return;
             }
@@ -58,6 +62,8 @@ export function useMarketFeed(): void {
             refresh = setTimeout(() => {
                 refresh = null;
                 queryClient.invalidateQueries({ queryKey: balancesQueryKey });
+                queryClient.invalidateQueries({ queryKey: [FILLS_QUERY_ROOT] });
+                queryClient.invalidateQueries({ queryKey: [ORDERS_QUERY_ROOT] });
             }, BALANCE_REFRESH_MS);
         };
 
@@ -76,5 +82,5 @@ export function useMarketFeed(): void {
             useTradesStore.getState().reset();
             useCandlesStore.getState().reset();
         };
-    }, []);
+    }, [market?.id]);
 }

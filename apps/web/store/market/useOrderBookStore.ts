@@ -92,6 +92,8 @@ function clearScheduled() {
 function flush() {
     clearScheduled();
     if (pending.length === 0) return;
+    if (useOrderBookStore.getState().marketId === null) return;
+
     const batch = pending;
     pending = [];
     useOrderBookStore.getState().applyDeltas(batch);
@@ -105,11 +107,23 @@ function schedule() {
 
 export function queueBookDelta(delta: BookDelta): void {
     pending.push(delta);
-    if (pending.length >= MAX_PENDING) {
+
+    if (pending.length < MAX_PENDING) {
+        schedule();
+        return;
+    }
+
+    if (useOrderBookStore.getState().marketId !== null) {
         flush();
         return;
     }
+
+    pending.splice(0, pending.length - MAX_PENDING);
     schedule();
+}
+
+export function flushBookDeltaQueue(): void {
+    flush();
 }
 
 export function clearBookDeltaQueue(): void {

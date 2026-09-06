@@ -2,14 +2,14 @@
 
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { useMarkets } from '@/hooks/market/useMarkets';
+import { useMarketsWithStats } from '@/hooks/market/useMarkets';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { MarketCategory } from '@/types/market';
 import MarketRow from './MarketRow';
 
 export default function MarketsSidebar({ open }: { open: boolean }) {
     const [active, setActive] = useState<MarketCategory>('markets');
-    const { data: markets, isPending, isError, refetch } = useMarkets();
+    const { data: markets, isPending, isError, refetch } = useMarketsWithStats();
 
     const rows = active === 'markets' ? (markets ?? []) : [];
 

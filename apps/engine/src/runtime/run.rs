@@ -50,7 +50,7 @@ pub async fn run() -> anyhow::Result<()> {
        partition it was taken from plus the last offset already applied.
     */
 
-    let mut order_tpl = TopicPartitionList::new();
+    let mut resume_offsets: HashMap<i32, i64> = HashMap::new();
     for (market_id, snapshot) in SnapshotWriter::load_all()? {
         let next_offset = snapshot.market_state.last_applied_seq + 1;
         let partition = snapshot.partition;
@@ -58,8 +58,17 @@ pub async fn run() -> anyhow::Result<()> {
             "Restored market {} from snapshot, resuming {} partition {} at offset {}",
             market_id, ORDERS_TOPIC, partition, next_offset
         );
+        market_partitions.insert(market_id.clone(), partition);
         engine.markets.insert(market_id, snapshot.market_state);
-        order_tpl.add_partition_offset(ORDERS_TOPIC, partition, Offset::Offset(next_offset))?;
+        resume_offsets
+            .entry(partition)
+            .and_modify(|o| *o = (*o).min(next_offset))
+            .or_insert(next_offset);
+    }
+
+    let mut order_tpl = TopicPartitionList::new();
+    for (partition, next_offset) in &resume_offsets {
+        order_tpl.add_partition_offset(ORDERS_TOPIC, *partition, Offset::Offset(*next_offset))?;
     }
 
     /*
@@ -115,6 +124,19 @@ pub async fn run() -> anyhow::Result<()> {
                 continue;
             }
         };
+
+        let target_market = match &order_type {
+            IncomingOrder::NewOrder(payload) => &payload.market_id,
+            IncomingOrder::CancelOrder(payload) => &payload.market_id,
+        };
+
+        if engine
+            .markets
+            .get(target_market)
+            .is_some_and(|state| seq <= state.last_applied_seq)
+        {
+            continue;
+        }
 
         let (market_id, events) = match order_type {
             IncomingOrder::NewOrder(new_order_payload) => {

@@ -1,12 +1,21 @@
 import type { Server } from 'node:http';
 import { WebSocket, WebSocketServer } from 'ws';
 import chalk from 'chalk';
-import type { ClientSocketMessage, ServerSocketMessage } from '@repo/types/socket';
+import {
+    ClientMessageType,
+    ServerMessageType,
+    type ClientSocketMessage,
+    type ServerSocketMessage,
+} from '@repo/types/socket';
+import JWT from '../services/service.jwt';
+
+const MARKET = 'market:';
+const USER = 'user:';
 
 export default class SocketServer {
     static #wss: WebSocketServer | null = null;
-    static #byMarket = new Map<string, Set<WebSocket>>();
-    static #marketOf = new Map<WebSocket, string>();
+    static #rooms = new Map<string, Set<WebSocket>>();
+    static #roomsOf = new Map<WebSocket, Set<string>>();
 
     static start(server: Server) {
         const wss = new WebSocketServer({ server });
@@ -21,41 +30,73 @@ export default class SocketServer {
                     return;
                 }
 
-                if (msg.type === 'subscribe') {
-                    this.#subscribe(ws, msg.market_id);
+                if (msg.type === ClientMessageType.SUBSCRIBE) {
+                    this.#joinOnly(ws, MARKET, MARKET + msg.market_id);
+                    return;
+                }
+
+                if (msg.type === ClientMessageType.AUTH) {
+                    this.#authenticate(ws, msg.token);
                 }
             });
 
-            ws.on('close', () => {
-                this.#unsubscribe(ws);
-            });
+            ws.on('close', () => this.#leaveAll(ws));
         });
 
         console.log(chalk.green('socket server started'));
     }
 
-    static #subscribe(ws: WebSocket, marketId: string) {
-        this.#unsubscribe(ws);
-        let sockets = this.#byMarket.get(marketId);
+    static #authenticate(ws: WebSocket, token: string) {
+        let userId: string;
+        try {
+            userId = JWT.verifySessionJwt(token).id;
+        } catch {
+            return;
+        }
+
+        this.#joinOnly(ws, USER, USER + userId);
+    }
+
+    static #join(ws: WebSocket, room: string) {
+        let sockets = this.#rooms.get(room);
         if (!sockets) {
             sockets = new Set();
-            this.#byMarket.set(marketId, sockets);
+            this.#rooms.set(room, sockets);
         }
         sockets.add(ws);
-        this.#marketOf.set(ws, marketId);
+
+        let rooms = this.#roomsOf.get(ws);
+        if (!rooms) {
+            rooms = new Set();
+            this.#roomsOf.set(ws, rooms);
+        }
+        rooms.add(room);
     }
 
-    static #unsubscribe(ws: WebSocket) {
-        const marketId = this.#marketOf.get(ws);
-        if (!marketId) return;
-        const sockets = this.#byMarket.get(marketId);
+    static #leave(ws: WebSocket, room: string) {
+        const sockets = this.#rooms.get(room);
         sockets?.delete(ws);
-        if (sockets && sockets.size === 0) this.#byMarket.delete(marketId);
-        this.#marketOf.delete(ws);
+        if (sockets?.size === 0) this.#rooms.delete(room);
+
+        const rooms = this.#roomsOf.get(ws);
+        rooms?.delete(room);
+        if (rooms?.size === 0) this.#roomsOf.delete(ws);
     }
 
-    static broadcast(marketId: string, payload: ServerSocketMessage) {
-        const sockets = this.#byMarket.get(marketId);
+    static #joinOnly(ws: WebSocket, prefix: string, room: string) {
+        for (const joined of [...(this.#roomsOf.get(ws) ?? [])]) {
+            if (joined !== room && joined.startsWith(prefix)) this.#leave(ws, joined);
+        }
+        this.#join(ws, room);
+    }
+
+    static #leaveAll(ws: WebSocket) {
+        for (const joined of [...(this.#roomsOf.get(ws) ?? [])]) this.#leave(ws, joined);
+        this.#roomsOf.delete(ws);
+    }
+
+    static #send(room: string, payload: ServerSocketMessage) {
+        const sockets = this.#rooms.get(room);
         if (!sockets) return;
         const data = JSON.stringify(payload);
         for (const ws of sockets) {
@@ -63,11 +104,25 @@ export default class SocketServer {
         }
     }
 
+    static broadcast(marketId: string, payload: ServerSocketMessage) {
+        this.#send(MARKET + marketId, payload);
+    }
+
+    static sendToUser(userId: string, payload: ServerSocketMessage) {
+        this.#send(USER + userId, payload);
+    }
+
+    static balanceStale(...userIds: string[]) {
+        for (const userId of new Set(userIds)) {
+            this.sendToUser(userId, { type: ServerMessageType.BALANCE_STALE });
+        }
+    }
+
     static stop() {
         if (!this.#wss) return;
         this.#wss.close();
         this.#wss = null;
-        this.#byMarket.clear();
-        this.#marketOf.clear();
+        this.#rooms.clear();
+        this.#roomsOf.clear();
     }
 }

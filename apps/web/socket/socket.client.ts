@@ -1,4 +1,8 @@
-import type { ClientSocketMessage, ServerSocketMessage } from '@repo/types/socket';
+import {
+    ClientMessageType,
+    type ClientSocketMessage,
+    type ServerSocketMessage,
+} from '@repo/types/socket';
 import { WS_URL } from '@/lib/api-routes';
 
 type Listener = (event: ServerSocketMessage) => void;
@@ -9,12 +13,14 @@ export class SocketClient {
     #ws: WebSocket | null = null;
     #listener: Listener | null = null;
     #marketId: string | null = null;
+    #token: string | null = null;
     #reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     #wanted = false;
 
-    connect(marketId: string, listener: Listener): void {
+    connect(marketId: string, listener: Listener, token?: string | null): void {
         this.#marketId = marketId;
         this.#listener = listener;
+        this.#token = token ?? null;
         this.#wanted = true;
         this.#open();
     }
@@ -23,6 +29,7 @@ export class SocketClient {
         this.#wanted = false;
         this.#listener = null;
         this.#marketId = null;
+        this.#token = null;
 
         if (this.#reconnectTimer !== null) {
             clearTimeout(this.#reconnectTimer);
@@ -38,7 +45,9 @@ export class SocketClient {
         this.#ws = ws;
 
         ws.onopen = () => {
-            if (this.#marketId) this.#send({ type: 'subscribe', market_id: this.#marketId });
+            if (this.#token) this.#send({ type: ClientMessageType.AUTH, token: this.#token });
+            if (this.#marketId)
+                this.#send({ type: ClientMessageType.SUBSCRIBE, market_id: this.#marketId });
         };
 
         ws.onmessage = (raw) => {

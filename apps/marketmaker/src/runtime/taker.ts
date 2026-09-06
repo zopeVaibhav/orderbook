@@ -1,5 +1,6 @@
 import chalk from 'chalk';
 import { Side } from '@repo/database';
+import { TimeInForce } from '@repo/types';
 import { TAKE } from '../config/bots.config';
 import { levelStep, type MarketSpec } from '../quotes/ladder';
 import { placeOrder } from '../orders/submit';
@@ -89,7 +90,7 @@ export class Taker {
             side: takerSide,
             priceTicks,
             qtyLots,
-            timeInForce: 'IOC',
+            timeInForce: TimeInForce.IOC,
         });
     }
 }

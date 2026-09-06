@@ -1,6 +1,4 @@
-export type Side = 'ASK' | 'BID';
-
-export type AckStatus = 'FILLED' | 'PARTIAL' | 'RESTED' | 'CANCELLED' | 'REJECTED';
+import type { AckStatus, EngineEventType, Side } from './kafka.enums';
 
 export interface OrderAck {
     market_id: string;
@@ -41,6 +39,6 @@ export interface BookDelta {
 }
 
 export type EngineEvent =
-    | ({ type: 'ack' } & OrderAck)
-    | ({ type: 'trade' } & TradeOut)
-    | ({ type: 'book_delta' } & BookDelta);
+    | ({ type: typeof EngineEventType.ACK } & OrderAck)
+    | ({ type: typeof EngineEventType.TRADE } & TradeOut)
+    | ({ type: typeof EngineEventType.BOOK_DELTA } & BookDelta);

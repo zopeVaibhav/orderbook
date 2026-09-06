@@ -1,8 +1,11 @@
-import { OrderKind, prisma, releaseRemaining, TimeInForce } from '@repo/database';
-import type { AckStatus, OrderAck } from '@repo/types/kafka';
-import { isTerminal } from '../../services/service.order-status';
+import { isTerminal, OrderKind, prisma, releaseRemaining, TimeInForce } from '@repo/database';
+import { AckStatus, type OrderAck } from '@repo/types/kafka';
+import SocketServer from '../../socket/socket.server';
 
-const RELEASES_REMAINDER: ReadonlySet<AckStatus> = new Set(['CANCELLED', 'REJECTED']);
+const RELEASES_REMAINDER: ReadonlySet<AckStatus> = new Set([
+    AckStatus.CANCELLED,
+    AckStatus.REJECTED,
+]);
 const NEVER_RESTS: ReadonlySet<TimeInForce> = new Set([TimeInForce.IOC, TimeInForce.FOK]);
 
 function leftoverIsGone(
@@ -11,7 +14,7 @@ function leftoverIsGone(
     timeInForce: TimeInForce | null,
 ): boolean {
     if (RELEASES_REMAINDER.has(status)) return true;
-    if (status !== 'PARTIAL') return false;
+    if (status !== AckStatus.PARTIAL) return false;
 
     return kind === OrderKind.MARKET || (timeInForce !== null && NEVER_RESTS.has(timeInForce));
 }
@@ -41,6 +44,8 @@ export async function handleAck(ack: OrderAck): Promise<void> {
     });
 
     if (!leftoverIsGone(ack.status, order.kind, order.timeInForce)) return;
-    const filled = ack.status === 'PARTIAL' ? ack.filled_qty : undefined;
+    const filled = ack.status === AckStatus.PARTIAL ? ack.filled_qty : undefined;
     await releaseRemaining(ack.user_id, ack.client_order_id, filled);
+
+    SocketServer.balanceStale(ack.user_id);
 }

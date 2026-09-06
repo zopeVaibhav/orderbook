@@ -1,4 +1,6 @@
-import type { BookDelta, OrderAck, Side } from '../kafka/engine-events';
+import type { BookDelta, OrderAck } from '../kafka/engine-events';
+import type { Side } from '../kafka/kafka.enums';
+import type { ClientMessageType, ServerMessageType } from './socket.enums';
 
 export interface BookSnapshotPayload {
     market_id: string;
@@ -17,12 +19,12 @@ export interface PublicTrade {
     seq: number;
 }
 
-export type ClientSocketMessage = {
-    type: 'subscribe';
-    market_id: string;
-};
+export type ClientSocketMessage =
+    | { type: typeof ClientMessageType.SUBSCRIBE; market_id: string }
+    | { type: typeof ClientMessageType.AUTH; token: string };
 
 export type ServerSocketMessage =
-    | ({ type: 'trade' } & PublicTrade)
-    | ({ type: 'book_delta' } & BookDelta)
-    | ({ type: 'ack' } & OrderAck);
+    | ({ type: typeof ServerMessageType.TRADE } & PublicTrade)
+    | ({ type: typeof ServerMessageType.BOOK_DELTA } & BookDelta)
+    | ({ type: typeof ServerMessageType.ACK } & OrderAck)
+    | { type: typeof ServerMessageType.BALANCE_STALE };

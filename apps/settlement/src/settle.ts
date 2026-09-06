@@ -1,4 +1,13 @@
-import { prisma, Prisma, RefType, LedgerReason, writeLedger } from '@repo/database';
+import {
+    isTerminal,
+    LedgerReason,
+    OrderStatus,
+    prisma,
+    Prisma,
+    RefType,
+    Side,
+    writeLedger,
+} from '@repo/database';
 import { TradeOut } from './schema/trade.schema';
 
 type MarketAssets = { base: string; quote: string };
@@ -24,13 +33,40 @@ async function getMarket(marketId: string): Promise<MarketAssets> {
     return market;
 }
 
+type Tx = Prisma.TransactionClient;
+
+async function applyFill(
+    tx: Tx,
+    userId: string,
+    clientOrderId: string,
+    filled: Prisma.Decimal,
+): Promise<void> {
+    const key = { userId_clientOrderId: { userId, clientOrderId } };
+
+    const order = await tx.order.update({
+        where: key,
+        data: { filledQuantity: { increment: filled } },
+        select: { quantity: true, filledQuantity: true, status: true },
+    });
+
+    if (isTerminal(order.status)) return;
+
+    const status = order.filledQuantity.greaterThanOrEqualTo(order.quantity)
+        ? OrderStatus.FILLED
+        : OrderStatus.PARTIAL;
+
+    if (status === order.status) return;
+
+    await tx.order.update({ where: key, data: { status } });
+}
+
 export async function settleTrade(trade: TradeOut): Promise<void> {
     const { base: baseAsset, quote: quoteAsset } = await getMarket(trade.market_id);
 
     const baseAmount = new Prisma.Decimal(trade.quantity);
     const quoteAmount = new Prisma.Decimal(trade.price).mul(baseAmount);
 
-    const takerBuysBase = trade.taker_side === 'BID';
+    const takerBuysBase = trade.taker_side === Side.BID;
     const takerBase = takerBuysBase ? baseAmount : baseAmount.neg();
     const takerQuote = takerBuysBase ? quoteAmount.neg() : quoteAmount;
 
@@ -98,24 +134,8 @@ export async function settleTrade(trade: TradeOut): Promise<void> {
         const inserted = await writeLedger(tx, rows);
         if (inserted === 0) return;
 
-        await tx.order.update({
-            where: {
-                userId_clientOrderId: {
-                    userId: trade.taker_user_id,
-                    clientOrderId: trade.taker_client_order_id,
-                },
-            },
-            data: { filledQuantity: { increment: baseAmount } },
-        });
-        await tx.order.update({
-            where: {
-                userId_clientOrderId: {
-                    userId: trade.maker_user_id,
-                    clientOrderId: trade.maker_client_order_id,
-                },
-            },
-            data: { filledQuantity: { increment: baseAmount } },
-        });
+        await applyFill(tx, trade.taker_user_id, trade.taker_client_order_id, baseAmount);
+        await applyFill(tx, trade.maker_user_id, trade.maker_client_order_id, baseAmount);
 
         await tx.trade.create({
             data: {

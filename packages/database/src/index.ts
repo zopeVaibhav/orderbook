@@ -2,6 +2,7 @@ export { prisma } from './prisma';
 export { writeLedger, type LedgerRow } from './ledger';
 export {
     acceptOrder,
+    isTerminal,
     releaseRemaining,
     releaseReserve,
     reserveFor,

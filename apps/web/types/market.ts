@@ -28,3 +28,11 @@ export type Market = {
     price?: number;
     change24h?: number;
 };
+
+export type MarketStats = {
+    marketId: string;
+    lastPrice: string;
+    openPrice: string;
+    change24h: number;
+    volume24h: string;
+};

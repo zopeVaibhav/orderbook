@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { prisma } from '@repo/database';
+import { isTerminal, prisma } from '@repo/database';
 import { ResponseWriter } from '../../services/service.response';
-import { isTerminal } from '../../services/service.order-status';
 import OrderProducer from '../../kafka/producers/kafka.order-producer';
 
 export const params_schema = z.object({

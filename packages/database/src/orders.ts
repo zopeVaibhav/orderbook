@@ -1,6 +1,7 @@
 import {
     LedgerReason,
     OrderKind,
+    OrderStatus,
     Prisma,
     RefType,
     Side,
@@ -8,6 +9,16 @@ import {
 } from '../generated/prisma/client';
 import { prisma } from './prisma';
 import { writeLedger } from './ledger';
+
+const TERMINAL: ReadonlySet<OrderStatus> = new Set([
+    OrderStatus.FILLED,
+    OrderStatus.CANCELLED,
+    OrderStatus.REJECTED,
+]);
+
+export function isTerminal(status: OrderStatus): boolean {
+    return TERMINAL.has(status);
+}
 
 type Market = { base: string; quote: string };
 

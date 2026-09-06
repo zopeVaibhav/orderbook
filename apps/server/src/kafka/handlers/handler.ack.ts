@@ -1,6 +1,5 @@
-import { OrderKind, prisma, releaseRemaining, TimeInForce } from '@repo/database';
+import { isTerminal, OrderKind, prisma, releaseRemaining, TimeInForce } from '@repo/database';
 import { AckStatus, type OrderAck } from '@repo/types/kafka';
-import { isTerminal } from '../../services/service.order-status';
 import SocketServer from '../../socket/socket.server';
 
 const RELEASES_REMAINDER: ReadonlySet<AckStatus> = new Set([

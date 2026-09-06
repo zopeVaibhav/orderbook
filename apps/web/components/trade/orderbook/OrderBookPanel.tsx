@@ -12,7 +12,7 @@ import OrderBookRow from './OrderBookRow';
 
 type Tab = 'book' | 'trades';
 
-const DEPTH = 30;
+const DEPTH = 50;
 const RECENTER_THRESHOLD_PX = 12;
 const MAX_SIZE_DP = 5;
 

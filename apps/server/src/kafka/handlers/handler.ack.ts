@@ -34,6 +34,13 @@ export async function handleAck(ack: OrderAck): Promise<void> {
     if (order.engineSeq !== null && order.engineSeq >= BigInt(ack.seq)) return;
     if (isTerminal(order.status)) return;
 
+    const releases = leftoverIsGone(ack.status, order.kind, order.timeInForce);
+
+    if (releases) {
+        const filled = ack.status === AckStatus.PARTIAL ? ack.filled_qty : undefined;
+        await releaseRemaining(ack.user_id, ack.client_order_id, filled);
+    }
+
     await prisma.order.update({
         where: key,
         data: {
@@ -43,9 +50,5 @@ export async function handleAck(ack: OrderAck): Promise<void> {
         },
     });
 
-    if (!leftoverIsGone(ack.status, order.kind, order.timeInForce)) return;
-    const filled = ack.status === AckStatus.PARTIAL ? ack.filled_qty : undefined;
-    await releaseRemaining(ack.user_id, ack.client_order_id, filled);
-
-    SocketServer.balanceStale(ack.user_id);
+    if (releases) SocketServer.balanceStale(ack.user_id);
 }

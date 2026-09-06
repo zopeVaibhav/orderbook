@@ -1,20 +1,15 @@
 'use client';
 
-import { OrderKind, OrderStatus, Side } from '@repo/types';
+import { OrderKind, Side } from '@repo/types';
 import { Button } from '@/components/ui/button';
 import { cancelOrderErrorMessage, useCancelOrder, useOrders } from '@/hooks/orders/useOrders';
 import { formatPrice, formatSize, formatTime } from '@/lib/format';
 import { useUserSessionStore } from '@/store/user/useUserSessionStore';
 import type { UserOrder } from '@/types/order';
+import PanelTable from './PanelTable';
 
 const COLUMNS =
-    'grid grid-cols-[90px_110px_60px_70px_1fr_1fr_1fr_80px] items-center gap-2 px-3 text-xs';
-
-const STATUS_LABEL: Record<string, string> = {
-    [OrderStatus.PENDING]: 'Pending',
-    [OrderStatus.RESTED]: 'Resting',
-    [OrderStatus.PARTIAL]: 'Partial',
-};
+    'grid grid-cols-[90px_110px_60px_70px_1fr_1fr_1fr_96px] items-center gap-2 px-3 text-xs';
 
 function filledPercent(order: UserOrder): number {
     const quantity = parseFloat(order.quantity);
@@ -29,13 +24,9 @@ export default function OpenOrdersTab() {
 
     const rows = orders ?? [];
 
-    if (!signedIn) {
-        return <EmptyMessage>Sign in to see your open orders</EmptyMessage>;
-    }
-
-    if (rows.length === 0) {
-        return <EmptyMessage>{isPending ? 'Loading' : 'No open orders'}</EmptyMessage>;
-    }
+    let empty: string | null = null;
+    if (!signedIn) empty = 'Sign in to see your open orders';
+    else if (rows.length === 0) empty = isPending ? 'Loading' : 'No open orders';
 
     return (
         <div className="flex min-h-0 flex-1 flex-col">
@@ -44,26 +35,29 @@ export default function OpenOrdersTab() {
                     {cancelOrderErrorMessage(cancel.error)}
                 </div>
             )}
-            <div
-                className={`${COLUMNS} border-b border-border py-2 uppercase tracking-wide text-muted-foreground/70`}
+            <PanelTable
+                columns={COLUMNS}
+                empty={empty}
+                header={
+                    <>
+                        <span>Time</span>
+                        <span>Market</span>
+                        <span>Side</span>
+                        <span>Type</span>
+                        <span className="text-right">Price</span>
+                        <span className="text-right">Size</span>
+                        <span className="text-right">Filled</span>
+                        <span />
+                    </>
+                }
             >
-                <span>Time</span>
-                <span>Market</span>
-                <span>Side</span>
-                <span>Type</span>
-                <span className="text-right">Price</span>
-                <span className="text-right">Size</span>
-                <span className="text-right">Filled</span>
-                <span className="text-right">Status</span>
-            </div>
-            <div className="scrollbar-none flex min-h-0 flex-1 flex-col overflow-y-auto [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 {rows.map((order) => {
                     const cancelling = cancel.isPending && cancel.variables === order.clientOrderId;
 
                     return (
                         <div
                             key={order.clientOrderId}
-                            className={`${COLUMNS} group py-1.5 tabular-nums hover:bg-muted/40`}
+                            className={`${COLUMNS} h-8 shrink-0 tabular-nums hover:bg-muted/40`}
                         >
                             <span className="text-muted-foreground">
                                 {formatTime(order.createdAt)}
@@ -89,32 +83,19 @@ export default function OpenOrdersTab() {
                             <span className="text-right text-muted-foreground">
                                 {filledPercent(order).toFixed(0)}%
                             </span>
-                            <div className="flex justify-end">
-                                <span className="text-muted-foreground group-hover:hidden">
-                                    {STATUS_LABEL[order.status] ?? order.status}
-                                </span>
-                                <Button
-                                    size="xs"
-                                    variant="destructive"
-                                    disabled={cancelling}
-                                    onClick={() => cancel.mutate(order.clientOrderId)}
-                                    className="hidden group-hover:inline-flex"
-                                >
-                                    {cancelling ? 'Cancelling' : 'Cancel'}
-                                </Button>
-                            </div>
+                            <Button
+                                size="xs"
+                                variant="destructive"
+                                disabled={cancelling}
+                                onClick={() => cancel.mutate(order.clientOrderId)}
+                                className="w-full disabled:opacity-100"
+                            >
+                                {cancelling ? 'Cancelling' : 'Cancel'}
+                            </Button>
                         </div>
                     );
                 })}
-            </div>
-        </div>
-    );
-}
-
-function EmptyMessage({ children }: { children: React.ReactNode }) {
-    return (
-        <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-            {children}
+            </PanelTable>
         </div>
     );
 }

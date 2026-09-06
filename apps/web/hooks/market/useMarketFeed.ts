@@ -48,10 +48,12 @@ export function useMarketFeed(): void {
     useEffect(() => {
         if (!market?.id) return;
 
+        const marketId = market.id;
         let refresh: ReturnType<typeof setTimeout> | null = null;
 
         const listener = (event: ServerSocketMessage) => {
             if (event.type !== ServerMessageType.BALANCE_STALE) {
+                if ('market_id' in event && event.market_id !== marketId) return;
                 handleEngineEvent(event);
                 return;
             }
@@ -80,5 +82,5 @@ export function useMarketFeed(): void {
             useTradesStore.getState().reset();
             useCandlesStore.getState().reset();
         };
-    }, []);
+    }, [market?.id]);
 }

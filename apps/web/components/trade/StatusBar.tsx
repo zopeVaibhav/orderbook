@@ -33,7 +33,7 @@ export default function StatusBar() {
             </div>
             <div className="group min-w-0 flex-1 overflow-hidden">
                 <motion.div
-                    className="flex w-max gap-6 group-hover:[animation-play-state:paused]"
+                    className="flex w-max gap-6 group-hover:paused"
                     animate={{ x: ['0%', '-50%'] }}
                     transition={{
                         duration: 40,

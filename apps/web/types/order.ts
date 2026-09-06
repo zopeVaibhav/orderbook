@@ -29,4 +29,5 @@ export type UserOrder = {
     status: ApiOrderStatus;
     rejectReason: string | null;
     createdAt: number;
+    updatedAt: number;
 };

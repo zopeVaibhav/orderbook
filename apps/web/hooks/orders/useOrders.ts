@@ -5,6 +5,8 @@ import { isAxiosError } from 'axios';
 import type { ApiResponse } from '@repo/types';
 import { CANCEL_ORDER_URL, ORDERS_URL } from '@/lib/api-routes';
 import { apiClient } from '@/lib/axios';
+import { balancesQueryKey } from '@/hooks/balance/useGetBalances';
+import { FILLS_QUERY_ROOT } from '@/hooks/orders/useFills';
 import { useUserSessionStore } from '@/store/user/useUserSessionStore';
 import type { OrderStatusFilter, UserOrder } from '@/types/order';
 
@@ -40,7 +42,11 @@ export function useCancelOrder() {
             );
             return data.data;
         },
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: [ORDERS_QUERY_ROOT] }),
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: [ORDERS_QUERY_ROOT] });
+            queryClient.invalidateQueries({ queryKey: [FILLS_QUERY_ROOT] });
+            queryClient.invalidateQueries({ queryKey: balancesQueryKey });
+        },
     });
 }
 

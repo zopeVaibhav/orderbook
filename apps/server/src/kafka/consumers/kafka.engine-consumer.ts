@@ -22,9 +22,7 @@ export default class EngineConsumer {
                 try {
                     await handleAck(JSON.parse(message.value.toString()) as OrderAck);
                 } catch (error) {
-                    console.error(
-                        console.error(chalk.red(`${topic}[${partition}] handling failed:`), error),
-                    );
+                    console.error(chalk.red(`${topic}[${partition}] handling failed:`), error);
                 }
             },
         });

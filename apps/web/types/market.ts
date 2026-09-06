@@ -27,6 +27,7 @@ export type Market = {
     makerEnabled: boolean;
     price?: number;
     change24h?: number;
+    volume24h?: number;
 };
 
 export type MarketStats = {

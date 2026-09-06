@@ -47,9 +47,22 @@ export function useMarketsWithStats() {
             const stat = byId.get(market.id);
             if (!stat) return market;
 
-            return { ...market, price: parseFloat(stat.lastPrice), change24h: stat.change24h };
+            return {
+                ...market,
+                price: parseFloat(stat.lastPrice),
+                change24h: stat.change24h,
+                volume24h: parseFloat(stat.volume24h),
+            };
         });
     }, [markets.data, stats]);
 
     return { ...markets, data };
+}
+
+export function useMarketWithStats(slug: string | undefined) {
+    const query = useMarketsWithStats();
+    return {
+        ...query,
+        data: slug ? query.data?.find((m) => m.slug === slug || m.symbol === slug) : undefined,
+    };
 }

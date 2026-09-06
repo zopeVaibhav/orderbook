@@ -3,8 +3,9 @@
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { formatChange, formatCompactPrice } from '@/lib/format';
 import { useCumulativeBook } from '@/hooks/orderbook/useCumulativeBook';
-import { useMarket } from '@/hooks/market/useMarkets';
+import { useMarketWithStats } from '@/hooks/market/useMarkets';
 import { useTradesStore } from '@/store/market/useTradesStore';
 
 function Stat({
@@ -28,7 +29,7 @@ function Stat({
 
 export default function MarketHeader({ onToggleMarkets }: { onToggleMarkets: () => void }) {
     const params = useParams<{ market?: string }>();
-    const { data: market } = useMarket(params?.market);
+    const { data: market } = useMarketWithStats(params?.market);
     const lastTrade = useTradesStore((s) => s.trades[0]);
     const { bestAsk, bestBid } = useCumulativeBook(1);
 
@@ -79,6 +80,15 @@ export default function MarketHeader({ onToggleMarkets }: { onToggleMarkets: () 
             <Stat label="Best Bid" value={bestBid === null ? '—' : asPrice(bestBid)} />
             <Stat label="Best Ask" value={bestAsk === null ? '—' : asPrice(bestAsk)} />
             <Stat label="Spread" value={spread === null ? '—' : asPrice(spread)} />
+            <Stat
+                label="24h Change"
+                value={market?.change24h === undefined ? '—' : formatChange(market.change24h)}
+                tone={(market?.change24h ?? 0) >= 0 ? 'positive' : 'negative'}
+            />
+            <Stat
+                label="24h Volume"
+                value={market?.volume24h === undefined ? '—' : formatCompactPrice(market.volume24h)}
+            />
         </div>
     );
 }

@@ -13,3 +13,5 @@ export const MAKER_TOGGLE_URL = (marketId: string) => `${MARKETS_URL}/${marketId
 export const BALANCE_URL = API_URL + '/balance';
 
 export const ORDERS_URL = API_URL + '/orders';
+export const FILLS_URL = API_URL + '/fills';
+export const CANCEL_ORDER_URL = (clientOrderId: string) => `${ORDERS_URL}/${clientOrderId}`;

@@ -93,7 +93,7 @@ export default function Searchbar() {
                     onFocus={() => setOpen(true)}
                     onKeyDown={onInputKey}
                     placeholder="Search markets"
-                    className="h-9 rounded-md bg-muted/40 pr-14 pl-9 placeholder:text-muted-foreground/70"
+                    className="h-9 rounded-md pr-14 pl-9 placeholder:text-muted-foreground/70"
                 />
                 <kbd className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                     /

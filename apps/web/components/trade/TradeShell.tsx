@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useMarketFeed } from '@/hooks/market/useMarketFeed';
+import { useKeyboardShortcut } from '@/hooks/ui/useKeyboardShortcut';
 import ChartPanel from './chart/ChartPanel';
 import MarketsSidebar from './markets/MarketsSidebar';
 import OrderBookPanel from './orderbook/OrderBookPanel';
@@ -12,12 +13,16 @@ export default function TradeShell() {
     const [marketsOpen, setMarketsOpen] = useState(false);
     useMarketFeed();
 
+    const toggleMarkets = () => setMarketsOpen((v) => !v);
+
+    useKeyboardShortcut('mod+b', toggleMarkets);
+
     return (
         <div className="flex min-h-0 flex-1 gap-2 p-2 pt-0">
             <MarketsSidebar open={marketsOpen} />
             <div className="scrollbar-none flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto">
                 <div className="flex h-[calc(100%-5rem)] shrink-0 gap-2">
-                    <ChartPanel onToggleMarkets={() => setMarketsOpen((v) => !v)} />
+                    <ChartPanel onToggleMarkets={toggleMarkets} />
                     <OrderBookPanel />
                 </div>
                 <BottomPanel />

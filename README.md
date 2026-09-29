@@ -37,15 +37,13 @@ The engine is the only writer of order state and holds every book in memory. It 
 
 ### Topics
 
-| Topic             | Producer | Consumer      | Carries                                    |
-| ----------------- | -------- | ------------- | ------------------------------------------ |
-| `orders.in`       | server   | engine        | new order / cancel order commands          |
-| `orders.ack`      | engine   | server¹       | per-order outcome (`RESTED`, `FILLED`, …)  |
-| `trades.out`      | engine   | settlement    | executed fills                             |
-| `book.delta`      | engine   | server → web¹ | level changes, delta-only                  |
-| `markets.control` | server   | engine        | market registrations (compacted, replayed) |
-
-¹ Not wired yet — see [Status](#status).
+| Topic             | Producer | Consumer           | Carries                                    |
+| ----------------- | -------- | ------------------ | ------------------------------------------ |
+| `orders.in`       | server   | engine             | new order / cancel order commands          |
+| `orders.ack`      | engine   | server             | per-order outcome (`RESTED`, `FILLED`, …)  |
+| `trades.out`      | engine   | settlement, server | executed fills                             |
+| `book.delta`      | engine   | server → web       | level changes, delta-only                  |
+| `markets.control` | server   | engine             | market registrations (compacted, replayed) |
 
 `markets.control` is compacted rather than time-retained on purpose: the engine drains it to the high watermark at boot, so the full registry is always recoverable from the topic alone.
 
@@ -169,9 +167,9 @@ docker compose -f infra/docker-compose.yml ps
 bun run setup
 ```
 
-One command for four things: generates the Prisma client, applies the migrations, seeds 21 assets and 20 markets, then publishes those markets to `markets.control` so the engine knows about them.
+One command for five things: generates the Prisma client, applies the migrations, seeds 21 assets and 20 markets, publishes those markets to `markets.control` so the engine knows about them, then creates and funds the market maker's bot accounts.
 
-It should end with `synced 20 markets`. A `KafkaJS v2.0.0 switched default partitioner` warning along the way is noise.
+Look for `synced 20 markets` partway through and `10 bots ready, ...` at the end. A `KafkaJS v2.0.0 switched default partitioner` warning along the way is noise.
 
 Safe to re-run — the seed upserts and `markets.control` is compacted. You need it again only when markets change or after wiping the database. Note it runs `migrate:deploy`, which applies existing migrations without prompting; to author a _new_ migration use `bun run --filter @repo/database migrate`.
 
@@ -201,13 +199,13 @@ Listening on orders.in and markets.control
 
 `Registry holds 0 markets` means step 4 did not happen.
 
-### 6. Start web, server and settlement — terminal 2
+### 6. Start web, server, settlement and marketmaker — terminal 2
 
 ```bash
 bun run dev
 ```
 
-Turborepo runs all three: web on 3000, the API server on 8080, settlement with no port of its own. Keep this separate from the engine — turbo takes over the terminal in TUI mode and paints over anything else printed there.
+Turborepo runs all four: web on 3000, the API server on 8080, settlement and marketmaker with no port of their own. Keep this separate from the engine — turbo takes over the terminal in TUI mode and paints over anything else printed there.
 
 ### Checking it actually works
 
@@ -243,17 +241,17 @@ Add `-v` to that to also drop the Postgres volume, which throws away every row a
 
 ## Everyday commands
 
-| Command                                         | What it does                          |
-| ----------------------------------------------- | ------------------------------------- |
-| `bun run dev`                                   | web + server + settlement             |
-| `bun run check-types`                           | `tsc --noEmit` across every workspace |
-| `bun run lint`                                  | eslint across every workspace         |
-| `bun run format`                                | prettier over the repo                |
-| `cd apps/engine && cargo run`                   | the matching engine                   |
-| `cd apps/engine && cargo clippy -- -D warnings` | what the pre-push hook enforces       |
-| `bun run --filter marketmaker seed-bots`        | create and fund the bot accounts      |
-| `bun run --filter @repo/database studio`        | Prisma Studio                         |
-| `bun run --filter @repo/database migrate:reset` | drop and rebuild the database         |
+| Command                                         | What it does                            |
+| ----------------------------------------------- | --------------------------------------- |
+| `bun run dev`                                   | web + server + settlement + marketmaker |
+| `bun run check-types`                           | `tsc --noEmit` across every workspace   |
+| `bun run lint`                                  | eslint across every workspace           |
+| `bun run format`                                | prettier over the repo                  |
+| `cd apps/engine && cargo run`                   | the matching engine                     |
+| `cd apps/engine && cargo clippy -- -D warnings` | what the pre-push hook enforces         |
+| `bun run --filter marketmaker seed-bots`        | re-fund the bot accounts                |
+| `bun run --filter @repo/database studio`        | Prisma Studio                           |
+| `bun run --filter @repo/database migrate:reset` | drop and rebuild the database           |
 
 Husky runs `prettier --write` on staged files at commit time. Pre-push is heavier: lint, type check, full build, `cargo fmt --check`, and `cargo clippy -- -D warnings`. Clippy runs with warnings denied, so something as small as a `collapsible_if` fails the push rather than warning.
 
@@ -281,14 +279,12 @@ Bots go through the same reserve, `Order` row and settlement path as a person do
 
 Markets start with it off. Toggle one from the searchbar (visible only to `ADMIN_EMAIL`) and the service picks it up within five seconds. Any market with it on carries a **simulated liquidity** badge in the trade header, since the depth and trades there are generated rather than other people's orders.
 
-```bash
-bun run --filter marketmaker seed-bots
-```
-
-Run once, then the service starts with `bun run dev` like everything else.
+`bun run setup` creates and funds the bots; `bun run --filter marketmaker seed-bots` re-runs just that step. The service itself starts with `bun run dev` like everything else.
 
 ## Status
 
-Working end to end: Google sign-in, market listing, balances, order placement and cancellation, matching across all five order kinds, trade settlement into the ledger, live book and trade feed over the socket, and the bot market maker above.
+Working end to end: Google sign-in, market listing with 24h stats, balances with available and locked pushed live over the socket, order placement and cancellation, matching across all five order kinds, trade settlement into the ledger, live book and trade feed over the socket, and the bot market maker above.
 
-Not yet wired: the API does not wait for `orders.ack` before responding, and there is no reaper releasing reservations for orders that never ack.
+The trade page has the candle chart, orderbook (click a level to fill the order form), trade panel, markets sidebar and search, plus open orders, trades and order history tabs. Mod+K or `/` opens search, Mod+B toggles the markets sidebar.
+
+Not yet wired: the API does not wait for `orders.ack` before responding, and there is no reaper releasing reservations for orders that never ack. The landing page at `/` is still empty.

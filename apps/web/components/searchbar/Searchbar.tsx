@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Search } from 'lucide-react';
+import { Command, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useMarketsWithStats } from '@/hooks/market/useMarkets';
+import { useIsApplePlatform, useKeyboardShortcut } from '@/hooks/ui/useKeyboardShortcut';
 import { useUserSessionStore } from '@/store/user/useUserSessionStore';
 import MakerToggle from './MakerToggle';
 import { formatPrice } from '@/lib/format';
@@ -21,6 +22,7 @@ export default function Searchbar() {
     const inputRef = useRef<HTMLInputElement>(null);
     const { data: markets, isPending } = useMarketsWithStats();
     const isAdmin = useUserSessionStore((s) => s.user?.isAdmin ?? false);
+    const isApple = useIsApplePlatform();
 
     const results = useMemo(() => {
         const all = markets ?? [];
@@ -43,24 +45,24 @@ export default function Searchbar() {
         function onDocClick(e: MouseEvent) {
             if (!wrapperRef.current?.contains(e.target as Node)) setOpen(false);
         }
-        function onKey(e: KeyboardEvent) {
-            if (e.key === '/') {
-                e.preventDefault();
-                inputRef.current?.focus();
-                setOpen(true);
-            }
-            if (e.key === 'Escape') {
-                setOpen(false);
-                inputRef.current?.blur();
-            }
-        }
         document.addEventListener('mousedown', onDocClick);
-        document.addEventListener('keydown', onKey);
-        return () => {
-            document.removeEventListener('mousedown', onDocClick);
-            document.removeEventListener('keydown', onKey);
-        };
+        return () => document.removeEventListener('mousedown', onDocClick);
     }, []);
+
+    useKeyboardShortcut(['mod+k', '/'], () => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+        setOpen(true);
+    });
+
+    useKeyboardShortcut(
+        'escape',
+        () => {
+            setOpen(false);
+            inputRef.current?.blur();
+        },
+        { allowInInput: true, enabled: open },
+    );
 
     function go(m: Market) {
         router.push(`/trade/${m.slug}`);
@@ -93,10 +95,10 @@ export default function Searchbar() {
                     onFocus={() => setOpen(true)}
                     onKeyDown={onInputKey}
                     placeholder="Search markets"
-                    className="h-9 rounded-md bg-muted/40 pr-14 pl-9 placeholder:text-muted-foreground/70"
+                    className="h-9 rounded-md pr-14 pl-9 placeholder:text-muted-foreground/70"
                 />
-                <kbd className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                    /
+                <kbd className="pointer-events-none absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-0.5 rounded bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    {isApple ? <Command className="size-2.5" /> : 'Ctrl'}K
                 </kbd>
             </div>
 

@@ -6,9 +6,10 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCumulativeBook } from '@/hooks/orderbook/useCumulativeBook';
 import { useMarket } from '@/hooks/market/useMarkets';
 import { formatTime } from '@/lib/format';
+import { useOrderEntryStore } from '@/store/market/useOrderEntryStore';
 import { useTradesStore } from '@/store/market/useTradesStore';
 import DepthFooter from './DepthFooter';
-import OrderBookRow from './OrderBookRow';
+import OrderBookRow, { type FillPart } from './OrderBookRow';
 
 type Tab = 'book' | 'trades';
 
@@ -26,6 +27,26 @@ export default function OrderBookPanel() {
     const sizeDp = Math.min(market?.lotExp ?? 4, MAX_SIZE_DP);
     const lastTrade = useTradesStore((s) => s.trades[0]);
     const trades = useTradesStore((s) => s.trades);
+
+    const requestFill = useOrderEntryStore((s) => s.requestFill);
+
+    const fillFrom = useCallback(
+        (
+            level: { price: number; size: number; total: number },
+            part: FillPart,
+            rowSide: 'bid' | 'ask',
+        ) => {
+            requestFill({
+                side: rowSide === 'ask' ? 'bid' : 'ask',
+                price: level.price.toFixed(priceDp),
+                quantity:
+                    part === 'price'
+                        ? undefined
+                        : (part === 'size' ? level.size : level.total).toFixed(sizeDp),
+            });
+        },
+        [requestFill, priceDp, sizeDp],
+    );
 
     const scrollRef = useRef<HTMLDivElement>(null);
     const spreadRef = useRef<HTMLDivElement>(null);
@@ -139,6 +160,7 @@ export default function OrderBookPanel() {
                                             size={l.size}
                                             total={l.total}
                                             depthPct={(l.total / maxTotal) * 100}
+                                            onFill={(part) => fillFrom(l, part, 'ask')}
                                             side="ask"
                                             priceDp={priceDp}
                                             sizeDp={sizeDp}
@@ -187,6 +209,7 @@ export default function OrderBookPanel() {
                                             size={l.size}
                                             total={l.total}
                                             depthPct={(l.total / maxTotal) * 100}
+                                            onFill={(part) => fillFrom(l, part, 'bid')}
                                             side="bid"
                                             priceDp={priceDp}
                                             sizeDp={sizeDp}

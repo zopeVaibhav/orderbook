@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
@@ -14,6 +15,7 @@ import { useMarket } from '@/hooks/market/useMarkets';
 import { placeOrderErrorMessage, usePlaceOrder } from '@/hooks/orders/usePlaceOrder';
 import { formatUsd } from '@/lib/format';
 import { minQuantityOf, stepFor, validatePrice, validateQuantity } from '@/lib/order/orderRules';
+import { useOrderEntryStore } from '@/store/market/useOrderEntryStore';
 import { useUserSessionStore } from '@/store/user/useUserSessionStore';
 import type { Market } from '@/types/market';
 import type { OrderTypeTab, Side, TimeInForce } from '@/types/order';
@@ -69,6 +71,24 @@ export default function TradePanel() {
         control,
         name: ['side', 'orderType', 'tif', 'postOnly', 'price', 'quantity'],
     });
+
+    const fill = useOrderEntryStore((state) => state.fill);
+    const clearFill = useOrderEntryStore((state) => state.clearFill);
+    const resetPlaceOrder = placeOrder.reset;
+
+    useEffect(() => {
+        if (!fill) return;
+
+        setValue('side', fill.side, { shouldValidate: true });
+        setValue('orderType', 'limit', { shouldValidate: true });
+        setValue('price', fill.price, { shouldValidate: true });
+        if (fill.quantity !== undefined) {
+            setValue('quantity', fill.quantity, { shouldValidate: true });
+        }
+
+        resetPlaceOrder();
+        clearFill();
+    }, [fill, clearFill, setValue, resetPlaceOrder]);
 
     const isLimit = orderType === 'limit';
     const signedIn = Boolean(accessToken);

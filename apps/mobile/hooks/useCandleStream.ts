@@ -46,5 +46,18 @@ export function useCandleStream(marketId: string | undefined, interval: Interval
         if (query.data) candleFeed.seed(key, query.data);
     }, [key, query.data]);
 
+    const failure =
+        query.data !== undefined
+            ? null
+            : query.fetchStatus === 'paused'
+              ? 'offline'
+              : query.isError
+                ? 'error'
+                : null;
+
+    useEffect(() => {
+        candleFeed.fail(key, failure);
+    }, [key, failure]);
+
     return { isPending: query.isPending, isError: query.isError, refetch };
 }

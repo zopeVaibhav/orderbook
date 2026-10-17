@@ -12,11 +12,14 @@ export interface Candle {
     volume: number;
 }
 
+export type CandleFailure = 'offline' | 'error' | null;
+
 interface CandleState {
     key: string | null;
     intervalMs: number;
     candles: Candle[];
     seeded: boolean;
+    failure: CandleFailure;
 }
 
 export const useCandles = create<CandleState>(() => ({
@@ -24,6 +27,7 @@ export const useCandles = create<CandleState>(() => ({
     intervalMs: 0,
     candles: [],
     seeded: false,
+    failure: null,
 }));
 
 let pending: PublicTrade[] = [];
@@ -70,13 +74,19 @@ function flush(): void {
 export const candleFeed = {
     begin(key: string, intervalMs: number): void {
         this.end();
-        useCandles.setState({ key, intervalMs, candles: [], seeded: false });
+        useCandles.setState({ key, intervalMs, candles: [], seeded: false, failure: null });
     },
     end(): void {
         if (frame !== 0) cancelAnimationFrame(frame);
         frame = 0;
         pending = [];
-        useCandles.setState({ key: null, intervalMs: 0, candles: [], seeded: false });
+        useCandles.setState({
+            key: null,
+            intervalMs: 0,
+            candles: [],
+            seeded: false,
+            failure: null,
+        });
     },
     seed(key: string, rows: ApiCandle[]): void {
         const state = useCandles.getState();
@@ -92,6 +102,9 @@ export const candleFeed = {
         const lastSeeded = seeded[seeded.length - 1]?.time ?? -Infinity;
         const live = state.candles.filter((c) => c.time > lastSeeded);
         useCandles.setState({ candles: [...seeded, ...live].slice(-CANDLE_LIMIT), seeded: true });
+    },
+    fail(key: string, failure: CandleFailure): void {
+        if (useCandles.getState().key === key) useCandles.setState({ failure });
     },
     trade(trade: PublicTrade): void {
         pending.push(trade);

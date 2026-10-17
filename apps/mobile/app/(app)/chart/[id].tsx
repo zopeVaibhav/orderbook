@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { X } from 'lucide-react-native';
+import { ChartStatus } from '@/components/chart/ChartStatus';
 import { SkiaChart } from '@/components/chart/SkiaChart';
 import { ChartToolbar } from '@/components/chart/ChartToolbar';
 import { ChangePill } from '@/components/market/ChangePill';
@@ -25,6 +27,8 @@ export default function ChartScreen() {
     const market = useMarket(id);
     const candles = useCandles((s) => s.candles);
     const candlesLoading = useCandles((s) => !s.seeded);
+    const failure = useCandles((s) => s.failure);
+    const queryClient = useQueryClient();
     const mode = usePreferences((s) => s.chartMode);
     const setMode = usePreferences((s) => s.setChartMode);
     const intervalKey = usePreferences((s) => s.chartInterval);
@@ -77,7 +81,14 @@ export default function ChartScreen() {
                     })
                 }
             >
-                {size.width > 0 && candles.length === 0 && candlesLoading ? (
+                {size.width > 0 && candles.length === 0 && failure ? (
+                    <ChartStatus
+                        failure={failure}
+                        onRetry={() =>
+                            void queryClient.refetchQueries({ queryKey: ['candles', id] })
+                        }
+                    />
+                ) : size.width > 0 && candles.length === 0 && candlesLoading ? (
                     <Skeleton width={size.width} height={size.height} radius={0} />
                 ) : size.width > 0 && candles.length > 0 ? (
                     <SkiaChart

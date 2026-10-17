@@ -10,6 +10,7 @@ import { DEFAULT_INTERVAL, INTERVALS } from '@/lib/chart/intervals';
 import { useCandles } from '@/store/candles';
 import { usePreferences } from '@/store/preferences';
 import { Spacing, useTheme } from '@/theme';
+import { ChartStatus } from './ChartStatus';
 import { ChartToolbar } from './ChartToolbar';
 import { SkiaChart } from './SkiaChart';
 
@@ -34,12 +35,17 @@ export function MarketChart({
     const interval = INTERVALS.find((i) => i.key === intervalKey) ?? DEFAULT_INTERVAL;
     const stream = useCandleStream(marketId, interval);
     const candles = useCandles((s) => s.candles);
+    const failure = useCandles((s) => s.failure);
     const [width, setWidth] = useState(0);
 
     return (
         <View style={styles.wrap}>
             <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)} style={{ height: HEIGHT }}>
-                {width === 0 || (stream.isPending && candles.length === 0) ? (
+                {width === 0 ? (
+                    <Skeleton height={HEIGHT} />
+                ) : failure && candles.length === 0 ? (
+                    <ChartStatus failure={failure} onRetry={() => void stream.refetch()} />
+                ) : stream.isPending && candles.length === 0 ? (
                     <Skeleton height={HEIGHT} />
                 ) : candles.length === 0 ? (
                     <View style={styles.empty}>

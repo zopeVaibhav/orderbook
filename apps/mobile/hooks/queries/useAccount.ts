@@ -21,7 +21,9 @@ const QUOTE_ASSET = 'USDC';
 
 export const balancesQueryKey = ['balances'] as const;
 export const fillsQueryKey = ['fills'] as const;
+export const ordersQueryKey = ['orders'] as const;
 export const openOrdersQueryKey = ['orders', 'open'] as const;
+export const closedOrdersQueryKey = ['orders', 'closed'] as const;
 export const tradesQueryKey = (marketId: string) => ['trades', marketId] as const;
 
 function useSignedIn(): boolean {
@@ -74,6 +76,66 @@ export function useOpenOrders() {
     });
 }
 
+export function useClosedOrders() {
+    const enabled = useSignedIn();
+    return useQuery<UserOrder[]>({
+        queryKey: closedOrdersQueryKey,
+        enabled,
+        queryFn: async ({ signal }) => {
+            const { data } = await api.get<ApiResponse<{ orders: UserOrder[] }>>(ORDERS_URL, {
+                params: { status: 'closed' },
+                signal,
+            });
+            return data.data.orders;
+        },
+        staleTime: 15_000,
+    });
+}
+
+export interface OrderDetails {
+    order: UserOrder;
+    fills: UserFill[];
+    filled: number;
+    total: number;
+    avgPrice: number | null;
+}
+
+export function useOrderDetails(clientOrderId: string | undefined) {
+    const open = useOpenOrders();
+    const closed = useClosedOrders();
+    const fills = useFills();
+
+    const data = useMemo<OrderDetails | null>(() => {
+        if (!clientOrderId) return null;
+        const order =
+            open.data?.find((o) => o.clientOrderId === clientOrderId) ??
+            closed.data?.find((o) => o.clientOrderId === clientOrderId);
+        if (!order) return null;
+        const own = (fills.data ?? [])
+            .filter((f) => f.clientOrderId === clientOrderId)
+            .sort((a, b) => a.ts - b.ts);
+        let filled = 0;
+        let total = 0;
+        for (const f of own) {
+            const quantity = parseFloat(f.quantity);
+            filled += quantity;
+            total += quantity * parseFloat(f.price);
+        }
+        return { order, fills: own, filled, total, avgPrice: filled > 0 ? total / filled : null };
+    }, [clientOrderId, open.data, closed.data, fills.data]);
+
+    return {
+        data,
+        isPending: open.isPending || closed.isPending || fills.isPending,
+        isError: open.isError || closed.isError || fills.isError,
+        refetch: () => {
+            void open.refetch();
+            void closed.refetch();
+            void fills.refetch();
+        },
+    };
+}
+
 export interface PlaceOrderInput {
     marketId: string;
     clientOrderId: string;
@@ -91,7 +153,7 @@ export function usePlaceOrder() {
             await api.post(ORDERS_URL, input);
         },
         onSettled: () => {
-            void client.invalidateQueries({ queryKey: openOrdersQueryKey });
+            void client.invalidateQueries({ queryKey: ordersQueryKey });
             void client.invalidateQueries({ queryKey: balancesQueryKey });
         },
     });
@@ -113,7 +175,7 @@ export function useCancelOrder() {
             await api.delete(`${ORDERS_URL}/${clientOrderId}`);
         },
         onSettled: () => {
-            void client.invalidateQueries({ queryKey: openOrdersQueryKey });
+            void client.invalidateQueries({ queryKey: ordersQueryKey });
             void client.invalidateQueries({ queryKey: balancesQueryKey });
         },
     });

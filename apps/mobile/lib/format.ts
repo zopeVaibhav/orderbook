@@ -56,3 +56,21 @@ export function formatClock(ts: number): string {
 export function firstName(name: string | undefined): string {
     return name?.trim().split(/\s+/)[0] ?? '';
 }
+
+export function formatDay(ts: number): string {
+    const d = new Date(ts);
+    const month = d.toLocaleDateString('en-US', { month: 'short' });
+    return `${String(d.getDate()).padStart(2, '0')} ${month} '${String(d.getFullYear()).slice(-2)}`;
+}
+
+export function formatDayTime(ts: number): string {
+    const time = new Date(ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    return `${formatDay(ts)}, ${time}`;
+}
+
+export function formatDayHeading(ts: number, now: number = Date.now()): string {
+    const day = new Date(ts).toDateString();
+    if (day === new Date(now).toDateString()) return 'Today';
+    if (day === new Date(now - 86_400_000).toDateString()) return 'Yesterday';
+    return formatDay(ts);
+}

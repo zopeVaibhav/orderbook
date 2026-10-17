@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { RefreshControl, SectionList, StyleSheet, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { ArrowDownLeft, ArrowUpRight, BellOff } from 'lucide-react-native';
 import type { UserFill } from '@repo/types';
@@ -10,7 +10,7 @@ import { PressableScale } from '@/components/ui/PressableScale';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { useFills } from '@/hooks/queries/useAccount';
-import { formatPrice, formatRelative, formatSize } from '@/lib/format';
+import { formatDayHeading, formatPrice, formatRelative, formatSize } from '@/lib/format';
 import { usePreferences } from '@/store/preferences';
 import { Spacing, useTheme } from '@/theme';
 
@@ -24,7 +24,12 @@ function FillItem({ fill, unread }: { fill: UserFill; unread: boolean }) {
         <PressableScale
             accessibilityRole="button"
             scaleTo={0.985}
-            onPress={() => router.push({ pathname: '/market/[id]', params: { id: fill.marketId } })}
+            onPress={() =>
+                router.push({
+                    pathname: '/order-details/[id]',
+                    params: { id: fill.clientOrderId },
+                })
+            }
             style={styles.item}
         >
             <View
@@ -34,6 +39,14 @@ function FillItem({ fill, unread }: { fill: UserFill; unread: boolean }) {
                 ]}
             >
                 <Icon size={18} color={buy ? colors.profit : colors.loss} />
+                {unread ? (
+                    <View
+                        style={[
+                            styles.unread,
+                            { backgroundColor: colors.loss, borderColor: colors.background },
+                        ]}
+                    />
+                ) : null}
             </View>
             <View style={styles.body}>
                 <Text variant="bodyMedium">
@@ -48,13 +61,28 @@ function FillItem({ fill, unread }: { fill: UserFill; unread: boolean }) {
                 <Text variant="smallMedium" numeric>
                     {formatPrice(total)}
                 </Text>
-                <Text variant="caption" tone="muted">
+                <Text variant="caption" tone="muted" style={styles.time}>
                     {formatRelative(fill.ts)}
                 </Text>
             </View>
-            {unread ? <View style={[styles.unread, { backgroundColor: colors.loss }]} /> : null}
         </PressableScale>
     );
+}
+
+interface FillSection {
+    title: string;
+    data: UserFill[];
+}
+
+function groupByDay(fills: UserFill[]): FillSection[] {
+    const sections: FillSection[] = [];
+    for (const fill of fills) {
+        const title = formatDayHeading(fill.ts);
+        const current = sections[sections.length - 1];
+        if (current?.title === title) current.data.push(fill);
+        else sections.push({ title, data: [fill] });
+    }
+    return sections;
 }
 
 export function ActivityScreen({ showBack = false }: { showBack?: boolean }) {
@@ -63,6 +91,7 @@ export function ActivityScreen({ showBack = false }: { showBack?: boolean }) {
     const seenAt = usePreferences((s) => s.notificationsSeenAt);
     const markSeen = usePreferences((s) => s.markNotificationsSeen);
     const [baseline, setBaseline] = useState(seenAt);
+    const sections = useMemo(() => groupByDay(fills.data ?? []), [fills.data]);
 
     useFocusEffect(
         useCallback(() => {
@@ -85,11 +114,17 @@ export function ActivityScreen({ showBack = false }: { showBack?: boolean }) {
                     <FillListPlaceholder />
                 </View>
             ) : (
-                <FlatList
+                <SectionList
                     showsVerticalScrollIndicator={false}
-                    data={fills.data ?? []}
+                    sections={sections}
+                    stickySectionHeadersEnabled={false}
                     keyExtractor={(f) => `${f.tradeId}-${f.clientOrderId}`}
                     renderItem={({ item }) => <FillItem fill={item} unread={item.ts > baseline} />}
+                    renderSectionHeader={({ section }) => (
+                        <Text variant="smallMedium" tone="muted" style={styles.sectionHeader}>
+                            {section.title}
+                        </Text>
+                    )}
                     contentContainerStyle={styles.list}
                     ItemSeparatorComponent={() => (
                         <View style={[styles.separator, { backgroundColor: colors.border }]} />
@@ -146,6 +181,16 @@ const styles = StyleSheet.create({
     },
     body: { flex: 1, gap: 2 },
     meta: { alignItems: 'flex-end', gap: 2 },
-    unread: { position: 'absolute', left: -10, width: 6, height: 6, borderRadius: 3 },
+    time: { letterSpacing: 0 },
+    unread: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        borderWidth: 2,
+    },
     separator: { height: StyleSheet.hairlineWidth },
+    sectionHeader: { paddingTop: Spacing.lg, paddingBottom: Spacing.xs },
 });

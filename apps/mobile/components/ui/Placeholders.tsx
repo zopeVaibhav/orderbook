@@ -318,8 +318,46 @@ export function OrderSheetPlaceholder() {
     );
 }
 
+export function OrderDetailsPlaceholder() {
+    return (
+        <View style={styles.details}>
+            <View style={styles.detailsHero}>
+                <Dot size={52} />
+                <Line variant="title" width={150} />
+                <Line variant="bodyMedium" width={150} />
+                <Line variant="body" width={90} />
+            </View>
+            <View style={styles.inline}>
+                <View style={styles.flexGap}>
+                    <Line variant="small" width={90} />
+                    <Line variant="heading" width={120} />
+                </View>
+                <View style={styles.flexGap}>
+                    <Line variant="small" width={80} />
+                    <Line variant="heading" width={110} />
+                </View>
+            </View>
+            <View style={styles.detailsTimeline}>
+                <Line variant="title" width={70} />
+                {[0, 1, 2].map((i) => (
+                    <View key={i} style={styles.inline}>
+                        <Dot size={22} />
+                        <View style={styles.flexGap}>
+                            <Line variant="bodyMedium" width={140} />
+                            <Line variant="small" width={120} />
+                        </View>
+                    </View>
+                ))}
+            </View>
+        </View>
+    );
+}
+
 const styles = StyleSheet.create({
     separator: { height: StyleSheet.hairlineWidth },
+    details: { padding: Spacing.lg, gap: Spacing['2xl'] },
+    detailsHero: { gap: Spacing.sm },
+    detailsTimeline: { gap: Spacing.lg },
     marketRow: {
         flexDirection: 'row',
         alignItems: 'center',

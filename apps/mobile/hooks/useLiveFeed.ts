@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { AppState } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { ServerMessageType } from '@repo/types/socket';
-import { balancesQueryKey, fillsQueryKey, openOrdersQueryKey } from '@/hooks/queries/useAccount';
+import { balancesQueryKey, fillsQueryKey, ordersQueryKey } from '@/hooks/queries/useAccount';
 import { marketStatsQueryKey } from '@/hooks/queries/useMarkets';
 import { queryClient } from '@/lib/query-client';
 import { liveSocket } from '@/lib/socket';
@@ -31,7 +31,7 @@ export function useLiveFeed(): void {
                 refresh = null;
                 void queryClient.invalidateQueries({ queryKey: balancesQueryKey });
                 void queryClient.invalidateQueries({ queryKey: fillsQueryKey });
-                void queryClient.invalidateQueries({ queryKey: openOrdersQueryKey });
+                void queryClient.invalidateQueries({ queryKey: ordersQueryKey });
             }, BALANCE_REFRESH_MS);
         });
 

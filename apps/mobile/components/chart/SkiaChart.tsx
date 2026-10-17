@@ -105,6 +105,7 @@ function PriceLabel({
 
 function TimeLabel({
     index,
+    timeTicks,
     candles,
     frame,
     plotW,
@@ -115,6 +116,7 @@ function TimeLabel({
     intervalMs,
 }: {
     index: number;
+    timeTicks: SharedValue<number[]>;
     candles: SharedValue<ChartCandle[]>;
     frame: SharedValue<ReturnType<typeof computeFrame>>;
     plotW: number;
@@ -124,17 +126,16 @@ function TimeLabel({
     color: string;
     intervalMs: number;
 }) {
-    const at = useDerivedValue(() => {
-        const f = frame.get();
-        return Math.round(f.first + ((index + 1) * (f.last - f.first)) / (TIME_SLOTS.length + 1));
-    });
     const text = useDerivedValue(() => {
-        const c = candles.get()[at.get()];
+        const at = timeTicks.get()[index];
+        const c = at === undefined ? undefined : candles.get()[at];
         return c ? formatChartTime(c.time, intervalMs) : '';
     });
     const x = useDerivedValue(() => {
+        const at = timeTicks.get()[index];
+        if (at === undefined) return -100;
         const width = font.measureText(text.get()).width;
-        return xAt(at.get(), frame.get().endF, plotW, slot.get()) - width / 2;
+        return xAt(at, frame.get().endF, plotW, slot.get()) - width / 2;
     });
     return <SkiaText x={x} y={height - 6} text={text} font={font} color={color} />;
 }
@@ -269,6 +270,27 @@ export function SkiaChart({
     const ticks = useDerivedValue(() => {
         const f = frame.get();
         return priceTicks(f.min, f.max, 5);
+    });
+
+    const timeTicks = useDerivedValue(() => {
+        const f = frame.get();
+        const list = data.get();
+        const sample = list[f.last];
+        if (!font || !sample) return [];
+        const minGap = font.measureText(formatChartTime(sample.time, intervalMs)).width + 16;
+        const out: number[] = [];
+        let lastX = -Infinity;
+        for (const i of TIME_SLOTS) {
+            const at = Math.round(
+                f.first + ((i + 1) * (f.last - f.first)) / (TIME_SLOTS.length + 1),
+            );
+            if (!list[at]) continue;
+            const x = xAt(at, f.endF, plotW, slot.get());
+            if (x - lastX < minGap) continue;
+            out.push(at);
+            lastX = x;
+        }
+        return out;
     });
 
     const grid = useDerivedValue(() => {
@@ -538,6 +560,7 @@ export function SkiaChart({
                                 <TimeLabel
                                     key={`t${i}`}
                                     index={i}
+                                    timeTicks={timeTicks}
                                     candles={data}
                                     frame={frame}
                                     plotW={plotW}

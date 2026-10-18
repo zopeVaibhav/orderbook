@@ -1,26 +1,24 @@
-import { useMemo } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { Bell, Search } from 'lucide-react-native';
 import { ChangePill } from '@/components/market/ChangePill';
 import { CoinBadge } from '@/components/market/CoinBadge';
 import { LivePrice } from '@/components/market/LivePrice';
 import { MarketRow } from '@/components/market/MarketRow';
-import { Avatar } from '@/components/ui/Avatar';
+import { AppHeader } from '@/components/ui/AppHeader';
 import { Card } from '@/components/ui/Card';
+import { CollapsingScreen } from '@/components/ui/CollapsingScreen';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { IconButton } from '@/components/ui/IconButton';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Screen } from '@/components/ui/Screen';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { StickyTabs } from '@/components/ui/StickyTabs';
 import { Text } from '@/components/ui/Text';
 import { usePortfolio, type Holding } from '@/hooks/queries/useAccount';
 import { useMarkets, type Market } from '@/hooks/queries/useMarkets';
-import { useUnreadCount } from '@/hooks/useUnreadCount';
-import { firstName, formatSize, formatUsd } from '@/lib/format';
-import { useSession } from '@/store/session';
+import { formatSize, formatUsd } from '@/lib/format';
 import { Radius, Spacing, useTheme } from '@/theme';
 
 const MOVERS = 6;
@@ -125,12 +123,11 @@ function HoldingRow({ holding }: { holding: Holding }) {
     );
 }
 
-export default function HomeScreen() {
-    const { colors } = useTheme();
-    const user = useSession((s) => s.user);
-    const unread = useUnreadCount();
+const TABS = ['Explore', 'Holdings', 'Orders'] as const;
+type HomeTab = (typeof TABS)[number];
+
+function ExploreTab() {
     const markets = useMarkets();
-    const portfolio = usePortfolio();
 
     const movers = useMemo(
         () =>
@@ -149,7 +146,93 @@ export default function HomeScreen() {
         [markets.data],
     );
 
-    const refreshing = markets.isRefetching;
+    return (
+        <View style={styles.tabBody}>
+            <Animated.View entering={FadeInDown.duration(320)} style={styles.section}>
+                <SectionHeader title="Top movers" />
+                {markets.isPending ? (
+                    <View style={styles.moverRow}>
+                        {[0, 1, 2].map((i) => (
+                            <Skeleton key={i} width={132} height={128} radius={Radius.xl} />
+                        ))}
+                    </View>
+                ) : movers.length === 0 ? (
+                    <Text tone="muted">No trades in the last 24 hours yet.</Text>
+                ) : (
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.moverRow}
+                        style={styles.bleed}
+                    >
+                        {movers.map((m) => (
+                            <MoverCard key={m.id} market={m} />
+                        ))}
+                    </ScrollView>
+                )}
+            </Animated.View>
+
+            <Animated.View entering={FadeInDown.delay(80).duration(320)} style={styles.section}>
+                <SectionHeader
+                    title="Popular markets"
+                    actionLabel="See all"
+                    onAction={() => router.navigate('/markets')}
+                />
+                {markets.isError ? (
+                    <EmptyState
+                        title="Markets unavailable"
+                        message="Could not reach the server."
+                        actionLabel="Retry"
+                        onAction={() => void markets.refetch()}
+                    />
+                ) : (
+                    popular.map((m) => <MarketRow key={m.id} market={m} />)
+                )}
+            </Animated.View>
+        </View>
+    );
+}
+
+function HoldingsTab() {
+    const portfolio = usePortfolio();
+
+    return (
+        <View style={styles.tabBody}>
+            <Animated.View entering={FadeInDown.duration(320)}>
+                <PortfolioCard />
+            </Animated.View>
+            <Animated.View entering={FadeInDown.delay(80).duration(320)} style={styles.section}>
+                {portfolio.data && portfolio.data.holdings.length > 0 ? (
+                    portfolio.data.holdings.map((h) => <HoldingRow key={h.asset} holding={h} />)
+                ) : (
+                    <EmptyState
+                        title="No holdings yet"
+                        message="Buy into a market and it will show up here."
+                        actionLabel="Browse markets"
+                        onAction={() => router.navigate('/markets')}
+                    />
+                )}
+            </Animated.View>
+        </View>
+    );
+}
+
+function OrdersTab() {
+    return (
+        <View style={styles.tabBody}>
+            <EmptyState
+                title="No open orders"
+                message="Orders resting on the book will show up here."
+            />
+        </View>
+    );
+}
+
+export default function HomeScreen() {
+    const markets = useMarkets();
+    const portfolio = usePortfolio();
+    const [tab, setTab] = useState<HomeTab>('Explore');
+
     const onRefresh = () => {
         void markets.refetch();
         void portfolio.refetch();
@@ -157,123 +240,27 @@ export default function HomeScreen() {
 
     return (
         <Screen>
-            <ScrollView
-                contentContainerStyle={styles.content}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                        tintColor={colors.mutedForeground}
-                    />
-                }
+            <CollapsingScreen
+                header={<AppHeader title="Markets" />}
+                tabs={<StickyTabs tabs={TABS} value={tab} onChange={setTab} />}
+                contentKey={tab}
+                refreshing={markets.isRefetching}
+                onRefresh={onRefresh}
             >
-                <View style={styles.header}>
-                    <PressableScale
-                        accessibilityRole="button"
-                        accessibilityLabel="Open profile"
-                        onPress={() => router.navigate('/profile')}
-                        style={styles.greeting}
-                    >
-                        <Avatar name={user?.name ?? ''} image={user?.image ?? null} />
-                        <View>
-                            <Text variant="small" tone="muted">
-                                Welcome back
-                            </Text>
-                            <Text variant="heading">Hi, {firstName(user?.name) || 'trader'}</Text>
-                        </View>
-                    </PressableScale>
-                    <View style={styles.actions}>
-                        <IconButton
-                            label="Search markets"
-                            icon={<Search size={18} color={colors.foreground} />}
-                            onPress={() => router.navigate('/markets')}
-                        />
-                        <IconButton
-                            label="Activity"
-                            badge={unread}
-                            icon={<Bell size={18} color={colors.foreground} />}
-                            onPress={() => router.navigate('/notifications')}
-                        />
-                    </View>
-                </View>
-
-                <Animated.View entering={FadeInDown.duration(380)}>
-                    <PortfolioCard />
-                </Animated.View>
-
-                <Animated.View entering={FadeInDown.delay(80).duration(380)} style={styles.section}>
-                    <SectionHeader title="Top movers" />
-                    {markets.isPending ? (
-                        <View style={styles.moverRow}>
-                            {[0, 1, 2].map((i) => (
-                                <Skeleton key={i} width={132} height={128} radius={Radius.xl} />
-                            ))}
-                        </View>
-                    ) : movers.length === 0 ? (
-                        <Text tone="muted">No trades in the last 24 hours yet.</Text>
-                    ) : (
-                        <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={styles.moverRow}
-                            style={styles.bleed}
-                        >
-                            {movers.map((m) => (
-                                <MoverCard key={m.id} market={m} />
-                            ))}
-                        </ScrollView>
-                    )}
-                </Animated.View>
-
-                <Animated.View
-                    entering={FadeInDown.delay(140).duration(380)}
-                    style={styles.section}
-                >
-                    <SectionHeader title="Your holdings" />
-                    {portfolio.data && portfolio.data.holdings.length > 0 ? (
-                        portfolio.data.holdings.map((h) => <HoldingRow key={h.asset} holding={h} />)
-                    ) : (
-                        <Card>
-                            <EmptyState
-                                title="No holdings yet"
-                                message="Buy into a market and it will show up here."
-                                actionLabel="Browse markets"
-                                onAction={() => router.navigate('/markets')}
-                            />
-                        </Card>
-                    )}
-                </Animated.View>
-
-                <Animated.View
-                    entering={FadeInDown.delay(200).duration(380)}
-                    style={styles.section}
-                >
-                    <SectionHeader
-                        title="Popular markets"
-                        actionLabel="See all"
-                        onAction={() => router.navigate('/markets')}
-                    />
-                    {markets.isError ? (
-                        <EmptyState
-                            title="Markets unavailable"
-                            message="Could not reach the server."
-                            actionLabel="Retry"
-                            onAction={() => void markets.refetch()}
-                        />
-                    ) : (
-                        popular.map((m) => <MarketRow key={m.id} market={m} />)
-                    )}
-                </Animated.View>
-            </ScrollView>
+                {tab === 'Explore' ? (
+                    <ExploreTab />
+                ) : tab === 'Holdings' ? (
+                    <HoldingsTab />
+                ) : (
+                    <OrdersTab />
+                )}
+            </CollapsingScreen>
         </Screen>
     );
 }
 
 const styles = StyleSheet.create({
-    content: { padding: Spacing.lg, gap: Spacing['2xl'], paddingBottom: Spacing['3xl'] },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    greeting: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-    actions: { flexDirection: 'row', gap: Spacing.sm },
+    tabBody: { padding: Spacing.lg, gap: Spacing['2xl'] },
     portfolio: { gap: Spacing.sm, padding: Spacing.xl },
     valueRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
     divider: { height: StyleSheet.hairlineWidth, marginVertical: Spacing.sm },

@@ -1,8 +1,10 @@
 import { Stack } from 'expo-router';
+import { useLiveFeed } from '@/hooks/useLiveFeed';
 import { useTheme } from '@/theme';
 
 export default function AppLayout() {
     const { colors } = useTheme();
+    useLiveFeed();
     return (
         <Stack
             screenOptions={{

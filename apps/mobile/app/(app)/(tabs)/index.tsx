@@ -5,6 +5,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Bell, Search } from 'lucide-react-native';
 import { ChangePill } from '@/components/market/ChangePill';
 import { CoinBadge } from '@/components/market/CoinBadge';
+import { LivePrice } from '@/components/market/LivePrice';
 import { MarketRow } from '@/components/market/MarketRow';
 import { Avatar } from '@/components/ui/Avatar';
 import { Card } from '@/components/ui/Card';
@@ -18,7 +19,7 @@ import { Text } from '@/components/ui/Text';
 import { usePortfolio, type Holding } from '@/hooks/queries/useAccount';
 import { useMarkets, type Market } from '@/hooks/queries/useMarkets';
 import { useUnreadCount } from '@/hooks/useUnreadCount';
-import { firstName, formatPrice, formatSize, formatUsd } from '@/lib/format';
+import { firstName, formatSize, formatUsd } from '@/lib/format';
 import { useSession } from '@/store/session';
 import { Radius, Spacing, useTheme } from '@/theme';
 
@@ -93,9 +94,7 @@ function MoverCard({ market }: { market: Market }) {
         >
             <CoinBadge symbol={market.base} size={32} />
             <Text variant="bodyMedium">{market.base}</Text>
-            <Text variant="small" numeric>
-                {market.price === null ? '—' : formatPrice(market.price)}
-            </Text>
+            <LivePrice value={market.price} variant="small" />
             <ChangePill value={market.change24h} solid />
         </PressableScale>
     );

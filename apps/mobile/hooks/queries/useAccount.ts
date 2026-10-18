@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { ApiResponse, Balance, PublicTrade, UserFill } from '@repo/types';
+import type { BookSnapshotPayload } from '@repo/types/socket';
 import { api } from '@/lib/api';
-import { BALANCE_URL, FILLS_URL, TRADES_URL } from '@/lib/api-routes';
+import { BALANCE_URL, BOOK_URL, FILLS_URL, TRADES_URL } from '@/lib/api-routes';
 import { useSession } from '@/store/session';
 import { useMarkets } from './useMarkets';
 
@@ -57,8 +58,24 @@ export function useTrades(marketId: string | undefined) {
             );
             return data.data.trades;
         },
-        staleTime: 10_000,
-        refetchInterval: 10_000,
+        staleTime: 0,
+        gcTime: 0,
+    });
+}
+
+export function useBookSnapshot(marketId: string | undefined) {
+    return useQuery<BookSnapshotPayload>({
+        queryKey: ['book', marketId ?? ''],
+        enabled: Boolean(marketId),
+        queryFn: async ({ signal }) => {
+            const { data } = await api.get<ApiResponse<{ book: BookSnapshotPayload }>>(
+                BOOK_URL(marketId ?? ''),
+                { signal },
+            );
+            return data.data.book;
+        },
+        staleTime: 0,
+        gcTime: 0,
     });
 }
 

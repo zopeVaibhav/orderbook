@@ -3,10 +3,11 @@ import { router } from 'expo-router';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import type { Market } from '@/hooks/queries/useMarkets';
-import { formatCompact, formatPrice } from '@/lib/format';
+import { formatCompact } from '@/lib/format';
 import { Spacing } from '@/theme';
 import { ChangePill } from './ChangePill';
 import { CoinBadge } from './CoinBadge';
+import { LivePrice } from './LivePrice';
 
 export function MarketRow({ market }: { market: Market }) {
     return (
@@ -33,9 +34,7 @@ export function MarketRow({ market }: { market: Market }) {
                 </Text>
             </View>
             <View style={styles.price}>
-                <Text variant="bodyMedium" numeric>
-                    {market.price === null ? '—' : formatPrice(market.price)}
-                </Text>
+                <LivePrice value={market.price} />
                 <ChangePill value={market.change24h} />
             </View>
         </PressableScale>

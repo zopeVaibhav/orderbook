@@ -6,6 +6,7 @@ import { ChangePill } from '@/components/market/ChangePill';
 import { CoinBadge } from '@/components/market/CoinBadge';
 import { LivePrice } from '@/components/market/LivePrice';
 import { MarketRow } from '@/components/market/MarketRow';
+import { TickerStrip } from '@/components/market/TickerStrip';
 import { AppHeader } from '@/components/ui/AppHeader';
 import { Card } from '@/components/ui/Card';
 import { CollapsingScreen } from '@/components/ui/CollapsingScreen';
@@ -241,7 +242,12 @@ export default function HomeScreen() {
     return (
         <Screen>
             <CollapsingScreen
-                header={<AppHeader title="Markets" />}
+                header={
+                    <>
+                        <AppHeader title="Markets" />
+                        <TickerStrip />
+                    </>
+                }
                 tabs={<StickyTabs tabs={TABS} value={tab} onChange={setTab} />}
                 contentKey={tab}
                 refreshing={markets.isRefetching}

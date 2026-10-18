@@ -18,6 +18,8 @@ export interface MarketStats {
     openPrice: string;
     change24h: number;
     volume24h: string;
+    high24h: string;
+    low24h: string;
 }
 
 export interface Balance {

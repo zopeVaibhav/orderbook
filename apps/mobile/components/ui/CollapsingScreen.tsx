@@ -1,11 +1,11 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import {
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    View,
-    type ScrollViewInstance,
-} from 'react-native';
+import { RefreshControl, StyleSheet, View } from 'react-native';
+import Animated, {
+    useAnimatedRef,
+    useAnimatedScrollHandler,
+    useSharedValue,
+    type SharedValue,
+} from 'react-native-reanimated';
 import { Spacing, useTheme } from '@/theme';
 
 interface CollapsingScreenProps {
@@ -15,6 +15,7 @@ interface CollapsingScreenProps {
     contentKey?: string;
     refreshing?: boolean;
     onRefresh?: () => void;
+    scrollY?: SharedValue<number>;
 }
 
 export function CollapsingScreen({
@@ -24,27 +25,31 @@ export function CollapsingScreen({
     contentKey,
     refreshing = false,
     onRefresh,
+    scrollY,
 }: CollapsingScreenProps) {
     const { colors } = useTheme();
-    const scroll = useRef<ScrollViewInstance>(null);
-    const offset = useRef(0);
+    const scroll = useAnimatedRef<Animated.ScrollView>();
+    const localY = useSharedValue(0);
+    const offset = scrollY ?? localY;
     const headerHeight = useRef(0);
 
+    const onScroll = useAnimatedScrollHandler((e) => {
+        offset.set(e.contentOffset.y);
+    });
+
     useEffect(() => {
-        if (offset.current > headerHeight.current) {
+        if (offset.get() > headerHeight.current) {
             scroll.current?.scrollTo({ y: headerHeight.current, animated: false });
         }
-    }, [contentKey]);
+    }, [contentKey, offset, scroll]);
 
     return (
-        <ScrollView
+        <Animated.ScrollView
             ref={scroll}
             stickyHeaderIndices={[1]}
             showsVerticalScrollIndicator={false}
             scrollEventThrottle={16}
-            onScroll={(e) => {
-                offset.current = e.nativeEvent.contentOffset.y;
-            }}
+            onScroll={onScroll}
             contentContainerStyle={styles.container}
             refreshControl={
                 onRefresh ? (
@@ -67,7 +72,7 @@ export function CollapsingScreen({
             </View>
             {tabs}
             <View style={styles.content}>{children}</View>
-        </ScrollView>
+        </Animated.ScrollView>
     );
 }
 

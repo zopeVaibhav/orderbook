@@ -13,6 +13,8 @@ export interface Market {
     openPrice: number | null;
     change24h: number | null;
     volume24h: number | null;
+    high24h: number | null;
+    low24h: number | null;
 }
 
 const STATS_REFRESH_MS = 30_000;
@@ -66,6 +68,8 @@ export function useMarkets() {
                 openPrice: stat ? parseFloat(stat.openPrice) : null,
                 change24h: stat ? stat.change24h : null,
                 volume24h: stat ? parseFloat(stat.volume24h) : null,
+                high24h: stat?.high24h ? parseFloat(stat.high24h) : null,
+                low24h: stat?.low24h ? parseFloat(stat.low24h) : null,
             };
         });
     }, [markets.data, stats.data]);

@@ -27,7 +27,7 @@ export function AppHeader({ title }: { title: string }) {
                 accessibilityLabel="Search markets"
                 hitSlop={10}
                 scaleTo={0.9}
-                onPress={() => router.navigate('/markets')}
+                onPress={() => router.push('/search')}
                 style={styles.icon}
             >
                 <Search size={22} color={colors.foreground} />

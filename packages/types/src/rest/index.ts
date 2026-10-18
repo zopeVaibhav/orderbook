@@ -59,3 +59,14 @@ export interface UserOrder {
     createdAt: number;
     updatedAt: number;
 }
+
+export type CandleInterval = '1s' | '5s' | '15s' | '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
+
+export interface ApiCandle {
+    time: number;
+    open: string;
+    high: string;
+    low: string;
+    close: string;
+    volume: string;
+}

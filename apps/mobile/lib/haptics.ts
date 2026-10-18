@@ -1,21 +1,14 @@
 import * as Haptics from 'expo-haptics';
 import { usePreferences } from '@/store/preferences';
 
-function enabled(): boolean {
-    return usePreferences.getState().haptics;
+function run(effect: () => Promise<void>): void {
+    if (!usePreferences.getState().haptics) return;
+    effect().catch(() => {});
 }
 
 export const haptic = {
-    tap: () => {
-        if (enabled()) void Haptics.selectionAsync();
-    },
-    press: () => {
-        if (enabled()) void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    },
-    success: () => {
-        if (enabled()) void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    },
-    error: () => {
-        if (enabled()) void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-    },
+    tap: () => run(() => Haptics.selectionAsync()),
+    press: () => run(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)),
+    success: () => run(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)),
+    error: () => run(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)),
 };

@@ -1,16 +1,6 @@
-export type MarketCategory = 'markets' | 'follows';
+export type { ApiMarket, MarketStats } from '@repo/types';
 
-export type ApiMarket = {
-    id: string;
-    base: string;
-    quote: string;
-    tickExp: number;
-    lotExp: number;
-    minQuantity: string;
-    makerEnabled: boolean;
-    baseRef: { name: string; decimals: number };
-    quoteRef: { name: string; decimals: number };
-};
+export type MarketCategory = 'markets' | 'follows';
 
 export type Market = {
     id: string;
@@ -28,12 +18,4 @@ export type Market = {
     price?: number;
     change24h?: number;
     volume24h?: number;
-};
-
-export type MarketStats = {
-    marketId: string;
-    lastPrice: string;
-    openPrice: string;
-    change24h: number;
-    volume24h: string;
 };

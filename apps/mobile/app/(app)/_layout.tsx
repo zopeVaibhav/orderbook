@@ -12,6 +12,8 @@ export default function AppLayout() {
             }}
         >
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="market/[id]" />
+            <Stack.Screen name="settings" />
         </Stack>
     );
 }

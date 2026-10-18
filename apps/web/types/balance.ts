@@ -1,5 +1,1 @@
-export type Balance = {
-    asset: string;
-    available: string;
-    locked: string;
-};
+export type { Balance } from '@repo/types';

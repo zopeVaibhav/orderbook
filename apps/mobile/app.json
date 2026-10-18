@@ -1,0 +1,32 @@
+{
+    "expo": {
+        "name": "Orderbook",
+        "slug": "orderbook",
+        "scheme": "orderbook",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/icon.png",
+        "userInterfaceStyle": "automatic",
+        "plugins": ["expo-router"],
+        "experiments": {
+            "typedRoutes": true
+        },
+        "ios": {
+            "supportsTablet": true,
+            "bundleIdentifier": "com.vaibhavzope.orderbook"
+        },
+        "android": {
+            "package": "com.vaibhavzope.orderbook",
+            "adaptiveIcon": {
+                "backgroundColor": "#E6F4FE",
+                "foregroundImage": "./assets/android-icon-foreground.png",
+                "backgroundImage": "./assets/android-icon-background.png",
+                "monochromeImage": "./assets/android-icon-monochrome.png"
+            },
+            "predictiveBackGestureEnabled": false
+        },
+        "web": {
+            "favicon": "./assets/favicon.png"
+        }
+    }
+}

@@ -1,4 +1,4 @@
-import type { Side } from '../domain/enums';
+import type { OrderKind, OrderStatus, Side, TimeInForce } from '../domain/enums';
 
 export interface ApiMarket {
     id: string;
@@ -39,4 +39,21 @@ export interface UserFill {
     price: string;
     quantity: string;
     ts: number;
+}
+
+export interface UserOrder {
+    clientOrderId: string;
+    marketId: string;
+    base: string;
+    quote: string;
+    side: Side;
+    kind: OrderKind;
+    timeInForce: TimeInForce | null;
+    price: string | null;
+    quantity: string;
+    filledQuantity: string;
+    status: OrderStatus;
+    rejectReason: string | null;
+    createdAt: number;
+    updatedAt: number;
 }

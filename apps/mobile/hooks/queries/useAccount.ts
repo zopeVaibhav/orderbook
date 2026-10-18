@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import type { ApiResponse, Balance, PublicTrade, UserFill } from '@repo/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { ApiResponse, Balance, PublicTrade, UserFill, UserOrder } from '@repo/types';
 import type { BookSnapshotPayload } from '@repo/types/socket';
 import { api } from '@/lib/api';
-import { BALANCE_URL, BOOK_URL, FILLS_URL, TRADES_URL } from '@/lib/api-routes';
+import { BALANCE_URL, BOOK_URL, FILLS_URL, ORDERS_URL, TRADES_URL } from '@/lib/api-routes';
 import { useSession } from '@/store/session';
 import { useMarkets } from './useMarkets';
 
@@ -11,6 +11,7 @@ const QUOTE_ASSET = 'USDC';
 
 export const balancesQueryKey = ['balances'] as const;
 export const fillsQueryKey = ['fills'] as const;
+export const openOrdersQueryKey = ['orders', 'open'] as const;
 export const tradesQueryKey = (marketId: string) => ['trades', marketId] as const;
 
 function useSignedIn(): boolean {
@@ -44,6 +45,35 @@ export function useFills() {
             return data.data.fills;
         },
         staleTime: 15_000,
+    });
+}
+
+export function useOpenOrders() {
+    const enabled = useSignedIn();
+    return useQuery<UserOrder[]>({
+        queryKey: openOrdersQueryKey,
+        enabled,
+        queryFn: async ({ signal }) => {
+            const { data } = await api.get<ApiResponse<{ orders: UserOrder[] }>>(ORDERS_URL, {
+                params: { status: 'open' },
+                signal,
+            });
+            return data.data.orders;
+        },
+        staleTime: 15_000,
+    });
+}
+
+export function useCancelOrder() {
+    const client = useQueryClient();
+    return useMutation({
+        mutationFn: async (clientOrderId: string) => {
+            await api.delete(`${ORDERS_URL}/${clientOrderId}`);
+        },
+        onSettled: () => {
+            void client.invalidateQueries({ queryKey: openOrdersQueryKey });
+            void client.invalidateQueries({ queryKey: balancesQueryKey });
+        },
     });
 }
 

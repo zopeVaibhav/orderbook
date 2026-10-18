@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { ChangePill } from '@/components/market/ChangePill';
@@ -18,6 +18,7 @@ import { useMarket } from '@/hooks/queries/useMarkets';
 import { useMarketStream } from '@/hooks/useMarketStream';
 import { formatCompact, formatPrice } from '@/lib/format';
 import { useMarketBook } from '@/store/orderbook';
+import { usePreferences } from '@/store/preferences';
 import { Radius, Spacing, useTheme } from '@/theme';
 
 const TABS = ['Order book', 'Trades'] as const;
@@ -43,6 +44,11 @@ export default function MarketScreen() {
     const stream = useMarketStream(id);
     const lastTrade = useMarketBook((s) => s.trades[0]);
     const [tab, setTab] = useState<Tab>('Order book');
+    const pushRecentMarket = usePreferences((s) => s.pushRecentMarket);
+
+    useEffect(() => {
+        if (id) pushRecentMarket(id);
+    }, [id, pushRecentMarket]);
     const m = market.data;
     const price = lastTrade ? parseFloat(lastTrade.price) : (m?.price ?? null);
 

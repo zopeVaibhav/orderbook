@@ -3,18 +3,42 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useMarketsWithStats } from '@/hooks/market/useMarkets';
+import { useKeyboardShortcut } from '@/hooks/ui/useKeyboardShortcut';
+import { useMediaQuery } from '@/hooks/ui/useMediaQuery';
+import { useScrollLock } from '@/hooks/ui/useScrollLock';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { MarketCategory } from '@/types/market';
 import MarketRow from './MarketRow';
 
-export default function MarketsSidebar({ open }: { open: boolean }) {
+const DRAWER_QUERY = '(width < 80rem)';
+
+export default function MarketsSidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
     const [active, setActive] = useState<MarketCategory>('markets');
     const { data: markets, isPending, isError, refetch } = useMarketsWithStats();
+    const isDrawer = useMediaQuery(DRAWER_QUERY);
+
+    useScrollLock(open && isDrawer);
+    useKeyboardShortcut('escape', onClose, { enabled: open && isDrawer, allowInInput: true });
+
+    const closeIfDrawer = () => {
+        if (isDrawer) onClose();
+    };
 
     const rows = active === 'markets' ? (markets ?? []) : [];
 
     return (
         <AnimatePresence initial={false}>
+            {open && (
+                <motion.div
+                    key="markets-backdrop"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    onClick={onClose}
+                    className="fixed inset-0 z-40 bg-black/60 xl:hidden"
+                />
+            )}
             {open && (
                 <motion.div
                     key="markets-sidebar"
@@ -25,9 +49,9 @@ export default function MarketsSidebar({ open }: { open: boolean }) {
                         width: { duration: 0.19 },
                         opacity: { duration: 0.2, ease: 'easeInOut' },
                     }}
-                    className="h-full shrink-0 overflow-hidden"
+                    className="h-full shrink-0 overflow-hidden max-xl:fixed max-xl:inset-y-0 max-xl:left-0 max-xl:z-50"
                 >
-                    <div className="flex h-full w-[320px] flex-col overflow-hidden rounded-md border border-border">
+                    <div className="flex h-full w-[320px] max-w-[85vw] flex-col overflow-hidden rounded-md border border-border max-xl:rounded-none max-xl:border-y-0 max-xl:border-l-0 max-xl:bg-background">
                         <Tabs value={active} onValueChange={(v) => setActive(v as MarketCategory)}>
                             <TabsList>
                                 <TabsTrigger value="markets">Markets</TabsTrigger>
@@ -61,7 +85,9 @@ export default function MarketsSidebar({ open }: { open: boolean }) {
                                     {active === 'follows' ? 'No follows yet' : 'No markets'}
                                 </div>
                             ) : (
-                                rows.map((m) => <MarketRow key={m.id} market={m} />)
+                                rows.map((m) => (
+                                    <MarketRow key={m.id} market={m} onSelect={closeIfDrawer} />
+                                ))
                             )}
                         </div>
                     </div>

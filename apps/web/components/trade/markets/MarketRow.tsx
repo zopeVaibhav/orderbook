@@ -3,11 +3,12 @@ import Link from 'next/link';
 import { formatChange, formatCompactPrice } from '@/lib/format';
 import type { Market } from '@/types/market';
 
-export default function MarketRow({ market }: { market: Market }) {
+export default function MarketRow({ market, onSelect }: { market: Market; onSelect?: () => void }) {
     const positive = (market.change24h ?? 0) >= 0;
     return (
         <Link
             href={`/trade/${market.slug}`}
+            onClick={onSelect}
             className="flex items-center gap-3 border-b border-border px-3 py-2 hover:bg-muted/50"
         >
             <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted">

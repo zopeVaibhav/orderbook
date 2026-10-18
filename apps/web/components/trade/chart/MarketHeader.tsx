@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
+import { ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatChange, formatCompactPrice } from '@/lib/format';
 import { useCumulativeBook } from '@/hooks/orderbook/useCumulativeBook';
@@ -45,14 +46,19 @@ export default function MarketHeader({ onToggleMarkets }: { onToggleMarkets: () 
         })}`;
 
     return (
-        <div className="relative flex h-16 shrink-0 items-center gap-8 overflow-hidden overflow-x-scroll border-b border-border px-3">
+        <div className="relative flex h-16 shrink-0 items-center gap-5 border-b border-border px-3 md:gap-8">
             <Button
                 variant="ghost"
                 onClick={onToggleMarkets}
+                aria-label="Toggle markets"
                 className="absolute left-0 h-10 w-2 min-w-0 rounded-tr-md rounded-br-md rounded-tl-none rounded-bl-none border-0 bg-muted p-0 hover:bg-muted/70"
             />
 
-            <div className="ml-2 flex items-center gap-2">
+            <button
+                type="button"
+                onClick={onToggleMarkets}
+                className="ml-2 flex shrink-0 cursor-pointer items-center gap-2"
+            >
                 {market?.iconSrc ? (
                     <Image
                         src={market.iconSrc}
@@ -71,24 +77,29 @@ export default function MarketHeader({ onToggleMarkets }: { onToggleMarkets: () 
                         {market.quote}
                     </span>
                 )}
+                <ChevronDown className="size-4 text-muted-foreground xl:hidden" />
+            </button>
+            <div className="no-scrollbar flex min-w-0 flex-1 items-center gap-5 overflow-x-auto md:gap-8">
+                <Stat
+                    label="Mark"
+                    value={mark === null ? '—' : asPrice(mark)}
+                    tone={lastTrade?.side === 'ASK' ? 'negative' : 'positive'}
+                />
+                <Stat label="Best Bid" value={bestBid === null ? '—' : asPrice(bestBid)} />
+                <Stat label="Best Ask" value={bestAsk === null ? '—' : asPrice(bestAsk)} />
+                <Stat label="Spread" value={spread === null ? '—' : asPrice(spread)} />
+                <Stat
+                    label="24h Change"
+                    value={market?.change24h === undefined ? '—' : formatChange(market.change24h)}
+                    tone={(market?.change24h ?? 0) >= 0 ? 'positive' : 'negative'}
+                />
+                <Stat
+                    label="24h Volume"
+                    value={
+                        market?.volume24h === undefined ? '—' : formatCompactPrice(market.volume24h)
+                    }
+                />
             </div>
-            <Stat
-                label="Mark"
-                value={mark === null ? '—' : asPrice(mark)}
-                tone={lastTrade?.side === 'ASK' ? 'negative' : 'positive'}
-            />
-            <Stat label="Best Bid" value={bestBid === null ? '—' : asPrice(bestBid)} />
-            <Stat label="Best Ask" value={bestAsk === null ? '—' : asPrice(bestAsk)} />
-            <Stat label="Spread" value={spread === null ? '—' : asPrice(spread)} />
-            <Stat
-                label="24h Change"
-                value={market?.change24h === undefined ? '—' : formatChange(market.change24h)}
-                tone={(market?.change24h ?? 0) >= 0 ? 'positive' : 'negative'}
-            />
-            <Stat
-                label="24h Volume"
-                value={market?.volume24h === undefined ? '—' : formatCompactPrice(market.volume24h)}
-            />
         </div>
     );
 }

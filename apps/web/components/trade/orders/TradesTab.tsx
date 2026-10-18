@@ -26,6 +26,7 @@ export default function TradesTab() {
     return (
         <PanelTable
             columns={COLUMNS}
+            minWidth="min-w-[520px]"
             empty={empty}
             header={
                 <>

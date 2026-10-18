@@ -12,7 +12,7 @@ export default function BottomPanel() {
     const [active, setActive] = useState<Tab>('open');
 
     return (
-        <div className="flex h-56 shrink-0 flex-col overflow-hidden rounded-md border border-border">
+        <div className="flex min-h-80 flex-1 shrink-0 flex-col overflow-hidden rounded-md border border-border lg:h-56 lg:min-h-0 lg:flex-none">
             <Tabs
                 value={active}
                 onValueChange={(v) => setActive(v as Tab)}

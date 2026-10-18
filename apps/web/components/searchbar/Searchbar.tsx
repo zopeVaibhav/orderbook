@@ -95,15 +95,15 @@ export default function Searchbar() {
                     onFocus={() => setOpen(true)}
                     onKeyDown={onInputKey}
                     placeholder="Search markets"
-                    className="h-9 rounded-md pr-14 pl-9 placeholder:text-muted-foreground/70"
+                    className="h-9 rounded-md pr-3 pl-9 placeholder:text-muted-foreground/70 sm:pr-14"
                 />
-                <kbd className="pointer-events-none absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-0.5 rounded bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                <kbd className="pointer-events-none absolute top-1/2 right-2 hidden -translate-y-1/2 sm:flex items-center gap-0.5 rounded bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                     {isApple ? <Command className="size-2.5" /> : 'Ctrl'}K
                 </kbd>
             </div>
 
             {open && (
-                <div className="absolute top-full right-0 left-0 z-50 mt-1.5 overflow-hidden rounded-md border border-border bg-popover shadow-lg">
+                <div className="absolute top-full right-0 left-0 z-50 mt-1.5 max-sm:fixed max-sm:inset-x-2 max-sm:top-14 max-sm:mt-0 overflow-hidden rounded-md border border-border bg-popover shadow-lg">
                     <div className="border-b border-border px-3 py-1.5 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
                         {query ? 'Results' : 'Trending'}
                     </div>

@@ -37,6 +37,7 @@ export default function OpenOrdersTab() {
             )}
             <PanelTable
                 columns={COLUMNS}
+                minWidth="min-w-[680px]"
                 empty={empty}
                 header={
                     <>

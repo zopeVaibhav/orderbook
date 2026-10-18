@@ -11,6 +11,7 @@ import { ConnectivityBanner } from '@/components/ui/ConnectivityBanner';
 import { ErrorView } from '@/components/ui/ErrorView';
 import { queryClient } from '@/lib/query-client';
 import { usePreferences } from '@/store/preferences';
+import { useSession } from '@/store/session';
 import { FontAssets, useTheme } from '@/theme';
 
 void SplashScreen.preventAutoHideAsync();
@@ -21,6 +22,8 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 
 function RootNavigator() {
     const { colors, isDark } = useTheme();
+    const signedIn = useSession((s) => s.status === 'signedIn');
+    const hasSeenOnboarding = usePreferences((s) => s.hasSeenOnboarding);
 
     useEffect(() => {
         void SystemUI.setBackgroundColorAsync(colors.background);
@@ -35,7 +38,17 @@ function RootNavigator() {
                     animation: 'slide_from_right',
                     contentStyle: { backgroundColor: colors.background },
                 }}
-            />
+            >
+                <Stack.Protected guard={signedIn}>
+                    <Stack.Screen name="(app)" />
+                </Stack.Protected>
+                <Stack.Protected guard={!signedIn && !hasSeenOnboarding}>
+                    <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
+                </Stack.Protected>
+                <Stack.Protected guard={!signedIn && hasSeenOnboarding}>
+                    <Stack.Screen name="login" options={{ animation: 'fade' }} />
+                </Stack.Protected>
+            </Stack>
             <ConnectivityBanner />
         </>
     );
@@ -44,7 +57,12 @@ function RootNavigator() {
 export default function RootLayout() {
     const [fontsLoaded, fontError] = useFonts(FontAssets);
     const hydrated = usePreferences((s) => s.hydrated);
-    const ready = (fontsLoaded || fontError !== null) && hydrated;
+    const sessionLoading = useSession((s) => s.status === 'loading');
+    const ready = (fontsLoaded || fontError !== null) && hydrated && !sessionLoading;
+
+    useEffect(() => {
+        void useSession.getState().hydrate();
+    }, []);
 
     useEffect(() => {
         if (ready) void SplashScreen.hideAsync();

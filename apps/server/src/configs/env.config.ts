@@ -14,6 +14,7 @@ const envSchema = z.object({
     ACCESS_TOKEN_TTL_SEC: z.coerce.number().default(900),
     REFRESH_TOKEN_TTL_SEC: z.coerce.number().default(604800),
     GOOGLE_CLIENT_ID: z.string(),
+    GOOGLE_MOBILE_CLIENT_ID: z.string().default(''),
     KAFKA_BROKER: z.string(),
     KAFKA_GROUP_ID: z.string(),
     ADMIN_EMAIL: z.string().default(''),

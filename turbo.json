@@ -11,7 +11,11 @@
         "NEXTAUTH_URL",
         "NEXTAUTH_SECRET",
         "GOOGLE_CLIENT_ID",
-        "GOOGLE_CLIENT_SECRET"
+        "GOOGLE_CLIENT_SECRET",
+        "GOOGLE_MOBILE_CLIENT_ID",
+        "EXPO_PUBLIC_API_URL",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID"
     ],
     "ui": "tui",
     "tasks": {

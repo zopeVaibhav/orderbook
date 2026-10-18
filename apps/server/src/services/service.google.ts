@@ -13,7 +13,7 @@ export default class GoogleAuthService {
     static async verifyIdToken(idToken: string): Promise<GoogleIdentity> {
         const ticket = await this.googleClient.verifyIdToken({
             idToken,
-            audience: ENV.GOOGLE_CLIENT_ID,
+            audience: [ENV.GOOGLE_CLIENT_ID, ENV.GOOGLE_MOBILE_CLIENT_ID].filter(Boolean),
         });
 
         const payload = ticket.getPayload();

@@ -21,7 +21,8 @@ export interface PublicTrade {
 
 export type ClientSocketMessage =
     | { type: typeof ClientMessageType.SUBSCRIBE; market_id: string }
-    | { type: typeof ClientMessageType.AUTH; token: string };
+    | { type: typeof ClientMessageType.AUTH; token: string }
+    | { type: typeof ClientMessageType.TICKERS };
 
 export type ServerSocketMessage =
     | ({ type: typeof ServerMessageType.TRADE } & PublicTrade)

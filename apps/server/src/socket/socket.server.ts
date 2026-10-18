@@ -11,6 +11,8 @@ import JWT from '../services/service.jwt';
 
 const MARKET = 'market:';
 const USER = 'user:';
+const TICKERS = 'tickers:';
+const TICKERS_ROOM = TICKERS + 'all';
 
 export default class SocketServer {
     static #wss: WebSocketServer | null = null;
@@ -37,6 +39,11 @@ export default class SocketServer {
 
                 if (msg.type === ClientMessageType.AUTH) {
                     this.#authenticate(ws, msg.token);
+                    return;
+                }
+
+                if (msg.type === ClientMessageType.TICKERS) {
+                    this.#joinOnly(ws, TICKERS, TICKERS_ROOM);
                 }
             });
 
@@ -106,6 +113,7 @@ export default class SocketServer {
 
     static broadcast(marketId: string, payload: ServerSocketMessage) {
         this.#send(MARKET + marketId, payload);
+        if (payload.type === ServerMessageType.TRADE) this.#send(TICKERS_ROOM, payload);
     }
 
     static sendToUser(userId: string, payload: ServerSocketMessage) {

@@ -7,6 +7,7 @@ export const SIGNIN_URL = '/auth/signin';
 export const MARKETS_URL = '/markets';
 export const MARKET_STATS_URL = '/markets/stats';
 export const BOOK_URL = (marketId: string) => `/markets/${marketId}/book`;
+export const CANDLES_URL = (marketId: string) => `/markets/${marketId}/candles`;
 export const TRADES_URL = (marketId: string) => `/markets/${marketId}/trades`;
 export const BALANCE_URL = '/balance';
 export const ORDERS_URL = '/orders';

@@ -41,7 +41,7 @@ export function RecentStrip() {
                         }
                         style={styles.item}
                     >
-                        <CoinBadge symbol={m.base} size={48} />
+                        <CoinBadge symbol={m.base} size={40} />
                         <Text variant="smallMedium" numberOfLines={1}>
                             {m.base}
                         </Text>
@@ -57,5 +57,5 @@ const styles = StyleSheet.create({
     section: { gap: Spacing.md },
     bleed: { marginHorizontal: -Spacing.lg },
     row: { gap: Spacing.lg, paddingHorizontal: Spacing.lg },
-    item: { width: 68, alignItems: 'center', gap: 6 },
+    item: { width: 60, alignItems: 'center', gap: 4 },
 });

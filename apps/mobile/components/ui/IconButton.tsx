@@ -36,9 +36,9 @@ export function IconButton({ icon, label, onPress, badge }: IconButtonProps) {
 
 const styles = StyleSheet.create({
     button: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
         alignItems: 'center',
         justifyContent: 'center',
     },

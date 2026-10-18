@@ -74,7 +74,7 @@ function HoldingRow({ holding }: { holding: Holding }) {
             }
             style={[styles.holding, { borderColor: colors.border }]}
         >
-            <CoinBadge symbol={holding.asset} size={36} />
+            <CoinBadge symbol={holding.asset} size={32} />
             <View style={styles.flex}>
                 <Text variant="bodyMedium">{holding.asset}</Text>
                 <Text variant="small" tone="muted" numeric>

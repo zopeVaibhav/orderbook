@@ -5,6 +5,12 @@ export function formatPrice(n: number): string {
     return n.toFixed(6);
 }
 
+export function formatDelta(delta: number, reference: number): string {
+    const digits = reference >= 100 ? 2 : reference >= 1 ? 4 : 6;
+    const sign = delta >= 0 ? '+' : '-';
+    return `${sign}${Math.abs(delta).toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
+}
+
 export function formatUsd(n: number): string {
     return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }

@@ -6,7 +6,7 @@ import { Text } from '@/components/ui/Text';
 import { useMarketBook } from '@/store/orderbook';
 import { Spacing, useTheme } from '@/theme';
 
-const HEIGHT = 220;
+const HEIGHT = 180;
 const PAD_Y = 16;
 const MIN_POINTS = 2;
 

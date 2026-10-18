@@ -17,7 +17,7 @@ import { StickyTabs } from '@/components/ui/StickyTabs';
 import { Text } from '@/components/ui/Text';
 import { useMarket } from '@/hooks/queries/useMarkets';
 import { useMarketStream } from '@/hooks/useMarketStream';
-import { formatChange, formatPrice } from '@/lib/format';
+import { formatChange, formatDelta } from '@/lib/format';
 import { useMarketBook } from '@/store/orderbook';
 import { usePreferences } from '@/store/preferences';
 import { Spacing } from '@/theme';
@@ -28,9 +28,8 @@ const REVEAL_AT = 150;
 
 function changeLine(price: number | null, open: number | null, change: number | null): string {
     if (change === null || price === null || !open) return 'No trades in 24h';
-    const abs = price - open;
     const pct = formatChange(change).replace(/^[+-]/, '');
-    return `${abs >= 0 ? '+' : '-'}${formatPrice(Math.abs(abs))} (${pct}) 24H`;
+    return `${formatDelta(price - open, price)} (${pct}) 24H`;
 }
 
 export default function MarketScreen() {
@@ -53,7 +52,7 @@ export default function MarketScreen() {
 
     const header = (
         <View style={styles.header}>
-            <CoinBadge symbol={m?.base ?? '?'} size={44} />
+            <CoinBadge symbol={m?.base ?? '?'} size={34} />
             <Text variant="heading">{m ? `${m.name} · ${m.base}/${m.quote}` : ' '}</Text>
             {market.isPending ? (
                 <Skeleton width="55%" height={38} />

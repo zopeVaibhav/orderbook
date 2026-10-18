@@ -48,7 +48,7 @@ function OrderRow({ order }: { order: UserOrder }) {
             }
             style={[styles.row, { borderColor: colors.border }]}
         >
-            <CoinBadge symbol={order.base} size={36} />
+            <CoinBadge symbol={order.base} size={32} />
             <View style={styles.flex}>
                 <View style={styles.inline}>
                     <View

@@ -73,7 +73,7 @@ export default function ProfileScreen() {
                     scaleTo={0.9}
                     onPress={() => router.back()}
                 >
-                    <ArrowLeft size={22} color={colors.foreground} />
+                    <ArrowLeft size={20} color={colors.foreground} />
                 </PressableScale>
                 <View style={styles.flex} />
                 <IconButton
@@ -103,7 +103,7 @@ export default function ProfileScreen() {
                 }
             >
                 <Animated.View entering={FadeInDown.duration(320)} style={styles.identity}>
-                    <Avatar name={user?.name ?? ''} image={user?.image ?? null} size={88} />
+                    <Avatar name={user?.name ?? ''} image={user?.image ?? null} size={64} />
                     <View style={styles.nameRow}>
                         <Text variant="display" style={styles.flexShrink}>
                             {user?.name}
@@ -124,12 +124,12 @@ export default function ProfileScreen() {
                     ) : (
                         <>
                             <BalanceRow
-                                icon={<Wallet size={22} color={colors.mutedForeground} />}
+                                icon={<Wallet size={20} color={colors.mutedForeground} />}
                                 value={`${formatUsd(portfolio.data.cash)} USDC`}
                                 label="Available to trade"
                             />
                             <BalanceRow
-                                icon={<LockKeyhole size={22} color={colors.mutedForeground} />}
+                                icon={<LockKeyhole size={20} color={colors.mutedForeground} />}
                                 value={`${formatUsd(portfolio.data.inOrders)} USDC`}
                                 label="Reserved in open orders"
                             />
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: Spacing.md,
         paddingHorizontal: Spacing.lg,
-        height: 56,
+        height: 52,
     },
     content: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing['3xl'], gap: Spacing['2xl'] },
     identity: { gap: Spacing.sm, paddingTop: Spacing.sm },

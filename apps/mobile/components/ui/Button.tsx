@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 20,
     },
-    lg: { height: 54 },
-    md: { height: 42 },
+    lg: { height: 46 },
+    md: { height: 36 },
     row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 });

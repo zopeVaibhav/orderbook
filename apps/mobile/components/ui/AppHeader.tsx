@@ -30,7 +30,7 @@ export function AppHeader({ title }: { title: string }) {
                 onPress={() => router.push('/search')}
                 style={styles.icon}
             >
-                <Search size={22} color={colors.foreground} />
+                <Search size={20} color={colors.foreground} />
             </PressableScale>
             <PressableScale
                 accessibilityRole="button"
@@ -39,7 +39,7 @@ export function AppHeader({ title }: { title: string }) {
                 scaleTo={0.92}
                 onPress={() => router.push('/profile')}
             >
-                <Avatar name={user?.name ?? ''} image={user?.image ?? null} size={36} />
+                <Avatar name={user?.name ?? ''} image={user?.image ?? null} size={32} />
             </PressableScale>
         </View>
     );
@@ -55,18 +55,18 @@ const styles = StyleSheet.create({
         paddingBottom: Spacing.md,
     },
     mark: {
-        width: 34,
-        height: 34,
+        width: 30,
+        height: 30,
         borderRadius: Radius.lg,
         flexDirection: 'row',
         alignItems: 'flex-end',
         justifyContent: 'center',
         gap: 3,
-        paddingBottom: 8,
+        paddingBottom: 7,
     },
-    markBar: { width: 5, borderRadius: 2 },
-    markAsk: { height: 10 },
-    markBid: { height: 17 },
+    markBar: { width: 4, borderRadius: 2 },
+    markAsk: { height: 8 },
+    markBid: { height: 14 },
     title: { flex: 1 },
     icon: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
 });

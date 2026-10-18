@@ -77,6 +77,6 @@ export function StickyTabs<T extends string>({ tabs, value, onChange }: StickyTa
 const styles = StyleSheet.create({
     bar: { borderBottomWidth: StyleSheet.hairlineWidth },
     row: { paddingHorizontal: Spacing.lg, gap: Spacing['2xl'] },
-    tab: { paddingTop: Spacing.md, paddingBottom: Spacing.md + 2 },
+    tab: { paddingTop: Spacing.sm + 2, paddingBottom: Spacing.md },
     underline: { position: 'absolute', left: 0, bottom: 0, height: 3, borderRadius: 2 },
 });

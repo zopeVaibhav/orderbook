@@ -18,7 +18,7 @@ export function MarketRow({ market }: { market: Market }) {
             onPress={() => router.push({ pathname: '/market/[id]', params: { id: market.id } })}
             style={styles.row}
         >
-            <CoinBadge symbol={market.base} />
+            <CoinBadge symbol={market.base} size={34} />
             <View style={styles.name}>
                 <Text variant="bodyMedium">
                     {market.base}

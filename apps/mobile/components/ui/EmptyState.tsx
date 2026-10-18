@@ -38,7 +38,7 @@ export function EmptyState({ icon, title, message, actionLabel, onAction }: Empt
 }
 
 const styles = StyleSheet.create({
-    wrap: { alignItems: 'center', gap: Spacing.sm, paddingVertical: Spacing['3xl'] },
+    wrap: { alignItems: 'center', gap: Spacing.sm, paddingVertical: Spacing['2xl'] },
     center: { textAlign: 'center' },
     action: { marginTop: Spacing.sm },
 });

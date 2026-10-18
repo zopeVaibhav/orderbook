@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { MarketRow } from '@/components/market/MarketRow';
-import { MarketTile, SeeAllTile } from '@/components/market/MarketTile';
+import { MarketTile } from '@/components/market/MarketTile';
 import { RecentStrip } from '@/components/market/RecentStrip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { SectionHeader } from '@/components/ui/SectionHeader';
@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { useMarkets } from '@/hooks/queries/useMarkets';
 import { Radius, Spacing } from '@/theme';
 
-const MOVER_TILES = 3;
+const MOVER_TILES = 4;
 const MOST_TRADED = 5;
 
 export function ExploreTab() {
@@ -52,18 +52,19 @@ export function ExploreTab() {
             <RecentStrip />
 
             <Animated.View entering={FadeInDown.duration(320)} style={styles.section}>
-                <SectionHeader title="Top movers" />
+                <SectionHeader
+                    title="Top movers"
+                    actionLabel="See all"
+                    onAction={() => router.navigate('/markets')}
+                />
                 <View style={styles.grid}>
                     {markets.isPending
                         ? [0, 1, 2, 3].map((i) => (
                               <View key={i} style={styles.cell}>
-                                  <Skeleton height={168} radius={Radius['2xl']} />
+                                  <Skeleton height={128} radius={Radius.xl} />
                               </View>
                           ))
                         : movers.map((m) => <MarketTile key={m.id} market={m} />)}
-                    {!markets.isPending ? (
-                        <SeeAllTile label="See all" onPress={() => router.navigate('/markets')} />
-                    ) : null}
                 </View>
             </Animated.View>
 
@@ -82,7 +83,7 @@ export function ExploreTab() {
 }
 
 const styles = StyleSheet.create({
-    body: { padding: Spacing.lg, gap: Spacing['3xl'] },
+    body: { padding: Spacing.lg, gap: Spacing['2xl'] },
     section: { gap: Spacing.md },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
     cell: { flexBasis: '47%', flexGrow: 1 },

@@ -51,7 +51,7 @@ export function MarketTopBar({ title, price, change, scrollY, revealAt }: Market
                 scaleTo={0.9}
                 onPress={() => router.back()}
             >
-                <ArrowLeft size={22} color={colors.foreground} />
+                <ArrowLeft size={20} color={colors.foreground} />
             </PressableScale>
             <Animated.View style={[styles.compact, compact]} pointerEvents="none">
                 <Text variant="bodyMedium" numberOfLines={1}>
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: Spacing.lg,
         paddingHorizontal: Spacing.lg,
-        height: 56,
+        height: 52,
     },
     compact: { flex: 1 },
     inline: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },

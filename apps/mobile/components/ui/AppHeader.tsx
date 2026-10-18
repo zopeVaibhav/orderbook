@@ -37,7 +37,7 @@ export function AppHeader({ title }: { title: string }) {
                 accessibilityLabel="Open profile"
                 hitSlop={6}
                 scaleTo={0.92}
-                onPress={() => router.navigate('/profile')}
+                onPress={() => router.push('/profile')}
             >
                 <Avatar name={user?.name ?? ''} image={user?.image ?? null} size={36} />
             </PressableScale>

@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
-import { Bell, ChartCandlestick, House, UserRound } from 'lucide-react-native';
+import { Bell, ChartCandlestick, House } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TabIcon } from '@/components/ui/TabIcon';
 import { useUnreadCount } from '@/hooks/useUnreadCount';
 import { haptic } from '@/lib/haptics';
 import { Fonts, useTheme } from '@/theme';
@@ -23,8 +24,8 @@ export default function TabsLayout() {
                 tabBarStyle: {
                     backgroundColor: colors.background,
                     borderTopColor: colors.border,
-                    height: 60 + bottom,
-                    paddingTop: 6,
+                    height: 64 + bottom,
+                    paddingTop: 8,
                     paddingBottom: bottom + 6,
                 },
             }}
@@ -33,30 +34,29 @@ export default function TabsLayout() {
                 name="index"
                 options={{
                     title: 'Home',
-                    tabBarIcon: ({ color }) => <House size={22} color={color} />,
+                    tabBarIcon: ({ color, focused }) => (
+                        <TabIcon icon={House} color={color} focused={focused} />
+                    ),
                 }}
             />
             <Tabs.Screen
                 name="markets"
                 options={{
                     title: 'Markets',
-                    tabBarIcon: ({ color }) => <ChartCandlestick size={22} color={color} />,
+                    tabBarIcon: ({ color, focused }) => (
+                        <TabIcon icon={ChartCandlestick} color={color} focused={focused} />
+                    ),
                 }}
             />
             <Tabs.Screen
                 name="notifications"
                 options={{
                     title: 'Activity',
-                    tabBarIcon: ({ color }) => <Bell size={22} color={color} />,
+                    tabBarIcon: ({ color, focused }) => (
+                        <TabIcon icon={Bell} color={color} focused={focused} />
+                    ),
                     tabBarBadge: unread > 0 ? (unread > 9 ? '9+' : unread) : undefined,
                     tabBarBadgeStyle: { backgroundColor: colors.loss, fontSize: 10 },
-                }}
-            />
-            <Tabs.Screen
-                name="profile"
-                options={{
-                    title: 'Profile',
-                    tabBarIcon: ({ color }) => <UserRound size={22} color={color} />,
                 }}
             />
         </Tabs>

@@ -86,6 +86,7 @@ export default function NotificationsScreen() {
                 </View>
             ) : (
                 <FlatList
+                    showsVerticalScrollIndicator={false}
                     data={fills.data ?? []}
                     keyExtractor={(f) => `${f.tradeId}-${f.clientOrderId}`}
                     renderItem={({ item }) => <FillItem fill={item} unread={item.ts > baseline} />}

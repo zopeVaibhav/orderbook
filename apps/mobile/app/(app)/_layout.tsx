@@ -16,6 +16,7 @@ export default function AppLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="market/[id]" />
             <Stack.Screen name="settings" />
+            <Stack.Screen name="profile" />
             <Stack.Screen name="search" options={{ animation: 'fade' }} />
         </Stack>
     );

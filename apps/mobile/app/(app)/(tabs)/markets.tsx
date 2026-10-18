@@ -96,6 +96,7 @@ export default function MarketsScreen() {
                 </View>
             ) : (
                 <FlatList
+                    showsVerticalScrollIndicator={false}
                     data={rows}
                     keyExtractor={(m) => m.id}
                     renderItem={({ item }) => <MarketRow market={item} />}

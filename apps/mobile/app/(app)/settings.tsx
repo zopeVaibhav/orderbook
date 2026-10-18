@@ -28,7 +28,7 @@ export default function SettingsScreen() {
     return (
         <Screen>
             <BackHeader title="Settings" />
-            <ScrollView contentContainerStyle={styles.content}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
                 <Text variant="caption" tone="muted">
                     APPEARANCE
                 </Text>

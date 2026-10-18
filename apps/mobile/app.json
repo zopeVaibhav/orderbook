@@ -7,18 +7,41 @@
         "orientation": "portrait",
         "icon": "./assets/icon.png",
         "userInterfaceStyle": "automatic",
-        "plugins": ["expo-router"],
+        "plugins": [
+            "expo-router",
+            "expo-secure-store",
+            "expo-font",
+            [
+                "expo-splash-screen",
+                {
+                    "image": "./assets/splash-icon.png",
+                    "imageWidth": 120,
+                    "resizeMode": "contain",
+                    "backgroundColor": "#ffffff",
+                    "dark": {
+                        "image": "./assets/splash-icon.png",
+                        "backgroundColor": "#1a1a1a"
+                    }
+                }
+            ],
+            [
+                "@react-native-google-signin/google-signin",
+                {
+                    "iosUrlScheme": "com.googleusercontent.apps.990663527499-hos8o8jkndi91g1p956uihl92vim21s5"
+                }
+            ]
+        ],
         "experiments": {
             "typedRoutes": true
         },
         "ios": {
-            "supportsTablet": true,
-            "bundleIdentifier": "com.vaibhavzope.orderbook"
+            "supportsTablet": false,
+            "bundleIdentifier": "com.frnklyy.app"
         },
         "android": {
-            "package": "com.vaibhavzope.orderbook",
+            "package": "com.frnklyy.app",
             "adaptiveIcon": {
-                "backgroundColor": "#E6F4FE",
+                "backgroundColor": "#1a1a1a",
                 "foregroundImage": "./assets/android-icon-foreground.png",
                 "backgroundImage": "./assets/android-icon-background.png",
                 "monochromeImage": "./assets/android-icon-monochrome.png"

@@ -1,15 +1,17 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { RefreshControl, SectionList, StyleSheet, View } from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
-import { ArrowDownLeft, ArrowUpRight, BellOff } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { ArrowDownLeft, ArrowUpRight, BellOff, CheckCheck } from 'lucide-react-native';
 import type { UserFill } from '@repo/types';
 import { BackHeader } from '@/components/ui/BackHeader';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { IconButton } from '@/components/ui/IconButton';
 import { FillListPlaceholder } from '@/components/ui/Placeholders';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { useFills } from '@/hooks/queries/useAccount';
+import { fillKey, useIsFillUnread } from '@/hooks/useUnreadCount';
 import { formatDayHeading, formatPrice, formatRelative, formatSize } from '@/lib/format';
 import { usePreferences } from '@/store/preferences';
 import { Spacing, useTheme } from '@/theme';
@@ -24,12 +26,13 @@ function FillItem({ fill, unread }: { fill: UserFill; unread: boolean }) {
         <PressableScale
             accessibilityRole="button"
             scaleTo={0.985}
-            onPress={() =>
+            onPress={() => {
+                usePreferences.getState().markFillRead(fillKey(fill));
                 router.push({
                     pathname: '/order-details/[id]',
                     params: { id: fill.clientOrderId },
-                })
-            }
+                });
+            }}
             style={styles.item}
         >
             <View
@@ -88,23 +91,28 @@ function groupByDay(fills: UserFill[]): FillSection[] {
 export function ActivityScreen({ showBack = false }: { showBack?: boolean }) {
     const { colors } = useTheme();
     const fills = useFills();
-    const seenAt = usePreferences((s) => s.notificationsSeenAt);
-    const markSeen = usePreferences((s) => s.markNotificationsSeen);
-    const [baseline, setBaseline] = useState(seenAt);
+    const isUnread = useIsFillUnread();
+    const markAllRead = usePreferences((s) => s.markAllFillsRead);
     const sections = useMemo(() => groupByDay(fills.data ?? []), [fills.data]);
-
-    useFocusEffect(
-        useCallback(() => {
-            setBaseline(usePreferences.getState().notificationsSeenAt);
-            return () => markSeen();
-        }, [markSeen]),
-    );
+    const hasUnread = (fills.data ?? []).some(isUnread);
+    const markAllButton = hasUnread ? (
+        <IconButton
+            label="Mark all as read"
+            icon={<CheckCheck size={18} color={colors.foreground} />}
+            onPress={markAllRead}
+        />
+    ) : null;
 
     return (
         <Screen>
-            {showBack ? <BackHeader title="Activity" /> : null}
+            {showBack ? <BackHeader title="Activity" trailing={markAllButton} /> : null}
             <View style={styles.top}>
-                {showBack ? null : <Text variant="title">Activity</Text>}
+                {showBack ? null : (
+                    <View style={styles.titleRow}>
+                        <Text variant="title">Activity</Text>
+                        {markAllButton}
+                    </View>
+                )}
                 <Text variant="small" tone="muted">
                     Fills on your orders, newest first.
                 </Text>
@@ -118,8 +126,8 @@ export function ActivityScreen({ showBack = false }: { showBack?: boolean }) {
                     showsVerticalScrollIndicator={false}
                     sections={sections}
                     stickySectionHeadersEnabled={false}
-                    keyExtractor={(f) => `${f.tradeId}-${f.clientOrderId}`}
-                    renderItem={({ item }) => <FillItem fill={item} unread={item.ts > baseline} />}
+                    keyExtractor={fillKey}
+                    renderItem={({ item }) => <FillItem fill={item} unread={isUnread(item)} />}
                     renderSectionHeader={({ section }) => (
                         <Text variant="smallMedium" tone="muted" style={styles.sectionHeader}>
                             {section.title}
@@ -163,6 +171,12 @@ const styles = StyleSheet.create({
         paddingTop: Spacing.sm,
         paddingBottom: Spacing.md,
         gap: 2,
+    },
+    titleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: 36,
     },
     list: { flexGrow: 1, paddingHorizontal: Spacing.lg, paddingBottom: Spacing['3xl'] },
     empty: { flex: 1, justifyContent: 'center' },

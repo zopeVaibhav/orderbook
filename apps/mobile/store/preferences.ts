@@ -4,12 +4,14 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import type { CandleInterval } from '@repo/types';
 
 const RECENT_LIMIT = 8;
+const READ_FILLS_LIMIT = 200;
 
 interface PreferencesState {
     darkMode: boolean;
     haptics: boolean;
     hasSeenOnboarding: boolean;
     notificationsSeenAt: number;
+    readFills: string[];
     recentMarkets: string[];
     recentSearches: string[];
     chartMode: 'line' | 'candles';
@@ -18,7 +20,8 @@ interface PreferencesState {
     setDarkMode: (enabled: boolean) => void;
     setHaptics: (enabled: boolean) => void;
     completeOnboarding: () => void;
-    markNotificationsSeen: () => void;
+    markFillRead: (key: string) => void;
+    markAllFillsRead: () => void;
     pushRecentMarket: (marketId: string) => void;
     pushRecentSearch: (query: string) => void;
     clearRecentSearches: () => void;
@@ -33,6 +36,7 @@ export const usePreferences = create<PreferencesState>()(
             haptics: true,
             hasSeenOnboarding: false,
             notificationsSeenAt: 0,
+            readFills: [],
             recentMarkets: [],
             recentSearches: [],
             chartMode: 'candles',
@@ -41,7 +45,13 @@ export const usePreferences = create<PreferencesState>()(
             setDarkMode: (darkMode) => set({ darkMode }),
             setHaptics: (haptics) => set({ haptics }),
             completeOnboarding: () => set({ hasSeenOnboarding: true }),
-            markNotificationsSeen: () => set({ notificationsSeenAt: Date.now() }),
+            markFillRead: (key) =>
+                set((s) =>
+                    s.readFills.includes(key)
+                        ? s
+                        : { readFills: [key, ...s.readFills].slice(0, READ_FILLS_LIMIT) },
+                ),
+            markAllFillsRead: () => set({ notificationsSeenAt: Date.now(), readFills: [] }),
             pushRecentMarket: (marketId) =>
                 set((s) => ({
                     recentMarkets: [

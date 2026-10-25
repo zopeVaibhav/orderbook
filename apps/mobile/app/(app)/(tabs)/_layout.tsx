@@ -1,9 +1,9 @@
 import { Tabs } from 'expo-router';
 import { Bell, ChartCandlestick, House } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TabButton } from '@/components/ui/TabButton';
 import { TabIcon } from '@/components/ui/TabIcon';
 import { useUnreadCount } from '@/hooks/useUnreadCount';
-import { haptic } from '@/lib/haptics';
 import { Fonts, useTheme } from '@/theme';
 
 export default function TabsLayout() {
@@ -13,9 +13,9 @@ export default function TabsLayout() {
 
     return (
         <Tabs
-            screenListeners={{ tabPress: () => haptic.tap() }}
             screenOptions={{
                 headerShown: false,
+                tabBarButton: (props) => <TabButton {...props} />,
                 animation: 'shift',
                 sceneStyle: { backgroundColor: colors.background },
                 tabBarActiveTintColor: colors.foreground,

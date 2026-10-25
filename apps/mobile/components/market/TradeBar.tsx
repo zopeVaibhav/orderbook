@@ -16,7 +16,7 @@ export function TradeBar({ marketId }: { marketId: string }) {
             style={[
                 styles.bar,
                 {
-                    paddingBottom: bottom + Spacing.sm,
+                    paddingBottom: bottom + Spacing.md,
                     backgroundColor: colors.background,
                     borderColor: colors.border,
                 },
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: Spacing.md,
         paddingHorizontal: Spacing.lg,
-        paddingTop: Spacing.sm,
+        paddingTop: Spacing.md,
         borderTopWidth: StyleSheet.hairlineWidth,
     },
     button: { flex: 1 },

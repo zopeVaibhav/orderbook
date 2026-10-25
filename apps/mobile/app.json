@@ -27,7 +27,7 @@
             [
                 "@react-native-google-signin/google-signin",
                 {
-                    "iosUrlScheme": "com.googleusercontent.apps.990663527499-hos8o8jkndi91g1p956uihl92vim21s5"
+                    "iosUrlScheme": "com.googleusercontent.apps.635130454583-4jn4cabitkschjhtsleccaslq2d2os5n"
                 }
             ]
         ],
@@ -36,10 +36,10 @@
         },
         "ios": {
             "supportsTablet": false,
-            "bundleIdentifier": "com.frnklyy.app"
+            "bundleIdentifier": "com.orderbook.app"
         },
         "android": {
-            "package": "com.frnklyy.app",
+            "package": "com.orderbook.app",
             "adaptiveIcon": {
                 "backgroundColor": "#1a1a1a",
                 "foregroundImage": "./assets/android-icon-foreground.png",

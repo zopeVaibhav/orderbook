@@ -42,3 +42,5 @@ yarn-error.*
 
 # design references
 /ref
+google-services.json
+GoogleService-Info.plist

@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Skeleton } from '@/components/ui/Skeleton';
+import { OrderBookPlaceholder } from '@/components/ui/Placeholders';
 import { Text } from '@/components/ui/Text';
 import { formatPrice, formatSize } from '@/lib/format';
 import { useMarketBook } from '@/store/orderbook';
@@ -78,13 +78,7 @@ export function OrderBook() {
     }, [asksMap, bidsMap]);
 
     if (!ready) {
-        return (
-            <View style={styles.loading}>
-                {Array.from({ length: 8 }, (_, i) => (
-                    <Skeleton key={i} height={18} />
-                ))}
-            </View>
-        );
+        return <OrderBookPlaceholder />;
     }
 
     const last = lastTrade ? parseFloat(lastTrade.price) : null;
@@ -148,5 +142,4 @@ const styles = StyleSheet.create({
     },
     spread: { marginLeft: 'auto' },
     empty: { paddingVertical: Spacing.sm, textAlign: 'center' },
-    loading: { gap: Spacing.sm },
 });

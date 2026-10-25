@@ -16,9 +16,15 @@ interface CandleState {
     key: string | null;
     intervalMs: number;
     candles: Candle[];
+    seeded: boolean;
 }
 
-export const useCandles = create<CandleState>(() => ({ key: null, intervalMs: 0, candles: [] }));
+export const useCandles = create<CandleState>(() => ({
+    key: null,
+    intervalMs: 0,
+    candles: [],
+    seeded: false,
+}));
 
 let pending: PublicTrade[] = [];
 let frame = 0;
@@ -64,13 +70,13 @@ function flush(): void {
 export const candleFeed = {
     begin(key: string, intervalMs: number): void {
         this.end();
-        useCandles.setState({ key, intervalMs, candles: [] });
+        useCandles.setState({ key, intervalMs, candles: [], seeded: false });
     },
     end(): void {
         if (frame !== 0) cancelAnimationFrame(frame);
         frame = 0;
         pending = [];
-        useCandles.setState({ key: null, intervalMs: 0, candles: [] });
+        useCandles.setState({ key: null, intervalMs: 0, candles: [], seeded: false });
     },
     seed(key: string, rows: ApiCandle[]): void {
         const state = useCandles.getState();
@@ -85,7 +91,7 @@ export const candleFeed = {
         }));
         const lastSeeded = seeded[seeded.length - 1]?.time ?? -Infinity;
         const live = state.candles.filter((c) => c.time > lastSeeded);
-        useCandles.setState({ candles: [...seeded, ...live].slice(-CANDLE_LIMIT) });
+        useCandles.setState({ candles: [...seeded, ...live].slice(-CANDLE_LIMIT), seeded: true });
     },
     trade(trade: PublicTrade): void {
         pending.push(trade);

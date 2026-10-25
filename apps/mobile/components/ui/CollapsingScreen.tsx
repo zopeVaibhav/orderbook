@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { RefreshControl, StyleSheet, View } from 'react-native';
 import Animated, {
     useAnimatedRef,
@@ -7,6 +7,12 @@ import Animated, {
     type SharedValue,
 } from 'react-native-reanimated';
 import { Spacing, useTheme } from '@/theme';
+
+const BodyHeightContext = createContext(0);
+
+export function useBodyHeight(): number {
+    return useContext(BodyHeightContext);
+}
 
 interface CollapsingScreenProps {
     header: ReactNode;
@@ -32,6 +38,10 @@ export function CollapsingScreen({
     const localY = useSharedValue(0);
     const offset = scrollY ?? localY;
     const headerHeight = useRef(0);
+    const [sizes, setSizes] = useState({ view: 0, header: 0, tabs: 0 });
+    const bodyHeight = Math.max(0, sizes.view - sizes.header - sizes.tabs - Spacing['3xl']);
+    const measure = (key: 'view' | 'header' | 'tabs', value: number) =>
+        setSizes((prev) => (prev[key] === value ? prev : { ...prev, [key]: value }));
 
     const onScroll = useAnimatedScrollHandler((e) => {
         offset.set(e.contentOffset.y);
@@ -46,6 +56,7 @@ export function CollapsingScreen({
     return (
         <Animated.ScrollView
             ref={scroll}
+            onLayout={(e) => measure('view', e.nativeEvent.layout.height)}
             stickyHeaderIndices={[1]}
             showsVerticalScrollIndicator={false}
             scrollEventThrottle={16}
@@ -66,12 +77,17 @@ export function CollapsingScreen({
             <View
                 onLayout={(e) => {
                     headerHeight.current = e.nativeEvent.layout.height;
+                    measure('header', e.nativeEvent.layout.height);
                 }}
             >
                 {header}
             </View>
-            {tabs}
-            <View style={styles.content}>{children}</View>
+            <View onLayout={(e) => measure('tabs', e.nativeEvent.layout.height)}>{tabs}</View>
+            <View style={styles.content}>
+                <BodyHeightContext.Provider value={bodyHeight}>
+                    {children}
+                </BodyHeightContext.Provider>
+            </View>
         </Animated.ScrollView>
     );
 }

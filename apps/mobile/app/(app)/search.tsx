@@ -5,6 +5,7 @@ import { ArrowLeft, History, TrendingUp, X } from 'lucide-react-native';
 import { MarketRow } from '@/components/market/MarketRow';
 import { Chip } from '@/components/ui/Chip';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { MarketListPlaceholder } from '@/components/ui/Placeholders';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
@@ -115,7 +116,11 @@ export default function SearchScreen() {
                 ))}
             </ScrollView>
 
-            {browsing ? (
+            {markets.isPending ? (
+                <View style={styles.list}>
+                    <MarketListPlaceholder count={7} separated />
+                </View>
+            ) : browsing ? (
                 <ScrollView
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
@@ -194,6 +199,7 @@ export default function SearchScreen() {
                     )}
                     ListEmptyComponent={
                         <EmptyState
+                            fill
                             title="No matches"
                             message={
                                 trimmed
@@ -242,6 +248,6 @@ const styles = StyleSheet.create({
         borderWidth: StyleSheet.hairlineWidth,
     },
     flex: { flex: 1 },
-    list: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing['3xl'] },
+    list: { flexGrow: 1, paddingHorizontal: Spacing.lg, paddingBottom: Spacing['3xl'] },
     separator: { height: StyleSheet.hairlineWidth },
 });

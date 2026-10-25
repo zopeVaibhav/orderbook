@@ -12,6 +12,7 @@ interface MarketBookState {
     lastSeq: number;
     ready: boolean;
     trades: PublicTrade[];
+    tradesLoaded: boolean;
 }
 
 const EMPTY: MarketBookState = {
@@ -21,6 +22,7 @@ const EMPTY: MarketBookState = {
     lastSeq: 0,
     ready: false,
     trades: [],
+    tradesLoaded: false,
 };
 
 export const useMarketBook = create<MarketBookState>(() => EMPTY);
@@ -64,7 +66,10 @@ function flush(): void {
     pendingTrades = [];
 
     const patch: Partial<MarketBookState> = {};
-    if (trades.length > 0) patch.trades = mergeTrades(state.trades, trades);
+    if (trades.length > 0) {
+        patch.trades = mergeTrades(state.trades, trades);
+        patch.tradesLoaded = true;
+    }
     if (deltas.length > 0 && state.ready) {
         const asks = new Map(state.asks);
         const bids = new Map(state.bids);
@@ -110,6 +115,9 @@ export const marketBook = {
         schedule();
     },
     seedTrades(trades: PublicTrade[]): void {
-        useMarketBook.setState({ trades: mergeTrades(useMarketBook.getState().trades, trades) });
+        useMarketBook.setState({
+            trades: mergeTrades(useMarketBook.getState().trades, trades),
+            tradesLoaded: true,
+        });
     },
 };

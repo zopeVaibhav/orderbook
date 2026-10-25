@@ -5,6 +5,7 @@ import Animated, {
     useAnimatedStyle,
     useSharedValue,
     withTiming,
+    type SharedValue,
 } from 'react-native-reanimated';
 import { Spacing, useTheme } from '@/theme';
 import { PressableScale } from './PressableScale';
@@ -16,9 +17,15 @@ interface StickyTabsProps<T extends string> {
     tabs: readonly T[];
     value: T;
     onChange: (tab: T) => void;
+    progress?: SharedValue<number>;
 }
 
-export function StickyTabs<T extends string>({ tabs, value, onChange }: StickyTabsProps<T>) {
+export function StickyTabs<T extends string>({
+    tabs,
+    value,
+    onChange,
+    progress,
+}: StickyTabsProps<T>) {
     const { colors } = useTheme();
     const [layouts, setLayouts] = useState<Partial<Record<T, LayoutRectangle>>>({});
     const x = useSharedValue(0);
@@ -31,10 +38,23 @@ export function StickyTabs<T extends string>({ tabs, value, onChange }: StickyTa
         width.set(withTiming(active.width, SLIDE));
     }, [active, x, width]);
 
-    const underline = useAnimatedStyle(() => ({
-        width: width.get(),
-        transform: [{ translateX: x.get() }],
-    }));
+    const xs = tabs.map((tab) => layouts[tab]?.x ?? 0);
+    const ws = tabs.map((tab) => layouts[tab]?.width ?? 0);
+    const last = tabs.length - 1;
+
+    const underline = useAnimatedStyle(() => {
+        if (!progress) return { width: width.get(), transform: [{ translateX: x.get() }] };
+        const p = Math.max(0, Math.min(last, progress.get()));
+        const i = Math.floor(p);
+        const j = Math.min(i + 1, last);
+        const f = p - i;
+        const fromX = xs[i] ?? 0;
+        const fromW = ws[i] ?? 0;
+        return {
+            width: fromW + ((ws[j] ?? fromW) - fromW) * f,
+            transform: [{ translateX: fromX + ((xs[j] ?? fromX) - fromX) * f }],
+        };
+    });
 
     return (
         <View

@@ -12,9 +12,10 @@ import { TradeBar } from '@/components/market/TradeBar';
 import { TradeTape } from '@/components/market/TradeTape';
 import { CollapsingScreen } from '@/components/ui/CollapsingScreen';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { MarketHeaderPlaceholder, OverviewPlaceholder } from '@/components/ui/Placeholders';
 import { Screen } from '@/components/ui/Screen';
-import { Skeleton } from '@/components/ui/Skeleton';
 import { StickyTabs } from '@/components/ui/StickyTabs';
+import { SwipePager } from '@/components/ui/SwipePager';
 import { Text } from '@/components/ui/Text';
 import { useMarket } from '@/hooks/queries/useMarkets';
 import { useMarketStream } from '@/hooks/useMarketStream';
@@ -24,7 +25,6 @@ import { usePreferences } from '@/store/preferences';
 import { Spacing } from '@/theme';
 
 const TABS = ['Overview', 'Order book', 'Trades'] as const;
-type Tab = (typeof TABS)[number];
 const REVEAL_AT = 150;
 
 function changeLine(price: number | null, open: number | null, change: number | null): string {
@@ -39,7 +39,8 @@ export default function MarketScreen() {
     const stream = useMarketStream(id);
     const lastTrade = useMarketBook((s) => s.trades[0]);
     const pushRecentMarket = usePreferences((s) => s.pushRecentMarket);
-    const [tab, setTab] = useState<Tab>('Overview');
+    const [index, setIndex] = useState(0);
+    const progress = useSharedValue(0);
     const scrollY = useSharedValue(0);
     const m = market.data;
     const price = lastTrade ? parseFloat(lastTrade.price) : (m?.price ?? null);
@@ -53,21 +54,23 @@ export default function MarketScreen() {
 
     const header = (
         <View style={styles.header}>
-            <CoinBadge symbol={m?.base ?? '?'} size={34} />
-            <Text variant="heading">{m ? `${m.name} · ${m.base}/${m.quote}` : ' '}</Text>
-            {market.isPending ? (
-                <Skeleton width="55%" height={38} />
+            {!m ? (
+                <MarketHeaderPlaceholder />
             ) : (
-                <View style={styles.priceBlock}>
-                    <LivePrice value={price} variant="display" />
-                    <Text
-                        variant="smallMedium"
-                        tone={change === null ? 'muted' : up ? 'profit' : 'loss'}
-                        numeric
-                    >
-                        {changeLine(price, open, change)}
-                    </Text>
-                </View>
+                <>
+                    <CoinBadge symbol={m.base} size={34} />
+                    <Text variant="heading">{`${m.name} · ${m.base}/${m.quote}`}</Text>
+                    <View style={styles.priceBlock}>
+                        <LivePrice value={price} variant="display" />
+                        <Text
+                            variant="smallMedium"
+                            tone={change === null ? 'muted' : up ? 'profit' : 'loss'}
+                            numeric
+                        >
+                            {changeLine(price, open, change)}
+                        </Text>
+                    </View>
+                </>
             )}
             <MarketChart marketId={id} reference={open} />
         </View>
@@ -84,8 +87,15 @@ export default function MarketScreen() {
             />
             <CollapsingScreen
                 header={header}
-                tabs={<StickyTabs tabs={TABS} value={tab} onChange={setTab} />}
-                contentKey={tab}
+                tabs={
+                    <StickyTabs
+                        tabs={TABS}
+                        value={TABS[index] ?? TABS[0]}
+                        onChange={(tab) => setIndex(TABS.indexOf(tab))}
+                        progress={progress}
+                    />
+                }
+                contentKey={String(index)}
                 scrollY={scrollY}
                 refreshing={stream.isRefreshing}
                 onRefresh={() => {
@@ -100,12 +110,25 @@ export default function MarketScreen() {
                         actionLabel="Retry"
                         onAction={() => void stream.refresh()}
                     />
-                ) : tab === 'Overview' ? (
-                    <MarketOverview market={m} price={price} />
                 ) : (
-                    <View style={styles.pane}>
-                        {tab === 'Order book' ? <OrderBook /> : <TradeTape />}
-                    </View>
+                    <SwipePager
+                        index={index}
+                        onIndexChange={setIndex}
+                        progress={progress}
+                        pages={[
+                            m ? (
+                                <MarketOverview key="overview" market={m} price={price} />
+                            ) : (
+                                <OverviewPlaceholder key="overview" />
+                            ),
+                            <View key="book" style={styles.pane}>
+                                <OrderBook />
+                            </View>,
+                            <View key="trades" style={styles.pane}>
+                                <TradeTape />
+                            </View>,
+                        ]}
+                    />
                 )}
             </CollapsingScreen>
             {id ? <TradeBar marketId={id} /> : null}
@@ -116,5 +139,5 @@ export default function MarketScreen() {
 const styles = StyleSheet.create({
     header: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.lg, gap: Spacing.sm },
     priceBlock: { gap: 2, marginBottom: Spacing.md },
-    pane: { padding: Spacing.lg },
+    pane: { flexGrow: 1, padding: Spacing.lg },
 });

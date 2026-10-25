@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import type { PublicTrade } from '@repo/types/socket';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { TradeTapePlaceholder } from '@/components/ui/Placeholders';
 import { Text } from '@/components/ui/Text';
 import { formatClock, formatPrice, formatSize } from '@/lib/format';
 import { useMarketBook } from '@/store/orderbook';
@@ -28,9 +29,12 @@ const TradeRow = memo(function TradeRow({ trade }: { trade: PublicTrade }) {
 
 export function TradeTape() {
     const trades = useMarketBook((s) => s.trades);
+    const loaded = useMarketBook((s) => s.tradesLoaded);
+
+    if (!loaded) return <TradeTapePlaceholder />;
 
     return (
-        <View>
+        <View style={styles.root}>
             <View style={styles.row}>
                 <Text variant="caption" tone="muted" style={styles.cell}>
                     PRICE
@@ -43,7 +47,11 @@ export function TradeTape() {
                 </Text>
             </View>
             {trades.length === 0 ? (
-                <EmptyState title="No trades yet" message="New trades appear here as they print." />
+                <EmptyState
+                    title="No trades yet"
+                    message="New trades appear here as they print."
+                    fill
+                />
             ) : (
                 trades.slice(0, VISIBLE).map((t) => <TradeRow key={t.trade_id} trade={t} />)
             )}
@@ -52,6 +60,7 @@ export function TradeTape() {
 }
 
 const styles = StyleSheet.create({
+    root: { flexGrow: 1 },
     row: { flexDirection: 'row', alignItems: 'center', height: 24 },
     cell: { flex: 1 },
     right: { textAlign: 'right' },

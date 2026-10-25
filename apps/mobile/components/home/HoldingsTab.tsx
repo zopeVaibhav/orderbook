@@ -6,8 +6,12 @@ import { CoinBadge } from '@/components/market/CoinBadge';
 import { LivePrice } from '@/components/market/LivePrice';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
+import {
+    HoldingRowPlaceholder,
+    HoldingsSummaryPlaceholder,
+    Line,
+} from '@/components/ui/Placeholders';
 import { PressableScale } from '@/components/ui/PressableScale';
-import { Skeleton } from '@/components/ui/Skeleton';
 import { Text } from '@/components/ui/Text';
 import { usePortfolio, type Holding } from '@/hooks/queries/useAccount';
 import { formatSize, formatUsd } from '@/lib/format';
@@ -33,7 +37,7 @@ function SummaryCard() {
                 {`HOLDINGS (${count})`}
             </Text>
             {isPending || !data ? (
-                <Skeleton width="60%" height={34} />
+                <Line variant="display" width={170} />
             ) : (
                 <Text variant="display" numeric>
                     {formatUsd(data.total)}
@@ -95,15 +99,31 @@ function HoldingRow({ holding }: { holding: Holding }) {
 }
 
 export function HoldingsTab() {
-    const { data } = usePortfolio();
+    const { data, isPending } = usePortfolio();
+
+    if (isPending || !data) {
+        return (
+            <View style={styles.body}>
+                <HoldingsSummaryPlaceholder />
+                <View>
+                    {[0, 1, 2].map((i) => (
+                        <HoldingRowPlaceholder key={i} />
+                    ))}
+                </View>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.body}>
             <Animated.View entering={FadeInDown.duration(320)}>
                 <SummaryCard />
             </Animated.View>
-            <Animated.View entering={FadeInDown.delay(80).duration(320)}>
-                {data && data.holdings.length > 0 ? (
+            <Animated.View
+                entering={FadeInDown.delay(80).duration(320)}
+                style={data.holdings.length === 0 && styles.fill}
+            >
+                {data.holdings.length > 0 ? (
                     data.holdings.map((h) => <HoldingRow key={h.asset} holding={h} />)
                 ) : (
                     <EmptyState
@@ -111,6 +131,7 @@ export function HoldingsTab() {
                         message="Buy into a market and it will show up here."
                         actionLabel="Browse markets"
                         onAction={() => router.navigate('/markets')}
+                        fill
                     />
                 )}
             </Animated.View>
@@ -119,7 +140,8 @@ export function HoldingsTab() {
 }
 
 const styles = StyleSheet.create({
-    body: { padding: Spacing.lg, gap: Spacing.xl },
+    body: { flexGrow: 1, padding: Spacing.lg, gap: Spacing.xl },
+    fill: { flex: 1 },
     summary: { gap: Spacing.md, padding: Spacing.xl },
     rule: { height: StyleSheet.hairlineWidth, marginVertical: Spacing.xs },
     summaryRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

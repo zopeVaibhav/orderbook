@@ -5,8 +5,8 @@ import type { UserOrder } from '@repo/types';
 import { CoinBadge } from '@/components/market/CoinBadge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { OrderRowPlaceholder } from '@/components/ui/Placeholders';
 import { PressableScale } from '@/components/ui/PressableScale';
-import { Skeleton } from '@/components/ui/Skeleton';
 import { Text } from '@/components/ui/Text';
 import { useCancelOrder, useOpenOrders } from '@/hooks/queries/useAccount';
 import { formatPrice, formatRelative, formatSize } from '@/lib/format';
@@ -105,7 +105,7 @@ export function OrdersTab() {
     return (
         <View style={styles.body}>
             {orders.isPending ? (
-                [0, 1, 2].map((i) => <Skeleton key={i} height={64} />)
+                [0, 1, 2].map((i) => <OrderRowPlaceholder key={i} />)
             ) : (orders.data ?? []).length === 0 ? (
                 <EmptyState
                     icon={<ClipboardList size={28} color={colors.mutedForeground} />}
@@ -117,6 +117,7 @@ export function OrdersTab() {
                     }
                     actionLabel={orders.isError ? 'Retry' : undefined}
                     onAction={orders.isError ? () => void orders.refetch() : undefined}
+                    fill
                 />
             ) : (
                 (orders.data ?? []).map((o) => <OrderRow key={o.clientOrderId} order={o} />)
@@ -126,7 +127,7 @@ export function OrdersTab() {
 }
 
 const styles = StyleSheet.create({
-    body: { padding: Spacing.lg, gap: Spacing.md },
+    body: { flexGrow: 1, padding: Spacing.lg, gap: Spacing.md },
     row: {
         flexDirection: 'row',
         alignItems: 'center',

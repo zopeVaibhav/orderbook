@@ -9,6 +9,7 @@ import { LiveBadge } from '@/components/market/LiveBadge';
 import { LivePrice } from '@/components/market/LivePrice';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Screen } from '@/components/ui/Screen';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { Text } from '@/components/ui/Text';
 import { useMarket } from '@/hooks/queries/useMarkets';
 import { DEFAULT_INTERVAL, INTERVALS } from '@/lib/chart/intervals';
@@ -23,6 +24,7 @@ export default function ChartScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const market = useMarket(id);
     const candles = useCandles((s) => s.candles);
+    const candlesLoading = useCandles((s) => !s.seeded);
     const mode = usePreferences((s) => s.chartMode);
     const setMode = usePreferences((s) => s.setChartMode);
     const intervalKey = usePreferences((s) => s.chartInterval);
@@ -75,7 +77,9 @@ export default function ChartScreen() {
                     })
                 }
             >
-                {size.width > 0 && candles.length > 0 ? (
+                {size.width > 0 && candles.length === 0 && candlesLoading ? (
+                    <Skeleton width={size.width} height={size.height} radius={0} />
+                ) : size.width > 0 && candles.length > 0 ? (
                     <SkiaChart
                         key={`${interval.key}:${mode}`}
                         candles={candles}

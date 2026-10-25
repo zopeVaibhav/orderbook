@@ -4,9 +4,9 @@ import { Search, X } from 'lucide-react-native';
 import { MarketRow } from '@/components/market/MarketRow';
 import { Chip } from '@/components/ui/Chip';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { MarketListPlaceholder } from '@/components/ui/Placeholders';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Screen } from '@/components/ui/Screen';
-import { Skeleton } from '@/components/ui/Skeleton';
 import { Text } from '@/components/ui/Text';
 import { useMarkets, type Market } from '@/hooks/queries/useMarkets';
 import { Fonts, Radius, Spacing, useTheme } from '@/theme';
@@ -71,10 +71,8 @@ export default function MarketsScreen() {
             </View>
 
             {markets.isPending ? (
-                <View style={styles.skeletons}>
-                    {[0, 1, 2, 3, 4, 5].map((i) => (
-                        <Skeleton key={i} height={48} />
-                    ))}
+                <View style={styles.list}>
+                    <MarketListPlaceholder count={8} separated />
                 </View>
             ) : (
                 <FlatList
@@ -98,6 +96,7 @@ export default function MarketsScreen() {
                     ListEmptyComponent={
                         markets.isError ? (
                             <EmptyState
+                                fill
                                 title="Markets unavailable"
                                 message="Could not reach the server."
                                 actionLabel="Retry"
@@ -105,6 +104,7 @@ export default function MarketsScreen() {
                             />
                         ) : (
                             <EmptyState
+                                fill
                                 title="No matches"
                                 message={`Nothing found for "${query}".`}
                             />
@@ -128,7 +128,6 @@ const styles = StyleSheet.create({
     },
     input: { flex: 1, fontFamily: Fonts.regular, fontSize: 15, paddingVertical: 0 },
     chips: { flexDirection: 'row', gap: Spacing.sm, paddingBottom: Spacing.sm },
-    list: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing['3xl'] },
+    list: { flexGrow: 1, paddingHorizontal: Spacing.lg, paddingBottom: Spacing['3xl'] },
     separator: { height: StyleSheet.hairlineWidth },
-    skeletons: { padding: Spacing.lg, gap: Spacing.lg },
 });

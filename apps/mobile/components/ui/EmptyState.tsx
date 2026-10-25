@@ -10,11 +10,19 @@ interface EmptyStateProps {
     message?: string;
     actionLabel?: string;
     onAction?: () => void;
+    fill?: boolean;
 }
 
-export function EmptyState({ icon, title, message, actionLabel, onAction }: EmptyStateProps) {
+export function EmptyState({
+    icon,
+    title,
+    message,
+    actionLabel,
+    onAction,
+    fill = false,
+}: EmptyStateProps) {
     return (
-        <View style={styles.wrap}>
+        <View style={[styles.wrap, fill && styles.fill]}>
             {icon}
             <Text variant="heading" style={styles.center}>
                 {title}
@@ -39,6 +47,7 @@ export function EmptyState({ icon, title, message, actionLabel, onAction }: Empt
 
 const styles = StyleSheet.create({
     wrap: { alignItems: 'center', gap: Spacing.sm, paddingVertical: Spacing['2xl'] },
+    fill: { flex: 1, justifyContent: 'center' },
     center: { textAlign: 'center' },
     action: { marginTop: Spacing.sm },
 });

@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
+import { TickerPlaceholder } from '@/components/ui/Placeholders';
 import { PressableScale } from '@/components/ui/PressableScale';
-import { Skeleton } from '@/components/ui/Skeleton';
 import { Text } from '@/components/ui/Text';
 import { useMarkets, type Market } from '@/hooks/queries/useMarkets';
 import { Spacing, useTheme } from '@/theme';
@@ -42,11 +42,7 @@ export function TickerStrip() {
     return (
         <View style={[styles.wrap, { borderColor: colors.border }]}>
             {markets.isPending ? (
-                <View style={styles.row}>
-                    {[0, 1].map((i) => (
-                        <Skeleton key={i} width={150} height={22} />
-                    ))}
-                </View>
+                <TickerPlaceholder />
             ) : (
                 <ScrollView
                     horizontal

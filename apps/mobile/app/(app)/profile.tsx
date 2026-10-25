@@ -16,10 +16,10 @@ import { CoinBadge } from '@/components/market/CoinBadge';
 import { Avatar } from '@/components/ui/Avatar';
 import { IconButton } from '@/components/ui/IconButton';
 import { ListRow } from '@/components/ui/ListRow';
+import { BalanceRowPlaceholder } from '@/components/ui/Placeholders';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Screen } from '@/components/ui/Screen';
 import { SectionHeader } from '@/components/ui/SectionHeader';
-import { Skeleton } from '@/components/ui/Skeleton';
 import { Text } from '@/components/ui/Text';
 import { useBalances, usePortfolio } from '@/hooks/queries/useAccount';
 import { useUnreadCount } from '@/hooks/useUnreadCount';
@@ -80,7 +80,7 @@ export default function ProfileScreen() {
                     label="Activity"
                     badge={unread}
                     icon={<Bell size={18} color={colors.foreground} />}
-                    onPress={() => router.navigate('/notifications')}
+                    onPress={() => router.push('/activity')}
                 />
                 <IconButton
                     label="Settings"
@@ -120,7 +120,10 @@ export default function ProfileScreen() {
 
                 <Animated.View entering={FadeInDown.delay(60).duration(320)}>
                     {portfolio.isPending || !portfolio.data ? (
-                        <Skeleton height={120} />
+                        <>
+                            <BalanceRowPlaceholder />
+                            <BalanceRowPlaceholder />
+                        </>
                     ) : (
                         <>
                             <BalanceRow
@@ -161,7 +164,7 @@ export default function ProfileScreen() {
                     <ListRow
                         icon={<History size={18} color={colors.foreground} />}
                         label="Activity"
-                        onPress={() => router.navigate('/notifications')}
+                        onPress={() => router.push('/activity')}
                     />
                     <ListRow
                         icon={<Settings size={18} color={colors.foreground} />}

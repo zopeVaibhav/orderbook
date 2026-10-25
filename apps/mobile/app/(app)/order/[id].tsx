@@ -7,6 +7,7 @@ import { LivePrice } from '@/components/market/LivePrice';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { NumberField } from '@/components/ui/NumberField';
+import { OrderSheetPlaceholder } from '@/components/ui/Placeholders';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Text } from '@/components/ui/Text';
 import { placeOrderError, useBalances, usePlaceOrder } from '@/hooks/queries/useAccount';
@@ -123,7 +124,13 @@ export default function OrderSheet() {
         );
     };
 
-    if (!market) return <View style={[styles.root, { backgroundColor: colors.background }]} />;
+    if (!market) {
+        return (
+            <View style={[styles.root, { backgroundColor: colors.background }]}>
+                <OrderSheetPlaceholder />
+            </View>
+        );
+    }
 
     const accent = buy ? colors.profit : colors.loss;
     const label = `${buy ? 'Buy' : 'Sell'} ${quantity && !errors.quantity ? `${quantity} ` : ''}${market.base}`;

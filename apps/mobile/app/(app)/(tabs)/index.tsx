@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSharedValue } from 'react-native-reanimated';
 import { ExploreTab } from '@/components/home/ExploreTab';
 import { HoldingsTab } from '@/components/home/HoldingsTab';
 import { OrdersTab } from '@/components/home/OrdersTab';
@@ -7,24 +8,23 @@ import { AppHeader } from '@/components/ui/AppHeader';
 import { CollapsingScreen } from '@/components/ui/CollapsingScreen';
 import { Screen } from '@/components/ui/Screen';
 import { StickyTabs } from '@/components/ui/StickyTabs';
+import { SwipePager } from '@/components/ui/SwipePager';
 import { useOpenOrders, usePortfolio } from '@/hooks/queries/useAccount';
 import { useMarkets } from '@/hooks/queries/useMarkets';
 
 const TABS = ['Explore', 'Holdings', 'Orders'] as const;
-type HomeTab = (typeof TABS)[number];
-
-const CONTENT: Record<HomeTab, () => React.JSX.Element> = {
-    Explore: ExploreTab,
-    Holdings: HoldingsTab,
-    Orders: OrdersTab,
-};
+const PAGES = [
+    <ExploreTab key="explore" />,
+    <HoldingsTab key="holdings" />,
+    <OrdersTab key="orders" />,
+];
 
 export default function HomeScreen() {
     const markets = useMarkets();
     const portfolio = usePortfolio();
     const orders = useOpenOrders();
-    const [tab, setTab] = useState<HomeTab>('Explore');
-    const Content = CONTENT[tab];
+    const [index, setIndex] = useState(0);
+    const progress = useSharedValue(0);
 
     const onRefresh = () => {
         void markets.refetch();
@@ -41,12 +41,24 @@ export default function HomeScreen() {
                         <TickerStrip />
                     </>
                 }
-                tabs={<StickyTabs tabs={TABS} value={tab} onChange={setTab} />}
-                contentKey={tab}
+                tabs={
+                    <StickyTabs
+                        tabs={TABS}
+                        value={TABS[index] ?? TABS[0]}
+                        onChange={(tab) => setIndex(TABS.indexOf(tab))}
+                        progress={progress}
+                    />
+                }
+                contentKey={String(index)}
                 refreshing={markets.isRefetching}
                 onRefresh={onRefresh}
             >
-                <Content />
+                <SwipePager
+                    index={index}
+                    onIndexChange={setIndex}
+                    pages={PAGES}
+                    progress={progress}
+                />
             </CollapsingScreen>
         </Screen>
     );

@@ -6,10 +6,10 @@ import { MarketRow } from '@/components/market/MarketRow';
 import { MarketTile } from '@/components/market/MarketTile';
 import { RecentStrip } from '@/components/market/RecentStrip';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { MarketListPlaceholder, MarketTilePlaceholder } from '@/components/ui/Placeholders';
 import { SectionHeader } from '@/components/ui/SectionHeader';
-import { Skeleton } from '@/components/ui/Skeleton';
 import { useMarkets } from '@/hooks/queries/useMarkets';
-import { Radius, Spacing } from '@/theme';
+import { Spacing } from '@/theme';
 
 const MOVER_TILES = 4;
 const MOST_TRADED = 5;
@@ -42,6 +42,7 @@ export function ExploreTab() {
                     message="Could not reach the server."
                     actionLabel="Retry"
                     onAction={() => void markets.refetch()}
+                    fill
                 />
             </View>
         );
@@ -59,11 +60,7 @@ export function ExploreTab() {
                 />
                 <View style={styles.grid}>
                     {markets.isPending
-                        ? [0, 1, 2, 3].map((i) => (
-                              <View key={i} style={styles.cell}>
-                                  <Skeleton height={128} radius={Radius.xl} />
-                              </View>
-                          ))
+                        ? [0, 1, 2, 3].map((i) => <MarketTilePlaceholder key={i} />)
                         : movers.map((m) => <MarketTile key={m.id} market={m} />)}
                 </View>
             </Animated.View>
@@ -74,17 +71,18 @@ export function ExploreTab() {
                     actionLabel="View all"
                     onAction={() => router.navigate('/markets')}
                 />
-                {mostTraded.map((m) => (
-                    <MarketRow key={m.id} market={m} />
-                ))}
+                {markets.isPending ? (
+                    <MarketListPlaceholder count={MOST_TRADED} />
+                ) : (
+                    mostTraded.map((m) => <MarketRow key={m.id} market={m} />)
+                )}
             </Animated.View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    body: { padding: Spacing.lg, gap: Spacing['2xl'] },
+    body: { flexGrow: 1, padding: Spacing.lg, gap: Spacing['2xl'] },
     section: { gap: Spacing.md },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
-    cell: { flexBasis: '47%', flexGrow: 1 },
 });

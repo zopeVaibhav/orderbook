@@ -5,10 +5,8 @@ import type { CandleInterval } from '@repo/types';
 
 const RECENT_LIMIT = 8;
 
-export type ThemeMode = 'system' | 'light' | 'dark';
-
 interface PreferencesState {
-    themeMode: ThemeMode;
+    darkMode: boolean;
     haptics: boolean;
     hasSeenOnboarding: boolean;
     notificationsSeenAt: number;
@@ -17,7 +15,7 @@ interface PreferencesState {
     chartMode: 'line' | 'candles';
     chartInterval: CandleInterval;
     hydrated: boolean;
-    setThemeMode: (mode: ThemeMode) => void;
+    setDarkMode: (enabled: boolean) => void;
     setHaptics: (enabled: boolean) => void;
     completeOnboarding: () => void;
     markNotificationsSeen: () => void;
@@ -31,7 +29,7 @@ interface PreferencesState {
 export const usePreferences = create<PreferencesState>()(
     persist(
         (set) => ({
-            themeMode: 'system',
+            darkMode: true,
             haptics: true,
             hasSeenOnboarding: false,
             notificationsSeenAt: 0,
@@ -40,7 +38,7 @@ export const usePreferences = create<PreferencesState>()(
             chartMode: 'candles',
             chartInterval: '1m',
             hydrated: false,
-            setThemeMode: (themeMode) => set({ themeMode }),
+            setDarkMode: (darkMode) => set({ darkMode }),
             setHaptics: (haptics) => set({ haptics }),
             completeOnboarding: () => set({ hasSeenOnboarding: true }),
             markNotificationsSeen: () => set({ notificationsSeenAt: Date.now() }),
@@ -65,6 +63,17 @@ export const usePreferences = create<PreferencesState>()(
         {
             name: 'orderbook.preferences',
             storage: createJSONStorage(() => AsyncStorage),
+            version: 1,
+            migrate: (persisted, version) => {
+                const state = (persisted ?? {}) as Partial<PreferencesState> & {
+                    themeMode?: string;
+                };
+                if (version < 1) {
+                    const { themeMode, ...rest } = state;
+                    return { ...rest, darkMode: themeMode !== 'light' } as PreferencesState;
+                }
+                return state as PreferencesState;
+            },
             partialize: ({ hydrated: _hydrated, ...persisted }) => persisted,
             onRehydrateStorage: () => () => usePreferences.setState({ hydrated: true }),
         },

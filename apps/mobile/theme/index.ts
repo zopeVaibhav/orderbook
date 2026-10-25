@@ -1,4 +1,3 @@
-import { useColorScheme } from 'react-native';
 import { usePreferences } from '@/store/preferences';
 import { Colors, type Palette } from './colors';
 
@@ -27,10 +26,7 @@ export const Spacing = {
 export type Scheme = 'light' | 'dark';
 
 export function useScheme(): Scheme {
-    const system = useColorScheme();
-    const mode = usePreferences((s) => s.themeMode);
-    if (mode === 'system') return system === 'dark' ? 'dark' : 'light';
-    return mode;
+    return usePreferences((s) => (s.darkMode ? 'dark' : 'light'));
 }
 
 export function useTheme(): { colors: Palette; scheme: Scheme; isDark: boolean } {

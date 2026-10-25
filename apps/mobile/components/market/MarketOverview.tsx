@@ -3,18 +3,10 @@ import { StyleSheet, View } from 'react-native';
 import { RangeBar } from '@/components/ui/RangeBar';
 import { Text } from '@/components/ui/Text';
 import type { Market } from '@/hooks/queries/useMarkets';
+import { bestPrice } from '@/lib/book';
 import { formatCompact, formatPrice } from '@/lib/format';
 import { useMarketBook } from '@/store/orderbook';
 import { Spacing, useTheme } from '@/theme';
-
-function best(side: Map<string, string>, highest: boolean): number | null {
-    let result: number | null = null;
-    for (const price of side.keys()) {
-        const p = parseFloat(price);
-        if (result === null || (highest ? p > result : p < result)) result = p;
-    }
-    return result;
-}
 
 function Stat({ label, value }: { label: string; value: string }) {
     return (
@@ -43,7 +35,7 @@ export function MarketOverview({
     const bids = useMarketBook((s) => s.bids);
 
     const { bestAsk, bestBid } = useMemo(
-        () => ({ bestAsk: best(asks, false), bestBid: best(bids, true) }),
+        () => ({ bestAsk: bestPrice(asks, false), bestBid: bestPrice(bids, true) }),
         [asks, bids],
     );
     const spread = bestAsk !== null && bestBid !== null ? bestAsk - bestBid : null;

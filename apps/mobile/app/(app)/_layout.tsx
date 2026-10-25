@@ -15,6 +15,16 @@ export default function AppLayout() {
         >
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="market/[id]" />
+            <Stack.Screen
+                name="order/[id]"
+                options={{
+                    presentation: 'formSheet',
+                    sheetAllowedDetents: 'fitToContents',
+                    sheetCornerRadius: 20,
+                    sheetGrabberVisible: true,
+                    contentStyle: { backgroundColor: colors.background },
+                }}
+            />
             <Stack.Screen name="chart/[id]" options={{ animation: 'slide_from_bottom' }} />
             <Stack.Screen name="settings" />
             <Stack.Screen name="profile" />

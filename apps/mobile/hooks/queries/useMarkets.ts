@@ -9,6 +9,9 @@ export interface Market {
     base: string;
     quote: string;
     name: string;
+    tickExp: number;
+    lotExp: number;
+    minQuantity: string;
     price: number | null;
     openPrice: number | null;
     change24h: number | null;
@@ -64,6 +67,9 @@ export function useMarkets() {
                 base: m.base,
                 quote: m.quote,
                 name: m.baseRef.name,
+                tickExp: m.tickExp,
+                lotExp: m.lotExp,
+                minQuantity: m.minQuantity,
                 price: stat ? parseFloat(stat.lastPrice) : null,
                 openPrice: stat ? parseFloat(stat.openPrice) : null,
                 change24h: stat ? stat.change24h : null,

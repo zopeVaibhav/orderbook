@@ -1,6 +1,16 @@
 import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { ApiResponse, Balance, PublicTrade, UserFill, UserOrder } from '@repo/types';
+import { isAxiosError } from 'axios';
+import type {
+    ApiResponse,
+    Balance,
+    OrderKind,
+    PublicTrade,
+    Side,
+    TimeInForce,
+    UserFill,
+    UserOrder,
+} from '@repo/types';
 import type { BookSnapshotPayload } from '@repo/types/socket';
 import { api } from '@/lib/api';
 import { BALANCE_URL, BOOK_URL, FILLS_URL, ORDERS_URL, TRADES_URL } from '@/lib/api-routes';
@@ -62,6 +72,38 @@ export function useOpenOrders() {
         },
         staleTime: 15_000,
     });
+}
+
+export interface PlaceOrderInput {
+    marketId: string;
+    clientOrderId: string;
+    side: Side;
+    kind: OrderKind;
+    timeInForce?: TimeInForce;
+    price?: string;
+    quantity: string;
+}
+
+export function usePlaceOrder() {
+    const client = useQueryClient();
+    return useMutation({
+        mutationFn: async (input: PlaceOrderInput) => {
+            await api.post(ORDERS_URL, input);
+        },
+        onSettled: () => {
+            void client.invalidateQueries({ queryKey: openOrdersQueryKey });
+            void client.invalidateQueries({ queryKey: balancesQueryKey });
+        },
+    });
+}
+
+export function placeOrderError(error: unknown): string {
+    if (isAxiosError(error)) {
+        if (!error.response) return 'Could not reach the server';
+        const body = error.response.data as { error?: string; message?: string } | undefined;
+        return body?.error ?? body?.message ?? 'Order was rejected';
+    }
+    return error instanceof Error ? error.message : 'Order failed';
 }
 
 export function useCancelOrder() {

@@ -8,6 +8,7 @@ import { LivePrice } from '@/components/market/LivePrice';
 import { MarketOverview } from '@/components/market/MarketOverview';
 import { MarketTopBar } from '@/components/market/MarketTopBar';
 import { OrderBook } from '@/components/market/OrderBook';
+import { TradeBar } from '@/components/market/TradeBar';
 import { TradeTape } from '@/components/market/TradeTape';
 import { CollapsingScreen } from '@/components/ui/CollapsingScreen';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -107,6 +108,7 @@ export default function MarketScreen() {
                     </View>
                 )}
             </CollapsingScreen>
+            {id ? <TradeBar marketId={id} /> : null}
         </Screen>
     );
 }

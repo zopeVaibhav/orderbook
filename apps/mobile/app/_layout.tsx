@@ -9,6 +9,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { ConnectivityBanner } from '@/components/ui/ConnectivityBanner';
 import { ErrorView } from '@/components/ui/ErrorView';
+import { ToastHost } from '@/components/ui/ToastHost';
 import { queryClient } from '@/lib/query-client';
 import { usePreferences } from '@/store/preferences';
 import { useSession } from '@/store/session';
@@ -50,6 +51,7 @@ function RootNavigator() {
                 </Stack.Protected>
             </Stack>
             <ConnectivityBanner />
+            <ToastHost />
         </>
     );
 }

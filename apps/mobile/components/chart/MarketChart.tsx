@@ -1,17 +1,20 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
+import { Maximize2 } from 'lucide-react-native';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Text } from '@/components/ui/Text';
 import { useCandleStream } from '@/hooks/useCandleStream';
 import { DEFAULT_INTERVAL, INTERVALS } from '@/lib/chart/intervals';
 import { useCandles } from '@/store/candles';
 import { usePreferences } from '@/store/preferences';
-import { Spacing } from '@/theme';
-import { InteractiveChart } from './InteractiveChart';
+import { Spacing, useTheme } from '@/theme';
 import { ChartToolbar } from './ChartToolbar';
+import { SkiaChart } from './SkiaChart';
 
-const HEIGHT = 200;
+const HEIGHT = 210;
+const SLOT = 7;
 
 export function MarketChart({
     marketId,
@@ -20,6 +23,7 @@ export function MarketChart({
     marketId: string | undefined;
     reference: number | null;
 }) {
+    const { colors } = useTheme();
     const mode = usePreferences((s) => s.chartMode);
     const setMode = usePreferences((s) => s.setChartMode);
     const intervalKey = usePreferences((s) => s.chartInterval);
@@ -39,7 +43,7 @@ export function MarketChart({
                         <Text tone="muted">No trades in this window yet</Text>
                     </View>
                 ) : (
-                    <InteractiveChart
+                    <SkiaChart
                         key={`${interval.key}:${mode}`}
                         candles={candles}
                         width={width}
@@ -47,25 +51,49 @@ export function MarketChart({
                         mode={mode}
                         intervalMs={interval.ms}
                         reference={reference}
+                        initialSlot={SLOT}
                     />
                 )}
+                {marketId ? (
+                    <PressableScale
+                        accessibilityRole="button"
+                        accessibilityLabel="Open full screen chart"
+                        feedback="fade"
+                        hitSlop={8}
+                        onPress={() =>
+                            router.push({ pathname: '/chart/[id]', params: { id: marketId } })
+                        }
+                        style={[
+                            styles.expand,
+                            { backgroundColor: colors.background, borderColor: colors.border },
+                        ]}
+                    >
+                        <Maximize2 size={15} color={colors.foreground} />
+                    </PressableScale>
+                ) : null}
             </View>
             <ChartToolbar
                 interval={interval.key}
                 onInterval={setInterval}
                 mode={mode}
                 onMode={setMode}
-                onExpand={
-                    marketId
-                        ? () => router.push({ pathname: '/chart/[id]', params: { id: marketId } })
-                        : undefined
-                }
             />
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    wrap: { gap: Spacing.sm },
+    wrap: { gap: Spacing.md },
     empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+    expand: {
+        position: 'absolute',
+        right: 6,
+        bottom: 6,
+        width: 34,
+        height: 34,
+        borderRadius: 17,
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
 });

@@ -18,6 +18,7 @@
         "@react-native-google-signin/google-signin": "^16.1.5",
         "@repo/money": "workspace:*",
         "@repo/types": "workspace:*",
+        "@shopify/react-native-skia": "2.14.0",
         "@tanstack/react-query": "^5.104.3",
         "axios": "^1.20.0",
         "expo": "~58.0.12",

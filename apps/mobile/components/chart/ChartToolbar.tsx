@@ -5,7 +5,7 @@ import { Chip } from '@/components/ui/Chip';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { INTERVALS } from '@/lib/chart/intervals';
 import { Spacing, useTheme } from '@/theme';
-import type { ChartMode } from './CandleChart';
+import type { ChartMode } from './SkiaChart';
 
 interface ChartToolbarProps {
     interval: CandleInterval;

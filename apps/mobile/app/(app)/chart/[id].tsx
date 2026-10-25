@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { X } from 'lucide-react-native';
-import { InteractiveChart } from '@/components/chart/InteractiveChart';
+import { SkiaChart } from '@/components/chart/SkiaChart';
 import { ChartToolbar } from '@/components/chart/ChartToolbar';
 import { ChangePill } from '@/components/market/ChangePill';
 import { LiveBadge } from '@/components/market/LiveBadge';
@@ -76,14 +76,14 @@ export default function ChartScreen() {
                 }
             >
                 {size.width > 0 && candles.length > 0 ? (
-                    <InteractiveChart
+                    <SkiaChart
                         key={`${interval.key}:${mode}`}
                         candles={candles}
                         width={size.width}
                         height={size.height}
                         mode={mode}
                         intervalMs={interval.ms}
-                        slot={SLOT}
+                        initialSlot={SLOT}
                         axes
                     />
                 ) : (

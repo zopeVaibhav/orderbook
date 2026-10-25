@@ -1,10 +1,10 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { ChartCandlestick, ChartLine, Maximize2 } from 'lucide-react-native';
 import type { CandleInterval } from '@repo/types';
+import { Chip } from '@/components/ui/Chip';
 import { PressableScale } from '@/components/ui/PressableScale';
-import { Text } from '@/components/ui/Text';
 import { INTERVALS } from '@/lib/chart/intervals';
-import { Radius, Spacing, useTheme } from '@/theme';
+import { Spacing, useTheme } from '@/theme';
 import type { ChartMode } from './CandleChart';
 
 interface ChartToolbarProps {
@@ -27,36 +27,22 @@ export function ChartToolbar({ interval, onInterval, mode, onMode, onExpand }: C
                 contentContainerStyle={styles.chips}
                 style={styles.flex}
             >
-                {INTERVALS.map((option) => {
-                    const active = option.key === interval;
-                    return (
-                        <PressableScale
-                            key={option.key}
-                            accessibilityRole="button"
-                            accessibilityState={{ selected: active }}
-                            accessibilityLabel={`${option.label} interval`}
-                            scaleTo={0.92}
-                            onPress={() => onInterval(option.key)}
-                            style={[
-                                styles.chip,
-                                active && {
-                                    borderColor: colors.foreground,
-                                    backgroundColor: colors.secondary,
-                                },
-                            ]}
-                        >
-                            <Text variant="smallMedium" tone={active ? 'default' : 'muted'}>
-                                {option.label}
-                            </Text>
-                        </PressableScale>
-                    );
-                })}
+                {INTERVALS.map((option) => (
+                    <Chip
+                        key={option.key}
+                        label={option.label}
+                        accessibilityLabel={`${option.label} interval`}
+                        selected={option.key === interval}
+                        quiet
+                        onPress={() => onInterval(option.key)}
+                    />
+                ))}
             </ScrollView>
             <PressableScale
                 accessibilityRole="button"
                 accessibilityLabel={mode === 'candles' ? 'Show line chart' : 'Show candles'}
                 hitSlop={8}
-                scaleTo={0.88}
+                feedback="fade"
                 onPress={() => onMode(mode === 'candles' ? 'line' : 'candles')}
                 style={styles.icon}
             >
@@ -67,7 +53,7 @@ export function ChartToolbar({ interval, onInterval, mode, onMode, onExpand }: C
                     accessibilityRole="button"
                     accessibilityLabel="Open full screen chart"
                     hitSlop={8}
-                    scaleTo={0.88}
+                    feedback="fade"
                     onPress={onExpand}
                     style={styles.icon}
                 >
@@ -82,12 +68,5 @@ const styles = StyleSheet.create({
     row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
     flex: { flex: 1 },
     chips: { gap: Spacing.xs, alignItems: 'center' },
-    chip: {
-        paddingHorizontal: 12,
-        paddingVertical: 5,
-        borderRadius: Radius.full,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: 'transparent',
-    },
     icon: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
 });

@@ -1,27 +1,39 @@
 import { StyleSheet } from 'react-native';
-import { Radius, useTheme } from '@/theme';
+import { useTheme } from '@/theme';
 import { PressableScale } from './PressableScale';
 import { Text } from './Text';
+
+const HEIGHT = 30;
 
 interface ChipProps {
     label: string;
     selected?: boolean;
+    quiet?: boolean;
+    accessibilityLabel?: string;
     onPress: () => void;
 }
 
-export function Chip({ label, selected = false, onPress }: ChipProps) {
+export function Chip({
+    label,
+    selected = false,
+    quiet = false,
+    accessibilityLabel,
+    onPress,
+}: ChipProps) {
     const { colors } = useTheme();
+    const idleBorder = quiet ? 'transparent' : colors.border;
     return (
         <PressableScale
             accessibilityRole="button"
             accessibilityState={{ selected }}
-            scaleTo={0.95}
+            accessibilityLabel={accessibilityLabel ?? label}
+            feedback="fade"
             onPress={onPress}
             style={[
                 styles.chip,
                 {
                     backgroundColor: selected ? colors.secondary : 'transparent',
-                    borderColor: selected ? colors.foreground : colors.border,
+                    borderColor: selected ? colors.ring : idleBorder,
                 },
             ]}
         >
@@ -34,9 +46,11 @@ export function Chip({ label, selected = false, onPress }: ChipProps) {
 
 const styles = StyleSheet.create({
     chip: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: Radius.full,
-        borderWidth: StyleSheet.hairlineWidth,
+        height: HEIGHT,
+        borderRadius: HEIGHT / 2,
+        borderWidth: 1,
+        paddingHorizontal: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });

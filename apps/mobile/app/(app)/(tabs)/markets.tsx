@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, TextInput, View } from 'react-native';
 import { Search, X } from 'lucide-react-native';
 import { MarketRow } from '@/components/market/MarketRow';
+import { Chip } from '@/components/ui/Chip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Screen } from '@/components/ui/Screen';
@@ -63,28 +64,9 @@ export default function MarketsScreen() {
                     ) : null}
                 </View>
                 <View style={styles.chips}>
-                    {SORTS.map((s) => {
-                        const active = s === sort;
-                        return (
-                            <PressableScale
-                                key={s}
-                                accessibilityRole="button"
-                                accessibilityState={{ selected: active }}
-                                onPress={() => setSort(s)}
-                                style={[
-                                    styles.chip,
-                                    {
-                                        backgroundColor: active ? colors.primary : 'transparent',
-                                        borderColor: active ? colors.primary : colors.border,
-                                    },
-                                ]}
-                            >
-                                <Text variant="smallMedium" tone={active ? 'inverse' : 'default'}>
-                                    {s}
-                                </Text>
-                            </PressableScale>
-                        );
-                    })}
+                    {SORTS.map((s) => (
+                        <Chip key={s} label={s} selected={s === sort} onPress={() => setSort(s)} />
+                    ))}
                 </View>
             </View>
 
@@ -146,12 +128,6 @@ const styles = StyleSheet.create({
     },
     input: { flex: 1, fontFamily: Fonts.regular, fontSize: 15, paddingVertical: 0 },
     chips: { flexDirection: 'row', gap: Spacing.sm, paddingBottom: Spacing.sm },
-    chip: {
-        paddingHorizontal: 14,
-        paddingVertical: 7,
-        borderRadius: Radius.full,
-        borderWidth: StyleSheet.hairlineWidth,
-    },
     list: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing['3xl'] },
     separator: { height: StyleSheet.hairlineWidth },
     skeletons: { padding: Spacing.lg, gap: Spacing.lg },

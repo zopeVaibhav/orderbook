@@ -52,7 +52,7 @@ export function StickyTabs<T extends string>({ tabs, value, onChange }: StickyTa
                             key={tab}
                             accessibilityRole="tab"
                             accessibilityState={{ selected }}
-                            scaleTo={0.96}
+                            feedback="fade"
                             onPress={() => onChange(tab)}
                             onLayout={(e) => {
                                 const layout = e.nativeEvent.layout;

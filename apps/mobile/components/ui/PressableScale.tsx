@@ -10,6 +10,7 @@ export interface PressableScaleProps extends Omit<PressableProps, 'style' | 'chi
     style?: StyleProp<ViewStyle>;
     children?: ReactNode;
     scaleTo?: number;
+    feedback?: 'scale' | 'fade';
     withHaptic?: boolean;
 }
 
@@ -17,24 +18,29 @@ export function PressableScale({
     style,
     children,
     scaleTo = 0.97,
+    feedback = 'scale',
     withHaptic = true,
     onPressIn,
     onPressOut,
     onPress,
     ...rest
 }: PressableScaleProps) {
-    const scale = useSharedValue(1);
-    const animated = useAnimatedStyle(() => ({ transform: [{ scale: scale.get() }] }));
+    const pressed = useSharedValue(0);
+    const animated = useAnimatedStyle(() =>
+        feedback === 'fade'
+            ? { opacity: 1 - pressed.get() * 0.45 }
+            : { transform: [{ scale: 1 - pressed.get() * (1 - scaleTo) }] },
+    );
 
     return (
         <AnimatedPressable
             {...rest}
             onPressIn={(e) => {
-                scale.set(withSpring(scaleTo, SPRING));
+                pressed.set(withSpring(1, SPRING));
                 onPressIn?.(e);
             }}
             onPressOut={(e) => {
-                scale.set(withSpring(1, SPRING));
+                pressed.set(withSpring(0, SPRING));
                 onPressOut?.(e);
             }}
             onPress={(e) => {

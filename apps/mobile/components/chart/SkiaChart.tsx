@@ -4,6 +4,7 @@ import {
     Canvas,
     Circle,
     DashPathEffect,
+    Group,
     LinearGradient,
     Path,
     RoundedRect,
@@ -19,6 +20,7 @@ import {
     usePanGesture,
     usePinchGesture,
     useSimultaneousGestures,
+    useTapGesture,
 } from 'react-native-gesture-handler';
 import {
     useAnimatedReaction,
@@ -64,6 +66,9 @@ interface SkiaChartProps {
 const AXIS_W = 66;
 const TIME_H = 22;
 const PAD_Y = 10;
+const MIN_Y_SCALE = 0.25;
+const MAX_Y_SCALE = 8;
+const Y_DRAG_PX = 160;
 const MIN_SLOT = 3;
 const MAX_SLOT = 28;
 const PRICE_SLOTS = [0, 1, 2, 3, 4, 5, 6];
@@ -154,6 +159,8 @@ export function SkiaChart({
     const offset = useSharedValue(0);
     const slot = useSharedValue(initialSlot);
     const crossX = useSharedValue(-1);
+    const yScale = useSharedValue(1);
+    const yScaleStart = useSharedValue(1);
     const panStart = useSharedValue(0);
     const pinchStart = useSharedValue(initialSlot);
     const pinchEndF = useSharedValue(0);
@@ -162,6 +169,8 @@ export function SkiaChart({
     const previousLength = useRef(candles.length);
     const [hover, setHover] = useState<number>(-1);
     const [behind, setBehind] = useState(false);
+    const [scaled, setScaled] = useState(false);
+    const plotClip = Skia.XYWHRect(0, 0, plotW, plotH);
 
     useEffect(() => {
         const grew = candles.length - previousLength.current;
@@ -170,9 +179,14 @@ export function SkiaChart({
         data.set(candles);
     }, [candles, data, offset]);
 
-    const frame = useDerivedValue(() =>
-        computeFrame(data.get(), plotW, slot.get(), offset.get(), ref),
-    );
+    const frame = useDerivedValue(() => {
+        const f = computeFrame(data.get(), plotW, slot.get(), offset.get(), ref);
+        const k = yScale.get();
+        if (k === 1) return f;
+        const mid = (f.min + f.max) / 2;
+        const half = ((f.max - f.min) / 2) * k;
+        return { ...f, min: mid - half, max: mid + half };
+    });
 
     const paths = useDerivedValue(() => {
         const c = data.get();
@@ -401,79 +415,111 @@ export function SkiaChart({
     });
 
     const gesture = useSimultaneousGestures(pinch, useExclusiveGestures(inspect, scrub));
+
+    useAnimatedReaction(
+        () => Math.abs(yScale.get() - 1) > 0.01,
+        (next, prev) => {
+            if (next !== prev) scheduleOnRN(setScaled, next);
+        },
+    );
+
+    const axisDrag = usePanGesture({
+        activeOffsetY: [-4, 4],
+        onActivate: () => {
+            'worklet';
+            yScaleStart.set(yScale.get());
+        },
+        onUpdate: (e) => {
+            'worklet';
+            const next = yScaleStart.get() * Math.exp(e.translationY / Y_DRAG_PX);
+            yScale.set(Math.max(MIN_Y_SCALE, Math.min(MAX_Y_SCALE, next)));
+        },
+    });
+
+    const axisReset = useTapGesture({
+        numberOfTaps: 2,
+        onActivate: () => {
+            'worklet';
+            yScale.set(withTiming(1, { duration: 260 }));
+        },
+    });
+
+    const axisGesture = useSimultaneousGestures(axisDrag, axisReset);
     const hovered = hover >= 0 ? candles[hover] : undefined;
 
     return (
         <View style={{ width, height }}>
             <GestureDetector gesture={gesture}>
                 <Canvas style={{ width, height }}>
-                    <Path path={grid} color={colors.border} style="stroke" strokeWidth={1}>
-                        <DashPathEffect intervals={[3, 5]} />
-                    </Path>
-                    <Path
-                        path={refPath}
-                        color={colors.mutedForeground}
-                        style="stroke"
-                        strokeWidth={1}
-                        opacity={0.6}
-                    >
-                        <DashPathEffect intervals={[4, 5]} />
-                    </Path>
-                    {mode === 'line' ? (
-                        <>
-                            <Path path={area}>
-                                <LinearGradient
-                                    start={vec(0, 0)}
-                                    end={vec(0, plotH)}
-                                    colors={fillColors}
-                                />
-                            </Path>
-                            <Path
-                                path={line}
-                                color={lineColor}
-                                style="stroke"
-                                strokeWidth={1.8}
-                                strokeJoin="round"
-                                strokeCap="round"
-                            />
-                        </>
-                    ) : (
-                        <>
-                            <Path
-                                path={upWick}
-                                color={colors.profit}
-                                style="stroke"
-                                strokeWidth={1}
-                            />
-                            <Path
-                                path={downWick}
-                                color={colors.loss}
-                                style="stroke"
-                                strokeWidth={1}
-                            />
-                            <Path path={upBody} color={colors.profit} />
-                            <Path path={downBody} color={colors.loss} />
-                        </>
-                    )}
-                    {axes ? (
+                    <Group clip={plotClip}>
+                        <Path path={grid} color={colors.border} style="stroke" strokeWidth={1}>
+                            <DashPathEffect intervals={[3, 5]} />
+                        </Path>
                         <Path
-                            path={lastPath}
-                            color={lineColor}
+                            path={refPath}
+                            color={colors.mutedForeground}
                             style="stroke"
                             strokeWidth={1}
-                            opacity={0.9}
-                        />
-                    ) : null}
-                    <Path
-                        path={crossPath}
-                        color={colors.foreground}
-                        style="stroke"
-                        strokeWidth={1}
-                        opacity={0.55}
-                    >
-                        <DashPathEffect intervals={[3, 3]} />
-                    </Path>
-                    <Circle cx={dotX} cy={dotY} r={4} color={colors.foreground} />
+                            opacity={0.6}
+                        >
+                            <DashPathEffect intervals={[4, 5]} />
+                        </Path>
+                        {mode === 'line' ? (
+                            <>
+                                <Path path={area}>
+                                    <LinearGradient
+                                        start={vec(0, 0)}
+                                        end={vec(0, plotH)}
+                                        colors={fillColors}
+                                    />
+                                </Path>
+                                <Path
+                                    path={line}
+                                    color={lineColor}
+                                    style="stroke"
+                                    strokeWidth={1.8}
+                                    strokeJoin="round"
+                                    strokeCap="round"
+                                />
+                            </>
+                        ) : (
+                            <>
+                                <Path
+                                    path={upWick}
+                                    color={colors.profit}
+                                    style="stroke"
+                                    strokeWidth={1}
+                                />
+                                <Path
+                                    path={downWick}
+                                    color={colors.loss}
+                                    style="stroke"
+                                    strokeWidth={1}
+                                />
+                                <Path path={upBody} color={colors.profit} />
+                                <Path path={downBody} color={colors.loss} />
+                            </>
+                        )}
+                        {axes ? (
+                            <Path
+                                path={lastPath}
+                                color={lineColor}
+                                style="stroke"
+                                strokeWidth={1}
+                                opacity={0.9}
+                            />
+                        ) : null}
+                        <Path
+                            path={crossPath}
+                            color={colors.foreground}
+                            style="stroke"
+                            strokeWidth={1}
+                            opacity={0.55}
+                        >
+                            <DashPathEffect intervals={[3, 3]} />
+                        </Path>
+                        <Circle cx={dotX} cy={dotY} r={4} color={colors.foreground} />
+                    </Group>
                     {axes && font ? (
                         <>
                             {PRICE_SLOTS.map((i) => (
@@ -521,6 +567,35 @@ export function SkiaChart({
                     ) : null}
                 </Canvas>
             </GestureDetector>
+
+            {axes ? (
+                <GestureDetector gesture={axisGesture}>
+                    <View
+                        accessibilityLabel="Price axis, drag to scale"
+                        style={[styles.axis, { width: AXIS_W, height: plotH }]}
+                    />
+                </GestureDetector>
+            ) : null}
+
+            {axes && scaled ? (
+                <PressableScale
+                    accessibilityRole="button"
+                    accessibilityLabel="Fit prices automatically"
+                    feedback="fade"
+                    onPress={() => yScale.set(withTiming(1, { duration: 260 }))}
+                    style={[
+                        styles.auto,
+                        {
+                            width: AXIS_W - 12,
+                            bottom: TIME_H + 6,
+                            backgroundColor: colors.card,
+                            borderColor: colors.border,
+                        },
+                    ]}
+                >
+                    <Text variant="caption">AUTO</Text>
+                </PressableScale>
+            ) : null}
 
             {hovered ? <Readout candle={hovered} intervalMs={intervalMs} /> : null}
 
@@ -589,6 +664,16 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
         gap: Spacing.sm,
         paddingVertical: 2,
+    },
+    axis: { position: 'absolute', top: 0, right: 0 },
+    auto: {
+        position: 'absolute',
+        right: 6,
+        height: 24,
+        borderRadius: 12,
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     latest: {
         position: 'absolute',

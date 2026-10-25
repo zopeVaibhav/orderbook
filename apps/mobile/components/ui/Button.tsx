@@ -10,7 +10,7 @@ interface ButtonProps {
     label: string;
     onPress?: () => void;
     variant?: Variant;
-    size?: 'md' | 'lg';
+    size?: 'sm' | 'md';
     icon?: ReactNode;
     loading?: boolean;
     disabled?: boolean;
@@ -38,7 +38,7 @@ export function Button({
     label,
     onPress,
     variant = 'primary',
-    size = 'lg',
+    size = 'md',
     icon,
     loading = false,
     disabled = false,
@@ -57,7 +57,7 @@ export function Button({
             onPress={onPress}
             style={[
                 styles.base,
-                size === 'lg' ? styles.lg : styles.md,
+                size === 'sm' ? styles.sm : styles.md,
                 { backgroundColor: bg, borderColor: border, opacity: disabled ? 0.5 : 1 },
                 style,
             ]}
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 20,
     },
-    lg: { height: 46 },
-    md: { height: 36 },
+    sm: { height: 36 },
+    md: { height: 44 },
     row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 });

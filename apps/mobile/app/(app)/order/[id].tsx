@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { X } from 'lucide-react-native';
 import { OrderKind, Side, TimeInForce } from '@repo/types';
@@ -9,6 +9,7 @@ import { Chip } from '@/components/ui/Chip';
 import { NumberField } from '@/components/ui/NumberField';
 import { OrderSheetPlaceholder } from '@/components/ui/Placeholders';
 import { PressableScale } from '@/components/ui/PressableScale';
+import { SheetLayout } from '@/components/ui/SheetLayout';
 import { Text } from '@/components/ui/Text';
 import { placeOrderError, useBalances, usePlaceOrder } from '@/hooks/queries/useAccount';
 import { useMarket } from '@/hooks/queries/useMarkets';
@@ -136,15 +137,8 @@ export default function OrderSheet() {
     const label = `${buy ? 'Buy' : 'Sell'} ${quantity && !errors.quantity ? `${quantity} ` : ''}${market.base}`;
 
     return (
-        <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            style={[styles.root, { backgroundColor: colors.background }]}
-        >
-            <ScrollView
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.content}
-            >
+        <SheetLayout
+            header={
                 <View style={styles.header}>
                     <View style={styles.flex}>
                         <Text variant="title">
@@ -162,7 +156,31 @@ export default function OrderSheet() {
                         <X size={22} color={colors.foreground} />
                     </PressableScale>
                 </View>
-
+            }
+            footer={
+                <View style={styles.footer}>
+                    {touched && errors.funds ? (
+                        <Text variant="small" tone="loss">
+                            {errors.funds}
+                        </Text>
+                    ) : null}
+                    {serverError ? (
+                        <Text variant="small" tone="loss">
+                            {serverError}
+                        </Text>
+                    ) : null}
+                    <Button
+                        label={label}
+                        variant={buy ? 'profit' : 'loss'}
+                        loading={place.isPending}
+                        disabled={marketBuy}
+                        onPress={submit}
+                        style={{ borderColor: accent }}
+                    />
+                </View>
+            }
+        >
+            <View style={styles.content}>
                 <View style={[styles.segment, { backgroundColor: colors.secondary }]}>
                     {[Side.BID, Side.ASK].map((s) => {
                         const active = s === side;
@@ -308,35 +326,21 @@ export default function OrderSheet() {
                         </Text>
                     </View>
                 </View>
-
-                {touched && errors.funds ? (
-                    <Text variant="small" tone="loss">
-                        {errors.funds}
-                    </Text>
-                ) : null}
-                {serverError ? (
-                    <Text variant="small" tone="loss">
-                        {serverError}
-                    </Text>
-                ) : null}
-
-                <Button
-                    label={label}
-                    variant={buy ? 'profit' : 'loss'}
-                    loading={place.isPending}
-                    disabled={marketBuy}
-                    onPress={submit}
-                    style={{ borderColor: accent }}
-                />
-            </ScrollView>
-        </KeyboardAvoidingView>
+            </View>
+        </SheetLayout>
     );
 }
 
 const styles = StyleSheet.create({
     root: { flex: 1 },
-    content: { padding: Spacing.lg, gap: Spacing.lg, paddingBottom: Spacing['2xl'] },
-    header: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+    content: { paddingHorizontal: Spacing.lg, gap: Spacing.lg },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.md,
+        padding: Spacing.lg,
+    },
+    footer: { gap: Spacing.sm },
     flex: { flex: 1, gap: 2 },
     segment: { flexDirection: 'row', padding: 3, borderRadius: Radius.lg },
     segmentItem: {

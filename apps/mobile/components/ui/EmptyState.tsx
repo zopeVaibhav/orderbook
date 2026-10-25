@@ -37,7 +37,7 @@ export function EmptyState({
                     label={actionLabel}
                     onPress={onAction}
                     variant="outline"
-                    size="md"
+                    size="sm"
                     style={styles.action}
                 />
             ) : null}

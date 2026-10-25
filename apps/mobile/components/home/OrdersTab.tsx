@@ -1,4 +1,4 @@
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { ClipboardList } from 'lucide-react-native';
 import type { UserOrder } from '@repo/types';
@@ -11,6 +11,7 @@ import { Text } from '@/components/ui/Text';
 import { useCancelOrder, useOpenOrders } from '@/hooks/queries/useAccount';
 import { formatPrice, formatRelative, formatSize } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
+import { dialog } from '@/store/dialog';
 import { Radius, Spacing, useTheme } from '@/theme';
 
 function OrderRow({ order }: { order: UserOrder }) {
@@ -21,23 +22,20 @@ function OrderRow({ order }: { order: UserOrder }) {
     const filled = parseFloat(order.filledQuantity);
     const progress = quantity > 0 ? filled / quantity : 0;
 
-    const onCancel = () =>
-        Alert.alert(
-            'Cancel order?',
-            `${buy ? 'Buy' : 'Sell'} ${formatSize(quantity)} ${order.base}`,
-            [
-                { text: 'Keep', style: 'cancel' },
-                {
-                    text: 'Cancel order',
-                    style: 'destructive',
-                    onPress: () =>
-                        cancel.mutate(order.clientOrderId, {
-                            onSuccess: () => haptic.success(),
-                            onError: () => haptic.error(),
-                        }),
-                },
-            ],
-        );
+    const onCancel = async () => {
+        const confirmed = await dialog.confirm({
+            title: 'Cancel order?',
+            message: `${buy ? 'Buy' : 'Sell'} ${formatSize(quantity)} ${order.base}`,
+            confirmLabel: 'Cancel order',
+            cancelLabel: 'Keep',
+            destructive: true,
+        });
+        if (!confirmed) return;
+        cancel.mutate(order.clientOrderId, {
+            onSuccess: () => haptic.success(),
+            onError: () => haptic.error(),
+        });
+    };
 
     return (
         <PressableScale
@@ -88,7 +86,7 @@ function OrderRow({ order }: { order: UserOrder }) {
                 <Button
                     label="Cancel"
                     variant="outline"
-                    size="md"
+                    size="sm"
                     loading={cancel.isPending}
                     onPress={onCancel}
                     style={styles.cancel}

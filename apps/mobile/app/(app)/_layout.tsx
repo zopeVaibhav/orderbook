@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { useLiveFeed } from '@/hooks/useLiveFeed';
-import { useTheme } from '@/theme';
+import { Radius, useTheme } from '@/theme';
 
 export default function AppLayout() {
     const { colors } = useTheme();
@@ -20,7 +20,7 @@ export default function AppLayout() {
                 options={{
                     presentation: 'formSheet',
                     sheetAllowedDetents: 'fitToContents',
-                    sheetCornerRadius: 20,
+                    sheetCornerRadius: Radius['2xl'],
                     sheetGrabberVisible: true,
                     contentStyle: { backgroundColor: colors.background },
                 }}

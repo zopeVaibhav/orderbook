@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { X } from 'lucide-react-native';
-import { CandleChart } from '@/components/chart/CandleChart';
+import { InteractiveChart } from '@/components/chart/InteractiveChart';
 import { ChartToolbar } from '@/components/chart/ChartToolbar';
 import { ChangePill } from '@/components/market/ChangePill';
 import { LiveBadge } from '@/components/market/LiveBadge';
@@ -76,7 +76,8 @@ export default function ChartScreen() {
                 }
             >
                 {size.width > 0 && candles.length > 0 ? (
-                    <CandleChart
+                    <InteractiveChart
+                        key={`${interval.key}:${mode}`}
                         candles={candles}
                         width={size.width}
                         height={size.height}

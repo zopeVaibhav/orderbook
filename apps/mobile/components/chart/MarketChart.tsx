@@ -8,7 +8,7 @@ import { DEFAULT_INTERVAL, INTERVALS } from '@/lib/chart/intervals';
 import { useCandles } from '@/store/candles';
 import { usePreferences } from '@/store/preferences';
 import { Spacing } from '@/theme';
-import { CandleChart } from './CandleChart';
+import { InteractiveChart } from './InteractiveChart';
 import { ChartToolbar } from './ChartToolbar';
 
 const HEIGHT = 200;
@@ -39,7 +39,8 @@ export function MarketChart({
                         <Text tone="muted">No trades in this window yet</Text>
                     </View>
                 ) : (
-                    <CandleChart
+                    <InteractiveChart
+                        key={`${interval.key}:${mode}`}
                         candles={candles}
                         width={width}
                         height={HEIGHT}

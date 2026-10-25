@@ -15,6 +15,9 @@ import { SkiaChart } from './SkiaChart';
 
 const HEIGHT = 210;
 const SLOT = 7;
+const EXPAND_SIZE = 34;
+const EXPAND_EDGE = 6;
+const LATEST_INSET = { right: EXPAND_EDGE + EXPAND_SIZE + 8, bottom: EXPAND_EDGE };
 
 export function MarketChart({
     marketId,
@@ -52,6 +55,7 @@ export function MarketChart({
                         intervalMs={interval.ms}
                         reference={reference}
                         initialSlot={SLOT}
+                        latestInset={LATEST_INSET}
                     />
                 )}
                 {marketId ? (
@@ -87,11 +91,11 @@ const styles = StyleSheet.create({
     empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     expand: {
         position: 'absolute',
-        right: 6,
-        bottom: 6,
-        width: 34,
-        height: 34,
-        borderRadius: 17,
+        right: EXPAND_EDGE,
+        bottom: EXPAND_EDGE,
+        width: EXPAND_SIZE,
+        height: EXPAND_SIZE,
+        borderRadius: EXPAND_SIZE / 2,
         borderWidth: 1,
         alignItems: 'center',
         justifyContent: 'center',

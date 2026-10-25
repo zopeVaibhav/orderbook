@@ -58,6 +58,7 @@ interface SkiaChartProps {
     axes?: boolean;
     reference?: number | null;
     initialSlot?: number;
+    latestInset?: { right: number; bottom: number };
 }
 
 const AXIS_W = 66;
@@ -142,6 +143,7 @@ export function SkiaChart({
     axes = false,
     reference = null,
     initialSlot = 8,
+    latestInset,
 }: SkiaChartProps) {
     const { colors } = useTheme();
     const font = useFont(GEIST, 10);
@@ -531,8 +533,8 @@ export function SkiaChart({
                     style={[
                         styles.latest,
                         {
-                            right: axes ? AXIS_W + 10 : 10,
-                            bottom: axes ? TIME_H + 10 : 10,
+                            right: latestInset?.right ?? (axes ? AXIS_W + 10 : 10),
+                            bottom: latestInset?.bottom ?? (axes ? TIME_H + 10 : 10),
                             backgroundColor: colors.card,
                             borderColor: colors.border,
                         },

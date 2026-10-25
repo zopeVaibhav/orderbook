@@ -15,6 +15,7 @@ export default function AppLayout() {
         >
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="market/[id]" />
+            <Stack.Screen name="chart/[id]" options={{ animation: 'slide_from_bottom' }} />
             <Stack.Screen name="settings" />
             <Stack.Screen name="profile" />
             <Stack.Screen name="search" options={{ animation: 'fade' }} />

@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useSharedValue } from 'react-native-reanimated';
+import { MarketChart } from '@/components/chart/MarketChart';
 import { CoinBadge } from '@/components/market/CoinBadge';
 import { LivePrice } from '@/components/market/LivePrice';
 import { MarketOverview } from '@/components/market/MarketOverview';
 import { MarketTopBar } from '@/components/market/MarketTopBar';
 import { OrderBook } from '@/components/market/OrderBook';
-import { PriceChart } from '@/components/market/PriceChart';
 import { TradeTape } from '@/components/market/TradeTape';
 import { CollapsingScreen } from '@/components/ui/CollapsingScreen';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -68,7 +68,7 @@ export default function MarketScreen() {
                     </Text>
                 </View>
             )}
-            <PriceChart reference={open} />
+            <MarketChart marketId={id} reference={open} />
         </View>
     );
 

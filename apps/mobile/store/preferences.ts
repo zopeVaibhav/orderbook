@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import type { CandleInterval } from '@repo/types';
 
 const RECENT_LIMIT = 8;
 
@@ -13,6 +14,8 @@ interface PreferencesState {
     notificationsSeenAt: number;
     recentMarkets: string[];
     recentSearches: string[];
+    chartMode: 'line' | 'candles';
+    chartInterval: CandleInterval;
     hydrated: boolean;
     setThemeMode: (mode: ThemeMode) => void;
     setHaptics: (enabled: boolean) => void;
@@ -21,6 +24,8 @@ interface PreferencesState {
     pushRecentMarket: (marketId: string) => void;
     pushRecentSearch: (query: string) => void;
     clearRecentSearches: () => void;
+    setChartMode: (mode: 'line' | 'candles') => void;
+    setChartInterval: (interval: CandleInterval) => void;
 }
 
 export const usePreferences = create<PreferencesState>()(
@@ -32,6 +37,8 @@ export const usePreferences = create<PreferencesState>()(
             notificationsSeenAt: 0,
             recentMarkets: [],
             recentSearches: [],
+            chartMode: 'candles',
+            chartInterval: '1m',
             hydrated: false,
             setThemeMode: (themeMode) => set({ themeMode }),
             setHaptics: (haptics) => set({ haptics }),
@@ -52,6 +59,8 @@ export const usePreferences = create<PreferencesState>()(
                     ].slice(0, RECENT_LIMIT),
                 })),
             clearRecentSearches: () => set({ recentSearches: [] }),
+            setChartMode: (chartMode) => set({ chartMode }),
+            setChartInterval: (chartInterval) => set({ chartInterval }),
         }),
         {
             name: 'orderbook.preferences',

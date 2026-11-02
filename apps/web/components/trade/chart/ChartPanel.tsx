@@ -4,7 +4,7 @@ import MarketHeader from './MarketHeader';
 
 export default function ChartPanel({ onToggleMarkets }: { onToggleMarkets: () => void }) {
     return (
-        <div className="flex min-w-0 flex-1 flex-col rounded-md border border-border">
+        <div className="flex h-[420px] min-w-0 flex-none flex-col rounded-md border border-border md:h-auto md:flex-1">
             <MarketHeader onToggleMarkets={onToggleMarkets} />
             <ChartCanvas />
             <ChartFooter />

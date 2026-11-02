@@ -37,7 +37,7 @@ export default function ChartFooter() {
             ))}
             <div className="ml-auto flex items-center gap-2 text-muted-foreground tabular-nums">
                 {now && <span className="text-foreground">{now}</span>}
-                <span>Local</span>
+                <span className="hidden sm:inline">Local</span>
             </div>
         </div>
     );

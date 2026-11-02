@@ -124,7 +124,7 @@ export default function OrderBookPanel() {
     const markColor = lastTrade?.side === 'ASK' ? 'text-loss' : 'text-profit';
 
     return (
-        <div className="flex w-[320px] shrink-0 flex-col overflow-hidden rounded-md border border-border">
+        <div className="flex h-[460px] w-full shrink-0 flex-col overflow-hidden rounded-md border border-border md:h-auto md:w-[280px] xl:w-[320px]">
             <Tabs value={active} onValueChange={(v) => setActive(v as Tab)}>
                 <TabsList>
                     <TabsTrigger value="book">Order Book</TabsTrigger>

@@ -3,6 +3,7 @@ import { EngineEventType } from '../kafka/kafka.enums';
 export const ClientMessageType = {
     SUBSCRIBE: 'subscribe',
     AUTH: 'auth',
+    TICKERS: 'tickers',
 } as const;
 export type ClientMessageType = (typeof ClientMessageType)[keyof typeof ClientMessageType];
 

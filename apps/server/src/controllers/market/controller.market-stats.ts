@@ -9,6 +9,8 @@ type StatsRow = {
     volume: Prisma.Decimal | null;
     open_price: Prisma.Decimal;
     last_price: Prisma.Decimal;
+    high_price: Prisma.Decimal;
+    low_price: Prisma.Decimal;
 };
 
 export default class MarketStatsController {
@@ -20,7 +22,9 @@ export default class MarketStatsController {
                 SELECT "marketId",
                        SUM(price * quantity) AS volume,
                        (array_agg(price ORDER BY ts ASC, "tradeId" ASC))[1] AS open_price,
-                       (array_agg(price ORDER BY ts DESC, "tradeId" DESC))[1] AS last_price
+                       (array_agg(price ORDER BY ts DESC, "tradeId" DESC))[1] AS last_price,
+                       MAX(price) AS high_price,
+                       MIN(price) AS low_price
                 FROM "Trade"
                 WHERE ts >= ${since}
                 GROUP BY "marketId"
@@ -37,6 +41,8 @@ export default class MarketStatsController {
                     openPrice: open.toString(),
                     change24h: change,
                     volume24h: (row.volume ?? new Prisma.Decimal(0)).toString(),
+                    high24h: row.high_price.toString(),
+                    low24h: row.low_price.toString(),
                 };
             });
 

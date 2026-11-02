@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { AnimatePresence, motion } from 'motion/react';
+import { X } from 'lucide-react';
 import { useForm, useWatch, type FieldPath, type PathValue } from 'react-hook-form';
 import { OrderKind, Side as ApiSide, TimeInForce as ApiTimeInForce } from '@repo/types';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMarket } from '@/hooks/market/useMarkets';
+import { useKeyboardShortcut } from '@/hooks/ui/useKeyboardShortcut';
+import { useMediaQuery } from '@/hooks/ui/useMediaQuery';
+import { useScrollLock } from '@/hooks/ui/useScrollLock';
 import { placeOrderErrorMessage, usePlaceOrder } from '@/hooks/orders/usePlaceOrder';
 import { formatUsd } from '@/lib/format';
 import { minQuantityOf, stepFor, validatePrice, validateQuantity } from '@/lib/order/orderRules';
@@ -74,7 +78,24 @@ export default function TradePanel() {
 
     const fill = useOrderEntryStore((state) => state.fill);
     const clearFill = useOrderEntryStore((state) => state.clearFill);
+    const sideRequest = useOrderEntryStore((state) => state.sideRequest);
+    const clearSideRequest = useOrderEntryStore((state) => state.clearSideRequest);
+    const sheetOpen = useOrderEntryStore((state) => state.sheetOpen);
+    const closeSheet = useOrderEntryStore((state) => state.closeSheet);
     const resetPlaceOrder = placeOrder.reset;
+
+    const isSheet = useMediaQuery('(width < 64rem)');
+    const sheetShown = isSheet && sheetOpen;
+
+    useScrollLock(sheetShown);
+    useKeyboardShortcut('escape', closeSheet, { enabled: sheetShown, allowInInput: true });
+
+    useEffect(() => {
+        if (!sideRequest) return;
+        setValue('side', sideRequest, { shouldValidate: true });
+        resetPlaceOrder();
+        clearSideRequest();
+    }, [sideRequest, clearSideRequest, setValue, resetPlaceOrder]);
 
     useEffect(() => {
         if (!fill) return;
@@ -119,7 +140,12 @@ export default function TradePanel() {
                 price: values.orderType === 'limit' ? values.price.trim() : undefined,
                 quantity: values.quantity.trim(),
             },
-            { onSuccess: () => resetField('quantity') },
+            {
+                onSuccess: () => {
+                    resetField('quantity');
+                    closeSheet();
+                },
+            },
         );
     });
 
@@ -141,185 +167,215 @@ export default function TradePanel() {
     });
 
     return (
-        <form onSubmit={onSubmit} className="flex w-[320px] shrink-0 flex-col gap-2">
-            <div className="flex flex-col overflow-hidden rounded-md border border-border">
-                <Tabs value={side} onValueChange={(v) => set('side', v as Side)}>
-                    <TabsList>
-                        <TabsTrigger value="bid" className="data-active:text-profit">
-                            Buy
-                        </TabsTrigger>
-                        <TabsTrigger value="ask" className="data-active:text-loss">
-                            Sell
-                        </TabsTrigger>
-                    </TabsList>
-                </Tabs>
+        <>
+            <div
+                aria-hidden
+                onClick={closeSheet}
+                className={`fixed inset-0 z-40 bg-black/60 transition-opacity duration-300 lg:hidden ${
+                    sheetOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+                }`}
+            />
+            <form
+                onSubmit={onSubmit}
+                className={`flex shrink-0 flex-col gap-2 max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-50 max-lg:mx-auto max-lg:max-h-[90dvh] max-lg:max-w-lg max-lg:overflow-y-auto max-lg:overscroll-contain max-lg:rounded-t-xl max-lg:border-t max-lg:border-border max-lg:bg-background max-lg:p-2 max-lg:pb-[calc(0.5rem+env(safe-area-inset-bottom))] max-lg:transition-[translate,visibility] max-lg:duration-300 max-lg:ease-out lg:w-[280px] xl:w-[320px] ${
+                    sheetOpen ? '' : 'max-lg:invisible max-lg:translate-y-full'
+                }`}
+            >
+                <div className="flex items-center justify-between pl-1 lg:hidden">
+                    <span className="text-sm font-semibold">
+                        {market ? `${market.symbol}/${market.quote}` : '—'}
+                    </span>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-lg"
+                        aria-label="Close order form"
+                        onClick={closeSheet}
+                    >
+                        <X />
+                    </Button>
+                </div>
+                <div className="flex flex-col overflow-hidden rounded-md border border-border">
+                    <Tabs value={side} onValueChange={(v) => set('side', v as Side)}>
+                        <TabsList>
+                            <TabsTrigger value="bid" className="data-active:text-profit">
+                                Buy
+                            </TabsTrigger>
+                            <TabsTrigger value="ask" className="data-active:text-loss">
+                                Sell
+                            </TabsTrigger>
+                        </TabsList>
+                    </Tabs>
 
-                <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto p-3">
-                    <div className="flex items-center gap-1">
-                        {(['limit', 'market'] as OrderTypeTab[]).map((t) => (
-                            <Button
-                                key={t}
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => set('orderType', t)}
-                                className={`capitalize ${
-                                    orderType === t
-                                        ? 'bg-muted/30 font-semibold text-foreground shadow-sm'
-                                        : 'text-muted-foreground'
-                                }`}
-                            >
-                                {t}
-                            </Button>
-                        ))}
-                    </div>
+                    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto p-3">
+                        <div className="flex items-center gap-1">
+                            {(['limit', 'market'] as OrderTypeTab[]).map((t) => (
+                                <Button
+                                    key={t}
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => set('orderType', t)}
+                                    className={`capitalize ${
+                                        orderType === t
+                                            ? 'bg-muted/30 font-semibold text-foreground shadow-sm'
+                                            : 'text-muted-foreground'
+                                    }`}
+                                >
+                                    {t}
+                                </Button>
+                            ))}
+                        </div>
 
-                    <BalanceAccount side={side} />
+                        <BalanceAccount side={side} />
 
-                    {isLimit && (
+                        {isLimit && (
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs text-muted-foreground/60">Price</label>
+                                <div className="relative">
+                                    <Input
+                                        type="number"
+                                        inputMode="decimal"
+                                        min={0}
+                                        step={market ? stepFor(market.tickExp) : 'any'}
+                                        placeholder="0.00"
+                                        className="h-10 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                        {...register('price', {
+                                            ...requireMarket(validatePrice),
+                                            shouldUnregister: true,
+                                            onChange: clearResult,
+                                        })}
+                                    />
+                                    <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center">
+                                        <div className="flex h-5 aspect-square items-center justify-center rounded-full bg-green-600 text-xs font-semibold text-white">
+                                            $
+                                        </div>
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs text-muted-foreground/60">Price</label>
+                            <label className="text-xs text-muted-foreground/60">Quantity</label>
                             <div className="relative">
                                 <Input
                                     type="number"
                                     inputMode="decimal"
                                     min={0}
-                                    step={market ? stepFor(market.tickExp) : 'any'}
+                                    step={market ? stepFor(market.lotExp) : 'any'}
                                     placeholder="0.00"
-                                    className="h-10 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                                    {...register('price', {
-                                        ...requireMarket(validatePrice),
-                                        shouldUnregister: true,
+                                    className="h-10 pr-12 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                    {...register('quantity', {
+                                        ...requireMarket(validateQuantity),
                                         onChange: clearResult,
                                     })}
                                 />
                                 <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center">
-                                    <div className="flex h-5 aspect-square items-center justify-center rounded-full bg-green-600 text-xs font-semibold text-white">
-                                        $
-                                    </div>
+                                    {market?.iconSrc ? (
+                                        <Image
+                                            src={market.iconSrc}
+                                            alt={market.symbol}
+                                            width={20}
+                                            height={20}
+                                        />
+                                    ) : (
+                                        <span className="text-xs text-muted-foreground">
+                                            {market?.symbol}
+                                        </span>
+                                    )}
                                 </span>
                             </div>
+                            {market && (
+                                <span className="text-[10px] text-muted-foreground/60">
+                                    Min {minQuantityOf(market)} {market.symbol}
+                                </span>
+                            )}
                         </div>
-                    )}
 
-                    <div className="flex flex-col gap-1">
-                        <label className="text-xs text-muted-foreground/60">Quantity</label>
-                        <div className="relative">
-                            <Input
-                                type="number"
-                                inputMode="decimal"
-                                min={0}
-                                step={market ? stepFor(market.lotExp) : 'any'}
-                                placeholder="0.00"
-                                className="h-10 pr-12 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                                {...register('quantity', {
-                                    ...requireMarket(validateQuantity),
-                                    onChange: clearResult,
-                                })}
-                            />
-                            <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center">
-                                {market?.iconSrc ? (
-                                    <Image
-                                        src={market.iconSrc}
-                                        alt={market.symbol}
-                                        width={20}
-                                        height={20}
+                        {isLimit && (
+                            <div className="flex items-center justify-between text-sm">
+                                <div className="flex items-center gap-1">
+                                    {TIF_OPTIONS.map((t) => (
+                                        <Button
+                                            key={t.key}
+                                            type="button"
+                                            variant="ghost"
+                                            size="xs"
+                                            disabled={postOnly}
+                                            onClick={() => set('tif', t.key)}
+                                            className={`${
+                                                tif === t.key && !postOnly
+                                                    ? 'bg-muted font-medium text-foreground'
+                                                    : 'text-muted-foreground'
+                                            }`}
+                                        >
+                                            {t.label}
+                                        </Button>
+                                    ))}
+                                </div>
+                                <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
+                                    <Checkbox
+                                        checked={postOnly}
+                                        onCheckedChange={(v) => set('postOnly', !!v)}
                                     />
-                                ) : (
-                                    <span className="text-xs text-muted-foreground">
-                                        {market?.symbol}
-                                    </span>
-                                )}
-                            </span>
-                        </div>
-                        {market && (
-                            <span className="text-[10px] text-muted-foreground/60">
-                                Min {minQuantityOf(market)} {market.symbol}
-                            </span>
-                        )}
-                    </div>
-
-                    {isLimit && (
-                        <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-1">
-                                {TIF_OPTIONS.map((t) => (
-                                    <Button
-                                        key={t.key}
-                                        type="button"
-                                        variant="ghost"
-                                        size="xs"
-                                        disabled={postOnly}
-                                        onClick={() => set('tif', t.key)}
-                                        className={`${
-                                            tif === t.key && !postOnly
-                                                ? 'bg-muted font-medium text-foreground'
-                                                : 'text-muted-foreground'
-                                        }`}
-                                    >
-                                        {t.label}
-                                    </Button>
-                                ))}
+                                    Post Only
+                                </label>
                             </div>
-                            <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
-                                <Checkbox
-                                    checked={postOnly}
-                                    onCheckedChange={(v) => set('postOnly', !!v)}
-                                />
-                                Post Only
-                            </label>
-                        </div>
-                    )}
-
-                    <div className="flex items-baseline justify-between text-sm text-muted-foreground">
-                        <span>Order Value</span>
-                        <span className="text-foreground">
-                            {Number.isFinite(orderValue) && orderValue > 0
-                                ? `$${formatUsd(orderValue)}`
-                                : '—'}
-                        </span>
-                    </div>
-
-                    <AnimatePresence>
-                        {status && (
-                            <motion.p
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className={`text-xs ${status.tone === 'error' ? 'text-loss' : 'text-profit'}`}
-                            >
-                                {status.text}
-                            </motion.p>
                         )}
-                    </AnimatePresence>
 
-                    {signedIn ? (
-                        <Button
-                            type="submit"
-                            size="lg"
-                            disabled={!market || !formState.isValid || placeOrder.isPending}
-                            className={`mt-auto font-semibold text-foreground ${
-                                side === 'bid'
-                                    ? 'bg-profit hover:bg-profit'
-                                    : 'bg-loss hover:bg-loss'
-                            }`}
-                        >
-                            {placeOrder.isPending
-                                ? 'Placing…'
-                                : `${side === 'bid' ? 'Buy' : 'Sell'} ${market?.symbol ?? ''}`}
-                        </Button>
-                    ) : (
-                        <Button
-                            type="button"
-                            size="lg"
-                            onClick={() => signIn('google')}
-                            className="mt-auto font-semibold"
-                        >
-                            Sign in to trade
-                        </Button>
-                    )}
+                        <div className="flex items-baseline justify-between text-sm text-muted-foreground">
+                            <span>Order Value</span>
+                            <span className="text-foreground">
+                                {Number.isFinite(orderValue) && orderValue > 0
+                                    ? `$${formatUsd(orderValue)}`
+                                    : '—'}
+                            </span>
+                        </div>
+
+                        <AnimatePresence>
+                            {status && (
+                                <motion.p
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className={`text-xs ${status.tone === 'error' ? 'text-loss' : 'text-profit'}`}
+                                >
+                                    {status.text}
+                                </motion.p>
+                            )}
+                        </AnimatePresence>
+
+                        {signedIn ? (
+                            <Button
+                                type="submit"
+                                size="lg"
+                                disabled={!market || !formState.isValid || placeOrder.isPending}
+                                className={`mt-auto font-semibold text-foreground ${
+                                    side === 'bid'
+                                        ? 'bg-profit hover:bg-profit'
+                                        : 'bg-loss hover:bg-loss'
+                                }`}
+                            >
+                                {placeOrder.isPending
+                                    ? 'Placing…'
+                                    : `${side === 'bid' ? 'Buy' : 'Sell'} ${market?.symbol ?? ''}`}
+                            </Button>
+                        ) : (
+                            <Button
+                                type="button"
+                                size="lg"
+                                onClick={() => signIn('google')}
+                                className="mt-auto font-semibold"
+                            >
+                                Sign in to trade
+                            </Button>
+                        )}
+                    </div>
                 </div>
-            </div>
-            <RecentFills />
-        </form>
+                <div className="hidden min-h-0 flex-1 flex-col lg:flex">
+                    <RecentFills />
+                </div>
+            </form>
+        </>
     );
 }

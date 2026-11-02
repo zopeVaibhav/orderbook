@@ -14,7 +14,7 @@ type NavbarProps = {
 export default function Navbar({ location }: NavbarProps) {
     const user = useUserSessionStore((state) => state.user);
     return (
-        <div className="flex h-14 shrink-0 items-center justify-between gap-4 px-3">
+        <div className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-2 bg-background px-3 sm:gap-4">
             <Link href="/" className="text-lg font-semibold">
                 Orderbook
             </Link>
@@ -32,7 +32,7 @@ export default function Navbar({ location }: NavbarProps) {
                         width={30}
                         height={30}
                         unoptimized
-                        className="rounded-full cursor-pointer"
+                        className="hidden rounded-full cursor-pointer sm:block"
                     />
                     <Button onClick={() => signOut()} className="shrink-0">
                         Sign Out

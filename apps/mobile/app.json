@@ -1,0 +1,55 @@
+{
+    "expo": {
+        "name": "Orderbook",
+        "slug": "orderbook",
+        "scheme": "orderbook",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/icon.png",
+        "userInterfaceStyle": "automatic",
+        "plugins": [
+            "expo-router",
+            "expo-secure-store",
+            "expo-font",
+            [
+                "expo-splash-screen",
+                {
+                    "image": "./assets/splash-icon.png",
+                    "imageWidth": 120,
+                    "resizeMode": "contain",
+                    "backgroundColor": "#ffffff",
+                    "dark": {
+                        "image": "./assets/splash-icon.png",
+                        "backgroundColor": "#1a1a1a"
+                    }
+                }
+            ],
+            [
+                "@react-native-google-signin/google-signin",
+                {
+                    "iosUrlScheme": "com.googleusercontent.apps.635130454583-4jn4cabitkschjhtsleccaslq2d2os5n"
+                }
+            ]
+        ],
+        "experiments": {
+            "typedRoutes": true
+        },
+        "ios": {
+            "supportsTablet": false,
+            "bundleIdentifier": "com.orderbook.app"
+        },
+        "android": {
+            "package": "com.orderbook.app",
+            "adaptiveIcon": {
+                "backgroundColor": "#1a1a1a",
+                "foregroundImage": "./assets/android-icon-foreground.png",
+                "backgroundImage": "./assets/android-icon-background.png",
+                "monochromeImage": "./assets/android-icon-monochrome.png"
+            },
+            "predictiveBackGestureEnabled": false
+        },
+        "web": {
+            "favicon": "./assets/favicon.png"
+        }
+    }
+}

@@ -3,6 +3,7 @@ import MarketController from '../../controllers/market/controller.market';
 import BookController from '../../controllers/market/controller.book';
 import MarketStatsController from '../../controllers/market/controller.market-stats';
 import TradesController from '../../controllers/market/controller.trades';
+import CandlesController from '../../controllers/market/controller.candles';
 import MakerToggleController from '../../controllers/market/controller.maker-toggle';
 import AuthMiddleware from '../../middlewares/middleware.auth';
 
@@ -12,6 +13,7 @@ router.get('/markets', MarketController.process);
 router.get('/markets/stats', MarketStatsController.process);
 router.get('/markets/:marketId/book', BookController.process);
 router.get('/markets/:marketId/trades', TradesController.process);
+router.get('/markets/:marketId/candles', CandlesController.process);
 router.patch('/markets/:marketId/maker', AuthMiddleware.process, MakerToggleController.process);
 
 export default router;

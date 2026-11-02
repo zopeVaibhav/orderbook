@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import AuthProvider from '@/providers/AuthProvider';
@@ -18,6 +18,12 @@ export const metadata: Metadata = {
     title: 'Orderbook',
     description:
         'Trade spot markets on a real-time limit order book. Place orders, watch fills as they happen, and track balances across every market.',
+};
+
+export const viewport: Viewport = {
+    width: 'device-width',
+    initialScale: 1,
+    viewportFit: 'cover',
 };
 
 export default function RootLayout({

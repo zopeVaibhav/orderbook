@@ -41,6 +41,7 @@ export default function OrderHistoryTab() {
     return (
         <PanelTable
             columns={COLUMNS}
+            minWidth="min-w-[720px]"
             empty={empty}
             header={
                 <>
